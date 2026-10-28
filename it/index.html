@@ -1,0 +1,281 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Chiedi alla Gemmologa - Live · Elena Goglio</title>
+<meta name="description" content="Una chat live gestita da Elena Goglio, GIA Graduate Gemologist, nata per aumentare le vendite del tuo brand di gioielli. Instagram, WhatsApp, sito e garanzia.">
+<meta name="robots" content="noindex">
+<link rel="canonical" href="https://live.gemsandjewelrytechlab.com/it/">
+<link rel="alternate" hreflang="it" href="https://live.gemsandjewelrytechlab.com/it/">
+<link rel="alternate" hreflang="en" href="https://live.gemsandjewelrytechlab.com/">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Chiedi alla Gemmologa - Live">
+<meta property="og:description" content="Una chat live gestita da Elena Goglio, GIA Graduate Gemologist, nata per aumentare le vendite del tuo brand di gioielli. Instagram, WhatsApp, sito e garanzia.">
+<meta property="og:url" content="https://live.gemsandjewelrytechlab.com/it/">
+<meta property="og:image" content="https://live.gemsandjewelrytechlab.com/it/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="theme-color" content="#FFFFFF">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="icon" href="/favicon-32.png" sizes="32x32" type="image/png">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@0,6..96,400..600;1,6..96,400..600&family=Jost:wght@300..600&display=swap">
+<style>
+/* Layout: one calm column; the gold medallion opens, five phone-shaped demos sit in one row, the price closes. One light look, like the brand's chat. */
+:root{
+  --paper:#FFFFFF; --ink:#16181D; --muted:#5B606A; --line:#E7E4DC; --soft:#F6F4EF;
+  --gold-hi:#EDD596; --gold:#CBA44F; --gold-lo:#A9833A; --gold-edge:#8C6A2B; --gold-ink:#1C1406; --gold-sub:#47381A; --live:#1E7A4F;
+  --display:"Bodoni Moda","Bodoni 72",Didot,Georgia,serif;
+  --body:"Jost","Futura","Century Gothic","Helvetica Neue",Arial,sans-serif;
+  color-scheme:light;
+}
+*,*::before,*::after{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{background:var(--paper);color:var(--ink);font-family:var(--body);font-size:17px;line-height:1.5;-webkit-font-smoothing:antialiased}
+a{color:inherit}
+:focus-visible{outline:2px solid var(--gold-edge);outline-offset:3px}
+.wrap{padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.col{max-width:1060px;margin:0 auto}
+.gold{background:linear-gradient(140deg,var(--gold-hi) 0%,var(--gold) 55%,var(--gold-lo) 100%)}
+
+/* Hero */
+.hero{padding-block:44px 40px;display:grid;grid-template-columns:auto minmax(0,1fr);gap:40px;align-items:center}
+.medal{width:176px;height:176px;border-radius:50%;border:1px solid var(--gold-edge);display:flex;align-items:center;justify-content:center;box-shadow:0 18px 40px -18px rgba(120,86,20,.6)}
+.medal .ring{transform-origin:50px 50px;animation:spin 60s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.eyebrow{margin:0;font-size:13px;letter-spacing:.16em;text-transform:uppercase;color:var(--gold-edge);font-weight:500}
+.lead{padding-block:52px 0}
+.lead h1{margin:12px 0 0;font-family:var(--display);font-weight:400;font-size:clamp(34px,5.4vw,58px);line-height:1.06;letter-spacing:-.01em}
+.lead .l1{display:block;text-wrap:balance}
+.lead .l2{display:inline}
+.lead .sales{display:block;font-style:italic;font-size:2.1em;line-height:.95;letter-spacing:-.02em;color:var(--gold-edge);background:linear-gradient(140deg,#C49A45 0%,#A9833A 45%,#7A5A20 100%);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;padding-bottom:.06em}
+.hl{margin:0;font-family:var(--display);font-weight:400;font-size:clamp(28px,4.4vw,44px);line-height:1.08;letter-spacing:-.01em;text-wrap:balance}
+.hl em{display:block;font-style:italic;color:var(--gold-edge)}
+.sub{margin:16px 0 0;font-size:18px;color:var(--muted);max-width:42ch}
+.ctas{display:flex;flex-wrap:wrap;gap:12px;margin-top:26px}
+.btn{display:inline-flex;align-items:center;gap:10px;min-height:52px;padding:0 24px;border-radius:999px;text-decoration:none;font-weight:500;font-size:16px;letter-spacing:.01em}
+.btn.primary{color:var(--gold-ink);border:1px solid var(--gold-edge);box-shadow:0 10px 24px -12px rgba(120,86,20,.7)}
+.btn.ghost{border:1px solid var(--ink);color:var(--ink)}
+.btn.ghost .dot{width:9px;height:9px;border-radius:50%;background:var(--live)}
+.by{margin:18px 0 0;font-size:14px;color:var(--muted)}
+
+/* Demos */
+.demos{padding-block:48px 52px;background:var(--soft);border-block:1px solid var(--line)}
+h2{margin:0;font-family:var(--display);font-weight:400;font-size:clamp(28px,4.4vw,40px);line-height:1.1;text-wrap:balance}
+.dhead{display:flex;align-items:baseline;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.dhead p{margin:0;font-size:15px;color:var(--muted)}
+.reel{margin-top:24px;display:flex;gap:18px;overflow-x:auto;scroll-snap-type:x mandatory;padding-bottom:8px;-webkit-overflow-scrolling:touch}
+.demo{flex:0 0 190px;scroll-snap-align:start;display:flex;flex-direction:column;gap:12px;margin:0}
+.phone{aspect-ratio:9/16;width:100%;max-width:100%;border-radius:24px;overflow:hidden;background:var(--ink);border:4px solid var(--ink);box-shadow:0 18px 34px -22px rgba(22,24,29,.7)}
+.phone video{width:100%;height:100%;object-fit:cover;display:block}
+.demo figcaption{font-size:15px;font-weight:500}
+
+/* Price */
+.price{padding-block:52px 36px;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:28px;align-items:start}
+.tag{border-radius:22px;border:1px solid var(--gold-edge);padding:28px 28px 26px;color:var(--gold-ink);box-shadow:0 20px 44px -26px rgba(120,86,20,.7)}
+.tag .k{font-size:12.5px;letter-spacing:.16em;text-transform:uppercase;font-weight:600;display:flex;align-items:center;gap:8px}
+.tag .k i{width:10px;height:10px;border-radius:50%;background:var(--live);border:2px solid #fff;display:block}
+.amount{font-family:var(--display);font-size:clamp(56px,9vw,84px);line-height:1;margin-top:14px;font-variant-numeric:lining-nums}
+.amount small{font-family:var(--body);font-size:18px;font-weight:500;margin-left:6px}
+.unl{font-size:19px;font-weight:500;margin-top:8px}
+.onb{margin-top:18px;padding-top:14px;border-top:1px solid rgba(28,20,6,.25);font-size:16px;display:flex;justify-content:space-between;gap:10px}
+.inc{list-style:none;margin:0;padding:0;display:flex;flex-direction:column}
+.inc li{display:flex;gap:14px;align-items:center;padding:14px 0;border-bottom:1px solid var(--line);font-size:17px}
+.inc li:first-child{padding-top:4px}
+.inc svg{flex:none}
+.meta{margin:16px 0 0;font-size:14.5px;color:var(--muted)}
+.meta b{color:var(--ink);font-weight:500}
+
+/* Launch price */
+.topbar{display:block;background:var(--ink);color:var(--gold-hi);text-decoration:none;text-align:center;font-size:14px;letter-spacing:.04em;padding-block:10px}
+.topbar b{font-weight:600}
+.launch{display:flex;flex-direction:column;gap:10px;margin-top:16px}
+.launch .lb{font-size:12px;letter-spacing:.16em;text-transform:uppercase;font-weight:600}
+.cd{display:flex;gap:8px}
+.cd .t{flex:1;min-width:0;background:var(--gold-ink);color:var(--gold-hi);border-radius:10px;padding:8px 4px 7px;display:flex;flex-direction:column;align-items:center;line-height:1.1}
+.cd .t b{font-family:var(--display);font-weight:400;font-size:30px;font-variant-numeric:tabular-nums lining-nums}
+.cd .t span{font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;opacity:.85;margin-top:3px}
+.cd .end{font-size:14px;font-weight:500}
+.amount s{font-family:var(--body);font-size:22px;font-weight:500;color:var(--gold-sub);margin-left:10px;text-decoration-thickness:2px}
+.lock{margin-top:10px;font-size:15px;line-height:1.45;color:var(--gold-sub)}
+.pay{margin-top:20px;display:flex;align-items:center;justify-content:center;gap:10px;min-height:56px;border-radius:999px;background:var(--gold-ink);color:var(--gold-hi);text-decoration:none;font-size:17px;font-weight:600;letter-spacing:.02em}
+.pay:hover{background:#000}
+.secure{margin-top:9px;text-align:center;font-size:13px;color:var(--gold-sub);display:flex;align-items:center;justify-content:center;gap:6px}
+
+/* Close */
+.close{padding-block:8px 56px}
+.closebox{border-top:1px solid var(--line);padding-top:30px;display:flex;flex-direction:column;align-items:flex-start;gap:18px}
+.closebox h3{margin:0;font-family:var(--display);font-weight:400;font-size:clamp(24px,3.6vw,32px);line-height:1.15}
+.contact{font-size:14.5px;color:var(--muted);margin-top:6px;user-select:all}
+
+@media (max-width:760px){
+  .lead{padding-block:32px 0}
+  .hero{grid-template-columns:minmax(0,1fr);gap:24px;padding-block:28px 32px}
+  .medal{width:132px;height:132px}
+  .medal svg{width:118px;height:118px}
+  .price{grid-template-columns:minmax(0,1fr)}
+  .demo{flex-basis:170px}
+}
+@media (prefers-reduced-motion:reduce){
+  html{scroll-behavior:auto}
+  .medal .ring{animation:none}
+}
+</style>
+</head>
+<body>
+<a class="topbar wrap" id="topbar" href="#price"><b>Prezzo Promo: €250 invece di €390</b> · <span id="cdTop">termina mercoledì 4 novembre alle 23:59</span></a>
+
+<div class="wrap">
+  <section class="col lead" aria-labelledby="lt">
+    <p class="eyebrow">Per i brand di gioielli</p>
+    <h1 id="lt"><span class="l1">Un servizio gestito da una gemmologa,</span> <span class="l2">nato per aumentare le tue</span> <span class="sales">vendite.</span></h1>
+  </section>
+  <header class="col hero">
+    <div class="medal gold" aria-hidden="true">
+      <svg viewBox="0 0 100 100" width="160" height="160">
+        <defs><path id="mring" d="M50,50 m-39,0 a39,39 0 1,1 78,0 a39,39 0 1,1 -78,0"></path></defs>
+        <circle cx="50" cy="50" r="47" fill="none" stroke="#1C1406" stroke-opacity=".3" stroke-width=".8"></circle>
+        <g class="ring"><text font-family="Jost, Futura, Helvetica, Arial, sans-serif" font-size="9.6" font-weight="600" fill="#1C1406"><textPath href="#mring" textLength="240" lengthAdjust="spacing">CHIEDI ALLA GEMMOLOGA · LIVE · </textPath></text></g>
+        <circle cx="50" cy="50" r="27" fill="#1C1406"></circle>
+        <g fill="none" stroke="#EDD596" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"><path d="M41 42 h18 l6 6.5 -15 14 -15 -14 z"></path><path d="M35 48.5 h30 M41 42 l4.5 6.5 4.5 -6.5 4.5 6.5 4.5 -6.5 M45.5 48.5 l4.5 14 4.5 -14"></path></g>
+      </svg>
+    </div>
+    <div>
+      <h2 class="hl">I tuoi clienti chiedono. <em>Una Gemmologa risponde.</em></h2>
+      <p class="sub">Una chat live dal tuo Instagram, WhatsApp, sito web e certificato di garanzia.</p>
+      <div class="ctas">
+        <a class="btn primary gold" href="#demos">Richiedi la demo
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14M6 13l6 6 6-6"></path></svg>
+        </a>
+        <a class="btn ghost" href="https://app.chatwoot.com/widget?website_token=SLHRomn7VGkyWwuFNu59EUDP&amp;locale=it" target="_blank" rel="noopener"><span class="dot" aria-hidden="true"></span>Prova la chat</a>
+      </div>
+      <p class="by">Elena Goglio · GIA Graduate Gemologist · AJP</p>
+    </div>
+  </header>
+</div>
+
+<section class="demos" id="demos" aria-labelledby="dt">
+  <div class="wrap"><div class="col">
+    <div class="dhead">
+      <h2 id="dt">Guarda le demo</h2>
+      <p>Meno di 20 secondi l’una</p>
+    </div>
+    <div class="reel">
+      <figure class="demo">
+        <div class="phone"><video src="videos/instagram.mp4" muted autoplay loop playsinline preload="auto" aria-label="Demo: dalla bio di Instagram alla chat"></video></div>
+        <figcaption>Bio di Instagram</figcaption>
+      </figure>
+      <figure class="demo">
+        <div class="phone"><video src="videos/website.mp4" muted autoplay loop playsinline preload="auto" aria-label="Demo: da un Reel alla scheda prodotto e alla chat"></video></div>
+        <figcaption>Scheda prodotto</figcaption>
+      </figure>
+      <figure class="demo">
+        <div class="phone"><video src="videos/whatsapp.mp4" muted autoplay loop playsinline preload="auto" aria-label="Demo: da WhatsApp alla chat"></video></div>
+        <figcaption>WhatsApp</figcaption>
+      </figure>
+      <figure class="demo">
+        <div class="phone"><video src="videos/warranty.mp4" muted autoplay loop playsinline preload="auto" aria-label="Demo: il QR code sul certificato di garanzia"></video></div>
+        <figcaption>QR sulla garanzia</figcaption>
+      </figure>
+      <figure class="demo">
+        <div class="phone"><video src="videos/booking.mp4" muted autoplay loop playsinline preload="auto" aria-label="Demo: prenotare un appuntamento in negozio dalla chat"></video></div>
+        <figcaption>Prenota in negozio</figcaption>
+      </figure>
+    </div>
+  </div></div>
+</section>
+
+<div class="wrap">
+  <section class="col price" id="price" aria-labelledby="pt">
+    <div class="tag gold">
+      <div class="k" id="pt"><i aria-hidden="true"></i>Chiedi alla Gemmologa - Live</div>
+      <div class="launch" id="launchBox">
+        <span class="lb">Il Prezzo Promo termina tra</span>
+        <div class="cd" id="cd"><span class="end">mercoledì 4 novembre alle 23:59</span></div>
+      </div>
+      <div class="amount"><span id="amt">€250</span><small>/ mese</small><s id="was">€390</s></div>
+      <div class="unl">Conversazioni illimitate</div>
+      <div class="lock" id="lock">Attiva entro il 4 novembre e mantieni €250 al mese. Dal 5 novembre il prezzo è €390.</div>
+      <div class="onb"><span>Onboarding</span><b>€300 una tantum</b></div>
+      <a class="pay" id="payBtn" href="https://buy.stripe.com/28E00j0n4exVctL3CQabK01" target="_blank" rel="noopener">Inizia ora
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"></path></svg>
+      </a>
+      <div class="secure"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"></rect><path d="M8 11V8a4 4 0 0 1 8 0v3"></path></svg>Pagamento sicuro con Stripe</div>
+    </div>
+    <div>
+      <ul class="inc">
+        <li><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#8C6A2B" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true"><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3h11A2.5 2.5 0 0 1 20 5.5v8a2.5 2.5 0 0 1-2.5 2.5H10l-4.2 3.6c-.5.4-1.3.1-1.3-.6V16A2.5 2.5 0 0 1 4 13.5v-8z"></path></svg>Chat live su tutti i tuoi canali</li>
+        <li><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#8C6A2B" stroke-width="1.8" aria-hidden="true"><rect x="3.5" y="3.5" width="17" height="17" rx="5"></rect><circle cx="12" cy="12" r="4"></circle></svg>Risposte automatiche nei DM di Instagram</li>
+        <li><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#8C6A2B" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="5" width="17" height="15.5" rx="2.5"></rect><path d="M3.5 10h17M8 3v4M16 3v4"></path></svg>Appuntamenti in negozio, con la scheda del cliente</li>
+        <li><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#8C6A2B" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true"><path d="M8 4h8l4 5-8 11L4 9z"></path><path d="M4 9h16"></path></svg>La scelta della Gemmologa: un video al mese</li>
+        <li><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#8C6A2B" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M5 20V10M12 20V4M19 20v-7"></path></svg>Report mensile</li>
+      </ul>
+      <p class="meta"><b>Lun–Ven, 9–18</b> · Altri giorni e orari su richiesta · Italiano, inglese, francese · Scelta della Gemmologa extra €90</p>
+    </div>
+  </section>
+
+  <section class="col close" aria-labelledby="ct">
+    <div class="closebox">
+      <div>
+        <h3 id="ct">Conosci Elena, <span style="white-space:nowrap">la tua Gemmologa.</span></h3>
+        <p class="contact">elena@gemsandjewelrytechlab.com · <span style="white-space:nowrap">+39 350 073 5723</span></p>
+      </div>
+      <div class="ctas" style="margin-top:0">
+        <a class="btn primary gold" href="https://calendar.app.google/BUyfVKK1xjSReoSc7" target="_blank" rel="noopener">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="5" width="17" height="15.5" rx="2.5"></rect><path d="M3.5 10h17M8 3v4M16 3v4"></path></svg>
+          Prenota una call
+        </a>
+        <a class="btn ghost" href="https://wa.me/393500735723?text=Buongiorno%20Elena%2C%20vorrei%20fissare%20una%20videochiamata%20WhatsApp%20per%20parlare%20di%20Chiedi%20alla%20Gemmologa%20-%20Live." target="_blank" rel="noopener">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1E7A4F" stroke-width="1.9" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="6.5" width="12" height="11" rx="2.5"></rect><path d="M15 10.5l6-3.5v10l-6-3.5z"></path></svg>
+          Videochiamata WhatsApp
+        </a>
+        <a class="btn ghost" href="https://www.linkedin.com/in/elenagoglio" target="_blank" rel="noopener">
+          <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><rect x="2" y="2" width="20" height="20" rx="4" fill="#0A66C2"></rect><path fill="#fff" d="M6.6 9.6h2.3V17H6.6zM7.75 6a1.33 1.33 0 1 1 0 2.66A1.33 1.33 0 0 1 7.75 6zM10.4 9.6h2.2v1h.03c.31-.58 1.06-1.2 2.18-1.2 2.33 0 2.76 1.53 2.76 3.53V17h-2.3v-3.6c0-.86-.02-1.97-1.2-1.97-1.2 0-1.38.94-1.38 1.9V17h-2.3z"></path></svg>
+          LinkedIn
+        </a>
+      </div>
+    </div>
+  </section>
+</div>
+
+<script>
+(function () {
+  /* Launch price ends Wednesday 4 November 2026 at 23:59:59 Italian time (CET, UTC+1) */
+  var END = Date.parse("2026-11-04T23:59:59+01:00");
+  /* Stripe payment links. First payment includes the one-off onboarding, then monthly only. */
+  var PAY_LAUNCH = "https://buy.stripe.com/28E00j0n4exVctL3CQabK01";   // €250/month + €300 onboarding, until 4 November
+  var PAY_FULL = "https://buy.stripe.com/00w5kD7Pw61p65n4GUabK00";     // €390/month + €300 onboarding, from 5 November
+  function setPay(url) { if (url) document.getElementById("payBtn").href = url; }
+  setPay(END > Date.now() ? PAY_LAUNCH : PAY_FULL);
+  var cd = document.getElementById("cd");
+  var cdTop = document.getElementById("cdTop");
+  var timer = null;
+  function pad(n) { return (n < 10 ? "0" : "") + n; }
+  function tile(v, label) { return '<span class="t"><b>' + pad(v) + '</b><span>' + label + '</span></span>'; }
+  function full() {
+    document.getElementById("amt").textContent = "€390";
+    document.getElementById("was").hidden = true;
+    document.getElementById("launchBox").hidden = true;
+    document.getElementById("lock").hidden = true;
+    document.getElementById("topbar").hidden = true;
+    setPay(PAY_FULL);
+    if (timer) clearInterval(timer);
+  }
+  function tick() {
+    var left = Math.floor((END - Date.now()) / 1000);
+    if (left <= 0) { full(); return; }
+    var d = Math.floor(left / 86400), h = Math.floor(left % 86400 / 3600), m = Math.floor(left % 3600 / 60), s = left % 60;
+    cd.innerHTML = tile(d, "giorni") + tile(h, "ore") + tile(m, "min") + tile(s, "sec");
+    cdTop.textContent = "termina tra " + d + "g " + h + "h " + pad(m) + "m";
+  }
+  tick();
+  if (END > Date.now()) timer = setInterval(tick, 1000);
+})();
+</script>
+
+</body>
+</html>

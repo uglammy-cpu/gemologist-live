@@ -112,6 +112,19 @@ h2{margin:0;font-family:var(--display);font-weight:400;font-size:clamp(28px,4.4v
 .closebox h3{margin:0;font-family:var(--display);font-weight:400;font-size:clamp(24px,3.6vw,32px);line-height:1.15}
 .contact{font-size:14.5px;color:var(--muted);margin-top:6px;user-select:all}
 
+/* Swipe hint: only when the five demos don't fit on screen */
+.swipe{display:none;align-items:center;gap:8px;margin:14px 0 0;padding:0;border:0;background:none;font:inherit;font-size:15px;font-weight:500;color:var(--gold-edge);cursor:pointer}
+.swipe svg{animation:nudge 1.3s ease-in-out infinite}
+@keyframes nudge{0%,100%{transform:translateX(0)}50%{transform:translateX(7px)}}
+.demos.scrolls .swipe{display:inline-flex}
+.demos.scrolls.atend .swipe svg{animation:none;transform:scaleX(-1)}
+.rdots{display:none;justify-content:center;gap:8px;margin-top:16px}
+.demos.scrolls .rdots{display:flex}
+.rdots i{width:8px;height:8px;border-radius:50%;background:#D8D2C2;transition:background .2s,transform .2s}
+.rdots i.on{background:var(--gold-edge);transform:scale(1.25)}
+.demos.scrolls:not(.atend) .reel{-webkit-mask-image:linear-gradient(90deg,#000 82%,transparent);mask-image:linear-gradient(90deg,#000 82%,transparent)}
+@media (prefers-reduced-motion:reduce){.swipe svg{animation:none}}
+
 @media (max-width:760px){
   .lead{padding-block:32px 0}
   .hero{grid-template-columns:minmax(0,1fr);gap:24px;padding-block:28px 32px}
@@ -151,7 +164,7 @@ h2{margin:0;font-family:var(--display);font-weight:400;font-size:clamp(28px,4.4v
         <a class="btn primary gold" href="#demos">Richiedi la demo
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14M6 13l6 6 6-6"></path></svg>
         </a>
-        <a class="btn ghost" href="https://app.chatwoot.com/widget?website_token=SLHRomn7VGkyWwuFNu59EUDP&amp;locale=it" target="_blank" rel="noopener"><span class="dot" aria-hidden="true"></span>Prova la chat</a>
+        <a class="btn ghost" href="/it/chat/"><span class="dot" aria-hidden="true"></span>Prova la chat</a>
       </div>
       <p class="by">Elena Goglio · GIA Graduate Gemologist · AJP</p>
     </div>
@@ -164,7 +177,8 @@ h2{margin:0;font-family:var(--display);font-weight:400;font-size:clamp(28px,4.4v
       <h2 id="dt">Guarda le demo</h2>
       <p>Meno di 20 secondi l’una</p>
     </div>
-    <div class="reel">
+    <button type="button" class="swipe" aria-controls="reel">Scorri per vederle tutte e 5 <svg width="22" height="14" viewBox="0 0 22 14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1 7h19M14 1l6 6-6 6"></path></svg></button>
+    <div class="reel" id="reel">
       <figure class="demo">
         <div class="phone"><video src="videos/instagram.mp4" muted autoplay loop playsinline preload="auto" aria-label="Demo: dalla bio di Instagram alla chat"></video></div>
         <figcaption>Bio di Instagram</figcaption>
@@ -186,6 +200,7 @@ h2{margin:0;font-family:var(--display);font-weight:400;font-size:clamp(28px,4.4v
         <figcaption>Prenota in negozio</figcaption>
       </figure>
     </div>
+    <div class="rdots" aria-hidden="true"><i class="on"></i><i></i><i></i><i></i><i></i></div>
   </div></div>
 </section>
 
@@ -277,5 +292,23 @@ h2{margin:0;font-family:var(--display);font-weight:400;font-size:clamp(28px,4.4v
 })();
 </script>
 
+<script>
+(function () {
+  var d = document.getElementById("demos"); if (!d) return;
+  var r = d.querySelector(".reel"), dots = d.querySelectorAll(".rdots i"), figs = r.querySelectorAll(".demo"), btn = d.querySelector(".swipe");
+  function step() { return figs.length > 1 ? figs[1].getBoundingClientRect().left - figs[0].getBoundingClientRect().left : r.clientWidth; }
+  function upd() {
+    var over = r.scrollWidth > r.clientWidth + 4, end = r.scrollLeft + r.clientWidth >= r.scrollWidth - 4;
+    d.classList.toggle("scrolls", over); d.classList.toggle("atend", over && end);
+    var i = end ? figs.length - 1 : Math.round(r.scrollLeft / step());
+    for (var k = 0; k < dots.length; k++) dots[k].classList.toggle("on", k === i);
+  }
+  btn.addEventListener("click", function () {
+    var end = r.scrollLeft + r.clientWidth >= r.scrollWidth - 4;
+    r.scrollBy({ left: end ? -r.scrollWidth : step(), behavior: "smooth" });
+  });
+  r.addEventListener("scroll", upd, { passive: true }); window.addEventListener("resize", upd); upd();
+})();
+</script>
 </body>
 </html>

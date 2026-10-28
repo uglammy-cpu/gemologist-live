@@ -94,7 +94,7 @@ a{color:inherit}
 
 /* Composer */
 .comp{flex:none;display:flex;gap:8px;align-items:flex-end;padding:10px 12px calc(10px + env(safe-area-inset-bottom,0px));border-top:1px solid var(--line);background:var(--paper)}
-.comp textarea{flex:1;min-width:0;resize:none;max-height:120px;min-height:46px;border:1px solid #DDD6C3;border-radius:23px;padding:12px 16px;font:inherit;font-size:16px;line-height:1.35;background:#FDFCF9}
+.comp textarea{flex:1;min-width:0;resize:none;max-height:120px;min-height:46px;border:1px solid #DDD6C3;border-radius:23px;padding:12px 16px;font:inherit;font-size:16px;line-height:1.35;background:#FDFCF9;overflow-y:hidden}
 .comp textarea:focus{outline:none;border-color:var(--gold)}
 .send{flex:none;width:46px;height:46px;border-radius:50%;border:1px solid var(--gold-edge);display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--gold-ink)}
 .send:disabled{opacity:.5;cursor:default}
@@ -262,7 +262,7 @@ a{color:inherit}
 
   $("comp").addEventListener("submit", function (e) { e.preventDefault(); var v = msg.value; msg.value = ""; grow(); sendText(v); });
   msg.addEventListener("keydown", function (e) { if (e.key === "Enter" && !e.shiftKey && !e.isComposing) { e.preventDefault(); $("comp").requestSubmit(); } });
-  function grow() { msg.style.height = "auto"; msg.style.height = Math.min(120, msg.scrollHeight) + "px"; }
+  function grow() { msg.style.height = "auto"; var h = msg.scrollHeight; msg.style.height = Math.min(120, h) + "px"; msg.style.overflowY = h > 120 ? "auto" : "hidden"; }
   msg.addEventListener("input", grow);
 
   T.chips.forEach(function (c) { var b = document.createElement("button"); b.type = "button"; b.className = "chip"; b.textContent = c; b.addEventListener("click", function () { sendText(c); }); $("chips").appendChild(b); });

@@ -1,4 +1,4 @@
-"""Link preview image for a brand chat page: python3 og_brand.py <slug> <product.jpg> <logo.png> <stripe colour> [wordmark]"""
+"""Link preview image for a brand chat page: python3 og_brand.py <slug> <product.jpg> <logo.png> <stripe colour> [wordmark]   (logo "-" = text wordmark only)"""
 import sys, base64
 from playwright.sync_api import sync_playwright
 from PIL import Image
@@ -15,7 +15,7 @@ h1{{font-family:"Latin Modern Roman",serif;font-weight:400;font-size:50px;line-h
 p{{margin-top:16px;font-size:22px;color:#5B606A;line-height:1.35}}
 .pill{{margin-top:26px;display:inline-flex;align-items:center;gap:10px;align-self:flex-start;background:linear-gradient(140deg,#EDD596,#CBA44F 55%,#A9833A);border:1px solid #8C6A2B;border-radius:999px;padding:12px 22px;font-size:20px;font-weight:600;color:#1C1406}}
 .pill i{{width:12px;height:12px;border-radius:50%;background:#1E7A4F;border:2px solid #fff}}
-</style></head><body><div class="l"></div><div class="r"><div class="logo"><img src="data:image/png;base64,{b64(logo)}">{f"<b>{word}</b>" if word else ""}</div>
+</style></head><body><div class="l"></div><div class="r"><div class="logo">{"" if logo == "-" else f'<img src="data:image/png;base64,{b64(logo)}">'}{f"<b style=\"font-size:{40 if len(word) <= 10 else 27}px\">{word}</b>" if word else ""}</div>
 <div class="x">× ELENA GOGLIO</div><h1>Ask a Gemologist<br>- Live</h1><p>GIA Graduate Gemologist.<br>Ask anything about your piece.</p><span class="pill"><i></i>Chat now</span></div></body></html>'''
 out = f'brands/logos/og-{slug}.jpg'
 with sync_playwright() as pw:

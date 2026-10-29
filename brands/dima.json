@@ -1,0 +1,16 @@
+{
+  "lang": "en",
+  "inbox": "sRgxeG9QQmLUEfmSqA8KSCnk",
+  "name": "DIMA Jewellery",
+  "logo": "/brands/logos/dima.png",
+  "wordmark": "DIMA",
+  "header": "#804740",
+  "bubble": "#582D27",
+  "accent": "",
+  "product": { "title": "Pear diamond ring", "price": "", "image": "/brands/logos/dima-ring.jpg", "ring": true },
+  "back": "/",
+  "page": "dima",
+  "title": "Ask a Gemologist - Live",
+  "description": "DIMA Jewellery × Elena Goglio, GIA Graduate Gemologist: ask anything about your piece, live.",
+  "og": "/brands/logos/og-dima.jpg"
+}

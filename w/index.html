@@ -186,6 +186,7 @@ var BAKED = null;
   var EMBED = Q.get("embed") === "1";
   if (EMBED) document.documentElement.classList.add("embed");
   var product = { title: Q.get("pt") || "", price: Q.get("pp") || "", image: Q.get("pi") || "", url: Q.get("pu") || "", ring: Q.get("pr") === "1" };
+  function brandProduct(B) { if (!product.title && B.product && B.product.title) { product = { title: B.product.title, price: B.product.price || "", image: B.product.image || "", url: B.product.url || "", ring: !!B.product.ring }; } }
 
   function getBrand() {
     if (BAKED) return Promise.resolve(BAKED);
@@ -210,7 +211,7 @@ var BAKED = null;
     var T = TX[B.lang] || TX.en;
     document.documentElement.lang = B.lang === "it" ? "it" : "en";
     if (!BAKED) document.title = T.service + (B.name ? " · " + B.name : " · Elena Goglio");
-    applyColors(B);
+    applyColors(B); brandProduct(B);
     var API = "https://app.chatwoot.com/public/api/v1/inboxes/" + encodeURIComponent(B.inbox || "");
     var KEY = "aag_chat_" + (B.inbox || "none");
 
@@ -226,6 +227,7 @@ var BAKED = null;
     var bl = $("blogo");
     if (B.logo) {
       var li = document.createElement("img"); li.src = B.logo; li.alt = B.name || ""; bl.appendChild(li);
+      if (B.wordmark) { var wm = document.createElement("b"); wm.textContent = B.wordmark; bl.appendChild(wm); }
       li.onerror = function () { li.remove(); var w = document.createElement("b"); w.textContent = (B.name || "").toUpperCase(); bl.appendChild(w); };
     } else if (B.name) {
       var w = document.createElement("b"); w.textContent = B.name.toUpperCase(); bl.appendChild(w);

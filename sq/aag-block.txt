@@ -20,7 +20,7 @@
 #aag .gold{background:linear-gradient(140deg,#EDD596,#CBA44F 55%,#A9833A)!important;color:#1C1406!important;border:1px solid #8C6A2B;box-shadow:0 10px 24px -14px rgba(120,86,20,.9)}
 #aag .ghost{background:#fff!important;color:var(--ink)!important;border:1px solid var(--ink)}
 #aag .dot{width:9px;height:9px;border-radius:50%;background:var(--live);display:block}
-#aag .demos{background:var(--soft);border-radius:24px;padding:30px 26px 26px}
+#aag .demos{background:#FBF9F5;border-radius:24px;padding:30px 26px 26px}
 #aag .dh{display:flex;justify-content:space-between;align-items:baseline;gap:12px;flex-wrap:wrap}
 #aag .dh h2{font-size:clamp(24px,3vw,32px)!important;font-weight:400;color:var(--ink)}
 #aag .dh span{font-size:14px;color:var(--muted)}
@@ -33,13 +33,13 @@
 #aag .goal{border-top:2px solid var(--gold);padding-top:14px}
 #aag .goal b{display:block;font-size:19px;font-weight:600;color:var(--ink)}
 #aag .goal span{display:block;margin-top:6px;font-size:15.5px;color:var(--muted)}
-#aag .elena{display:flex;align-items:center;gap:22px;margin-top:36px;padding:22px 24px;border:1px solid var(--line);border-radius:22px}
+#aag .elena{background:#fff;display:flex;align-items:center;gap:22px;margin-top:36px;padding:22px 24px;border:1px solid var(--line);border-radius:22px}
 #aag .elena img{width:92px;height:92px;border-radius:50%;object-fit:cover;flex:none;border:2px solid #CBA44F}
 #aag .elena h3{font-size:24px!important;font-weight:400;color:var(--ink)}
 #aag .elena p{margin-top:4px;font-size:15.5px;color:var(--muted)}
 #aag .elena .hrs{margin-top:8px;color:var(--ink);font-weight:500}
 #aag .plans{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px;margin-top:36px}
-#aag .plan{border-radius:22px;padding:26px;border:1px solid var(--line);display:flex;flex-direction:column}
+#aag .plan{background:#fff;border-radius:22px;padding:26px;border:1px solid var(--line);display:flex;flex-direction:column}
 #aag .plan.g{background:linear-gradient(140deg,#F4E6BD,#E2C67E 55%,#CFAE62);border-color:#B9944A}
 #aag .plan .k{font-size:12.5px;letter-spacing:.16em;text-transform:uppercase;font-weight:600;color:var(--gold)}
 #aag .plan.g .k{color:#5A4214}

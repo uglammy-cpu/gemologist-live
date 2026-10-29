@@ -1,0 +1,391 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content">
+<title>Ask a Gemologist - Live · pirmiana · Elena Goglio</title>
+<meta name="robots" content="noindex">
+<meta name="description" content="pirmiana × Elena Goglio, GIA Graduate Gemologist: ask anything about your piece, live.">
+<link rel="canonical" href="https://live.gemsandjewelrytechlab.com/pirmiana/">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Ask a Gemologist - Live · pirmiana">
+<meta property="og:description" content="pirmiana × Elena Goglio, GIA Graduate Gemologist: ask anything about your piece, live.">
+<meta property="og:url" content="https://live.gemsandjewelrytechlab.com/pirmiana/">
+<meta property="og:image" content="https://live.gemsandjewelrytechlab.com/brands/logos/og-pirmiana.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="theme-color" content="#16181D">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="icon" href="/favicon-32.png" sizes="32x32" type="image/png">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@0,6..96,400..600;1,6..96,400..600&family=Jost:wght@300..600&display=swap">
+<style>
+/* One chat column. Standalone: full screen on phones, a phone-sized card on desktop. Embedded (?embed=1): fills the brand's chat panel.
+   Brand colours come from the brand file: --hdr (header), --me (customer bubble), --acc (buttons). Defaults: gold, black, white. */
+:root{
+  --ink:#16181D; --paper:#FFFFFF; --muted:#6B6F77; --line:#ECE7DA; --cream:#F7F0DC; --cream-line:#E9DDB8;
+  --gold-hi:#EDD596; --gold:#CBA44F; --gold-lo:#A9833A; --gold-edge:#8C6A2B; --gold-ink:#1C1406; --gold-sub:#47381A; --live:#1E7A4F;
+  --goldgrad:linear-gradient(140deg,var(--gold-hi) 0%,var(--gold) 55%,var(--gold-lo) 100%);
+  --hdr:var(--goldgrad); --hdr-ink:var(--gold-ink); --hdr-sub:var(--gold-sub); --hdr-edge:var(--gold-edge);
+  --me:#16181D; --me-ink:#FFFFFF; --me-link:var(--gold-hi);
+  --acc:var(--goldgrad); --acc-ink:var(--gold-ink); --acc-edge:var(--gold-edge);
+  --display:"Bodoni Moda","Bodoni 72",Didot,Georgia,serif;
+  --body:"Jost","Futura","Century Gothic","Helvetica Neue",Arial,sans-serif;
+  color-scheme:light;
+}
+*,*::before,*::after{box-sizing:border-box}
+html,body{height:100%}
+body{margin:0;background:var(--ink);color:var(--ink);font-family:var(--body);font-size:16px;line-height:1.45;-webkit-font-smoothing:antialiased}
+a{color:inherit}
+:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+
+.stage{min-height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:20px 16px}
+.top{width:440px;max-width:100%;display:flex;justify-content:space-between;align-items:center;color:var(--gold-hi);font-size:13px;letter-spacing:.04em}
+.top a{text-decoration:none;opacity:.85}
+.top a:hover{opacity:1}
+.top span{opacity:.7}
+.app{width:440px;max-width:100%;height:min(860px,calc(100dvh - 80px));min-height:560px;background:var(--paper);border-radius:26px;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 30px 80px -30px rgba(0,0,0,.8)}
+html.embed body{background:transparent}
+html.embed .stage{padding:0;gap:0;justify-content:stretch;height:100%}
+html.embed .top{display:none}
+html.embed .app{width:100%;height:100%;min-height:0;border-radius:0;box-shadow:none}
+
+.brand{flex:none;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 14px;background:var(--paper);border-bottom:1px solid var(--line);min-height:57px}
+.blogo{display:flex;align-items:center;gap:10px;min-width:0}
+.blogo img{display:block;max-height:34px;max-width:170px;width:auto;height:auto;object-fit:contain}
+.blogo b{font-family:var(--display);font-weight:500;font-size:17px;letter-spacing:.24em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.btag{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--gold-edge);border:1px dashed var(--gold);border-radius:999px;padding:4px 9px;white-space:nowrap}
+.xbtn{display:none;flex:none;width:36px;height:36px;border-radius:50%;border:1px solid var(--line);background:var(--paper);color:var(--ink);cursor:pointer;align-items:center;justify-content:center;font-size:20px;line-height:1}
+html.embed .xbtn{display:flex}
+
+.head{flex:none;display:flex;align-items:center;gap:12px;padding:12px 14px;background:var(--hdr);color:var(--hdr-ink);border-bottom:1px solid var(--hdr-edge)}
+.medal{flex:none;width:54px;height:54px;border-radius:50%;background:var(--gold-ink);display:flex;align-items:center;justify-content:center;box-shadow:0 0 0 1px rgba(237,213,150,.5)}
+.medal .ring{transform-origin:50px 50px;animation:spin 40s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.hx{flex:1;min-width:0}
+.hk{display:flex;align-items:center;gap:6px;font-size:10.5px;font-weight:600;letter-spacing:.14em;text-transform:uppercase}
+.dot{width:9px;height:9px;border-radius:50%;background:var(--live);border:1.5px solid #fff;flex:none}
+.dot.off{background:#9A9384}
+.hn{font-family:var(--display);font-size:21px;line-height:1.1;margin-top:2px}
+.hs{font-size:12.5px;color:var(--hdr-sub);margin-top:1px}
+.photo{flex:none;width:46px;height:46px;border-radius:50%;object-fit:cover;border:2px solid var(--paper);box-shadow:0 4px 12px rgba(28,20,6,.25);background:var(--cream)}
+
+.status{flex:none;font-size:12.5px;color:var(--muted);text-align:center;padding:7px 12px;background:#FBF8EF;border-bottom:1px solid var(--line);min-height:33px}
+
+.log{flex:1;min-height:0;overflow-y:auto;padding:16px 14px 10px;display:flex;flex-direction:column;gap:10px;scroll-behavior:smooth}
+.piece{align-self:center;display:flex;align-items:center;gap:10px;border:1px solid var(--line);border-radius:14px;padding:8px 12px 8px 8px;max-width:92%;background:var(--paper);text-decoration:none}
+.piece .pi{width:52px;height:52px;border-radius:10px;background:#F3F2EE;display:flex;align-items:center;justify-content:center;flex:none;overflow:hidden}
+.piece .pi img{width:100%;height:100%;object-fit:cover;display:block}
+.piece .pk{font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--gold-edge);font-weight:600}
+.piece .pt{font-size:14px;line-height:1.25}
+.piece .pp{font-size:12.5px;color:var(--muted)}
+.row{display:flex;gap:8px;align-items:flex-end;max-width:88%}
+.row.me{align-self:flex-end;flex-direction:row-reverse}
+.row .av{width:28px;height:28px;border-radius:50%;object-fit:cover;flex:none;background:var(--cream)}
+.b{padding:10px 13px;border-radius:16px;font-size:15px;line-height:1.4;white-space:pre-wrap;overflow-wrap:anywhere}
+.row.el .b{background:var(--cream);border:1px solid var(--cream-line);border-bottom-left-radius:5px}
+.row.me .b{background:var(--me);color:var(--me-ink);border-bottom-right-radius:5px}
+.row.me .b a{color:var(--me-link)}
+.meta{font-size:11px;color:var(--muted);margin:-4px 0 0 36px}
+.meta.me{align-self:flex-end;margin:-4px 2px 0 0}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin:2px 0 0 36px}
+.chip{border:1px solid var(--acc-edge);background:var(--paper);color:var(--ink);border-radius:999px;padding:7px 13px;font:inherit;font-size:13.5px;cursor:pointer;min-height:36px}
+.chip:hover{background:#FBF5E4}
+.card{align-self:stretch;margin:4px 0 0 36px;border:1px solid var(--cream-line);background:#FFFCF4;border-radius:14px;padding:12px}
+.card p{margin:0 0 8px;font-size:14px}
+.card form{display:flex;gap:8px}
+.card input{flex:1;min-width:0;height:42px;border:1px solid #D9D2BE;border-radius:10px;padding:0 12px;font:inherit;font-size:16px}
+.card button{height:42px;border:1px solid var(--acc-edge);border-radius:10px;padding:0 14px;font:inherit;font-weight:600;font-size:14px;background:var(--acc);color:var(--acc-ink);cursor:pointer}
+.card .ok{color:var(--live);font-size:14px;margin:0}
+.typing{display:inline-flex;gap:4px;padding:12px 14px}
+.typing i{width:6px;height:6px;border-radius:50%;background:var(--gold-edge);opacity:.4;animation:blink 1.2s infinite}
+.typing i:nth-child(2){animation-delay:.2s}.typing i:nth-child(3){animation-delay:.4s}
+@keyframes blink{50%{opacity:1}}
+
+.comp{flex:none;display:flex;gap:8px;align-items:flex-end;padding:10px 12px calc(10px + env(safe-area-inset-bottom,0px));border-top:1px solid var(--line);background:var(--paper)}
+.comp textarea{flex:1;min-width:0;resize:none;max-height:120px;min-height:46px;border:1px solid #DDD6C3;border-radius:23px;padding:12px 16px;font:inherit;font-size:16px;line-height:1.35;background:#FDFCF9;overflow-y:hidden}
+.comp textarea:focus{outline:none;border-color:var(--gold)}
+.send{flex:none;width:46px;height:46px;border-radius:50%;border:1px solid var(--acc-edge);background:var(--acc);display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--acc-ink)}
+.send:disabled{opacity:.5;cursor:default}
+.foot{flex:none;text-align:center;font-size:11px;color:var(--muted);padding:0 0 8px;background:var(--paper)}
+.foot a{text-decoration:none;color:var(--gold-edge)}
+.err{align-self:center;font-size:13px;color:#9B2C2C;text-align:center;padding:0 10px}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+
+@media (max-width:520px){
+  .stage{padding:0;gap:0;justify-content:stretch}
+  .top{display:none}
+  .app{width:100%;height:100dvh;min-height:0;border-radius:0;box-shadow:none}
+}
+@media (prefers-reduced-motion:reduce){.medal .ring,.typing i{animation:none}.log{scroll-behavior:auto}}
+</style>
+</head>
+<body>
+<div class="stage">
+  <div class="top"><a id="back" href="/">‹ <span id="tBack"></span></a><span id="tLive"></span></div>
+  <main class="app" id="app">
+    <div class="brand">
+      <div class="blogo" id="blogo"></div>
+      <span class="btag" id="btag" hidden></span>
+      <button type="button" class="xbtn" id="xbtn">&times;</button>
+    </div>
+    <header class="head">
+      <div class="medal" aria-hidden="true">
+        <svg viewBox="0 0 100 100" width="54" height="54"><defs><path id="mr" d="M50,50 m-38,0 a38,38 0 1,1 76,0 a38,38 0 1,1 -76,0"></path></defs><g class="ring"><text id="ringtext" font-family="Jost, Helvetica, Arial, sans-serif" font-size="10" font-weight="600" fill="#EDD596"><textPath id="ringpath" href="#mr" textLength="234" lengthAdjust="spacing"></textPath></text></g><g transform="translate(29 29) scale(1.75)" fill="none" stroke="#EDD596" stroke-width="1.1" stroke-linejoin="round" stroke-linecap="round"><path d="M7 7.5h10l3 3.5-8 8-8-8z"></path><path d="M4 11h16M7 7.5l2.5 3.5 2.5-3.5 2.5 3.5 2.5-3.5M9.5 11l2.5 8 2.5-8"></path></g></svg>
+      </div>
+      <div class="hx">
+        <div class="hk"><span class="dot" id="dot"></span><span id="tService"></span></div>
+        <div class="hn">Elena Goglio</div>
+        <div class="hs" id="tSub"></div>
+      </div>
+      <img class="photo" id="photo" alt="Elena Goglio" width="46" height="46">
+    </header>
+    <div class="status" id="status" role="status"></div>
+    <div class="log" id="log" aria-live="polite"></div>
+    <form class="comp" id="comp" autocomplete="off">
+      <label for="msg" class="sr" id="tMsgLabel"></label>
+      <textarea id="msg" rows="1" maxlength="2000"></textarea>
+      <button class="send" id="send" type="submit"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12l16-8-6 16-2.5-6.5z"></path><path d="M11.5 13.5L20 4"></path></svg></button>
+    </form>
+    <div class="foot"><span id="tFoot"></span> <a href="https://live.gemsandjewelrytechlab.com/" target="_top">Gems &amp; Jewelry Tech Lab</a></div>
+  </main>
+</div>
+<script>
+/* Brand baked in by build.py for standalone pages (null here: read from the URL) */
+var BAKED = {"lang": "en", "inbox": "sRgxeG9QQmLUEfmSqA8KSCnk", "name": "pirmiana", "logo": "", "wordmark": "", "header": "#0E1B4D", "bubble": "#0E1B4D", "accent": "", "product": {"title": "14k yellow gold lab grown diamond ring", "price": "4 ct lab grown diamond center stone", "image": "/brands/logos/pirmiana-ring.jpg", "ring": true}, "back": "/", "page": "pirmiana", "title": "Ask a Gemologist - Live", "description": "pirmiana × Elena Goglio, GIA Graduate Gemologist: ask anything about your piece, live.", "og": "/brands/logos/og-pirmiana.jpg"};
+(function () {
+  var PHOTO = "https://app.chatwoot.com/rails/active_storage/representations/redirect/eyJfcmFpbHMiOnsibWVzc2FnZSI6IkJBaHBCTDk1Q3djPSIsImV4cCI6bnVsbCwicHVyIjoiYmxvYl9pZCJ9fQ==--5ceaf81b40f0fe11a90a22867f3a4a85188dd56f/eyJfcmFpbHMiOnsibWVzc2FnZSI6IkJBaDdCem9MWm05eWJXRjBTU0lJY0c1bkJqb0dSVlE2RTNKbGMybDZaVjkwYjE5bWFXeHNXd2RwQWZvdyIsImV4cCI6bnVsbCwicHVyIjoidmFyaWF0aW9uIn19--624b3ceb3fdf42c4b07c7818563fe60603b6095b/elena%20rughe%20no%20watermark.png";
+  var TX = {
+    en: { locale: "en-GB", service: "Ask a Gemologist - Live", ring: "ASK A GEMOLOGIST · LIVE · ", ringSize: 10,
+      sub: "GIA Graduate Gemologist. I reply to you personally.", role: "GIA Graduate Gemologist", piece: "Your piece", viewing: "You are looking at",
+      welcome: "Welcome, I’m honored to have you here. Which piece would you like to know more about?",
+      welcomeP: "Welcome, I’m honored to have you here. Would you like more details about this piece?",
+      placeholder: "Write a message…", send: "Send", close: "Close the chat", foot: "Live chat by", logoTag: "Your logo here", yourBrand: "YOUR BRAND", logoTop: "YOUR",
+      back: "Back to the offer", live: "Live demo · I reply for real",
+      online: "Online now · I usually reply within a few minutes", offline: "I’m away right now · back {when} (Italian time). Leave a message: I’ll reply personally.",
+      today: "today at", tomorrow: "tomorrow at", days: ["Sunday at", "Monday at", "Tuesday at", "Wednesday at", "Thursday at", "Friday at", "Saturday at"],
+      typing: "Elena is writing", emailAsk: "Leave your email, so I can reply even if you close this page.", emailPh: "Your email", emailBtn: "Send", emailOk: "Thank you, I’ll reply to you there too.",
+      error: "The message didn’t go through. Check your connection and try again.",
+      chipsRing: ["Is this diamond natural?", "Help me with my ring size", "Can I see it in store?"],
+      chipsPiece: ["Tell me about this piece", "Is the stone natural?", "Can I see it in store?"],
+      chipsNone: ["I’m looking for an engagement ring", "Is this stone natural?", "Can I see it in store?"],
+      demoRing: "Diamond solitaire ring", demoSpecs: "Natural diamond 0.50 ct · G · VS1 · €3,450" },
+    it: { locale: "it-IT", service: "Chiedi alla Gemmologa - Live", ring: "CHIEDI ALLA GEMMOLOGA · LIVE · ", ringSize: 9,
+      sub: "Gemmologa diplomata GIA. Ti rispondo io, di persona.", role: "Gemmologa GIA", piece: "Il tuo gioiello", viewing: "Stai guardando",
+      welcome: "Benvenuto, sono onorata di averti qui. Di quale gioiello vuoi sapere di più?",
+      welcomeP: "Benvenuto, sono onorata di averti qui. Posso darti qualche informazione in più su questo gioiello?",
+      placeholder: "Scrivi un messaggio…", send: "Invia", close: "Chiudi la chat", foot: "Chat live di", logoTag: "Il tuo logo qui", yourBrand: "IL TUO BRAND", logoTop: "IL TUO",
+      back: "Torna all’offerta", live: "Demo dal vivo · rispondo davvero",
+      online: "Online adesso · di solito rispondo in pochi minuti", offline: "In questo momento sono fuori orario · torno {when}. Lasciami un messaggio: ti rispondo io.",
+      today: "oggi alle", tomorrow: "domani alle", days: ["domenica alle", "lunedì alle", "martedì alle", "mercoledì alle", "giovedì alle", "venerdì alle", "sabato alle"],
+      typing: "Elena sta scrivendo", emailAsk: "Lasciami la tua email: così ti rispondo anche se chiudi la pagina.", emailPh: "La tua email", emailBtn: "Invia", emailOk: "Grazie, ti rispondo anche lì.",
+      error: "Il messaggio non è partito. Controlla la connessione e riprova.",
+      chipsRing: ["Il diamante è naturale?", "Mi aiuti con la misura?", "Posso vederlo in negozio?"],
+      chipsPiece: ["Parlami di questo gioiello", "La pietra è naturale?", "Posso vederlo in negozio?"],
+      chipsNone: ["Cerco un anello di fidanzamento", "Questa pietra è naturale?", "Posso vederlo in negozio?"],
+      demoRing: "Anello solitario con diamante", demoSpecs: "Diamante naturale 0,50 ct · G · VS1 · €3.450" }
+  };
+  var RING_SVG = '<svg viewBox="0 60 400 300" width="46" aria-hidden="true"><ellipse cx="200" cy="262" rx="118" ry="64" fill="none" stroke="#B4BAC3" stroke-width="18"></ellipse><ellipse cx="200" cy="262" rx="118" ry="64" fill="none" stroke="#E6E9ED" stroke-width="5"></ellipse><polygon points="168,126 232,126 260,150 200,200 140,150" fill="#F6F9FC" stroke="#8E98A6" stroke-width="5" stroke-linejoin="round"></polygon><path d="M140 150 H260 M168 126 L184 150 L200 126 L216 150 L232 126 M160 150 L200 200 L240 150" stroke="#9AA3AF" stroke-width="3" fill="none"></path><path d="M170 174 L146 147 M230 174 L254 147" stroke="#B4BAC3" stroke-width="9" stroke-linecap="round"></path></svg>';
+
+  var $ = function (id) { return document.getElementById(id); };
+  var Q = new URLSearchParams(location.search);
+  var EMBED = Q.get("embed") === "1";
+  if (EMBED) document.documentElement.classList.add("embed");
+  var product = { title: Q.get("pt") || "", price: Q.get("pp") || "", image: Q.get("pi") || "", url: Q.get("pu") || "", ring: Q.get("pr") === "1" };
+  function brandProduct(B) { if (!product.title && B.product && B.product.title) { product = { title: B.product.title, price: B.product.price || "", image: B.product.image || "", url: B.product.url || "", ring: !!B.product.ring }; } }
+
+  function getBrand() {
+    if (BAKED) return Promise.resolve(BAKED);
+    var slug = (Q.get("b") || "").replace(/[^a-z0-9-]/gi, "");
+    if (!slug) return Promise.resolve({ lang: Q.get("lang") || "en", inbox: Q.get("inbox") || "", name: Q.get("name") || "", logo: Q.get("logo") || "" });
+    return fetch("/brands/" + slug + ".json", { cache: "no-cache" }).then(function (r) { if (!r.ok) throw new Error("brand"); return r.json(); });
+  }
+
+  /* Colours: pick dark or light text for any background */
+  function hexLum(h) { h = h.replace("#", ""); if (h.length === 3) h = h.split("").map(function (c) { return c + c; }).join(""); var n = parseInt(h, 16); var r = (n >> 16) & 255, g = (n >> 8) & 255, b = n & 255; function f(c) { c /= 255; return c <= .03928 ? c / 12.92 : Math.pow((c + .055) / 1.055, 2.4); } return .2126 * f(r) + .7152 * f(g) + .0722 * f(b); }
+  function textOn(hex) { return hexLum(hex) > .35 ? "#1C1406" : "#FFFFFF"; }
+  function applyColors(B) {
+    var st = document.documentElement.style, ok = function (c) { return typeof c === "string" && /^#[0-9a-f]{3}([0-9a-f]{3})?$/i.test(c); };
+    if (ok(B.header)) { var t = textOn(B.header); st.setProperty("--hdr", B.header); st.setProperty("--hdr-ink", t); st.setProperty("--hdr-sub", t === "#FFFFFF" ? "rgba(255,255,255,.78)" : "rgba(28,20,6,.72)"); st.setProperty("--hdr-edge", "rgba(0,0,0,.12)"); }
+    if (ok(B.bubble)) { st.setProperty("--me", B.bubble); st.setProperty("--me-ink", textOn(B.bubble)); st.setProperty("--me-link", textOn(B.bubble) === "#FFFFFF" ? "#EDD596" : "#1C1406"); }
+    if (ok(B.accent)) { st.setProperty("--acc", B.accent); st.setProperty("--acc-ink", textOn(B.accent)); st.setProperty("--acc-edge", B.accent); }
+  }
+
+  getBrand().catch(function () { return { lang: "en", inbox: "" }; }).then(start);
+
+  function start(B) {
+    var T = TX[B.lang] || TX.en;
+    document.documentElement.lang = B.lang === "it" ? "it" : "en";
+    if (!BAKED) document.title = T.service + (B.name ? " · " + B.name : " · Elena Goglio");
+    applyColors(B); brandProduct(B);
+    var API = "https://app.chatwoot.com/public/api/v1/inboxes/" + encodeURIComponent(B.inbox || "");
+    var KEY = "aag_chat_" + (B.inbox || "none");
+
+    /* Static texts */
+    $("tBack").textContent = T.back; $("tLive").textContent = T.live; $("back").href = B.back || (B.lang === "it" ? "/it/" : "/");
+    $("tService").textContent = T.service; $("tSub").textContent = T.sub; $("tFoot").textContent = T.foot;
+    $("ringpath").textContent = T.ring; $("ringtext").setAttribute("font-size", T.ringSize);
+    $("photo").src = PHOTO; $("msg").placeholder = T.placeholder; $("tMsgLabel").textContent = T.placeholder;
+    $("send").setAttribute("aria-label", T.send); $("xbtn").setAttribute("aria-label", T.close);
+    $("app").setAttribute("aria-label", T.service + (B.name ? " · " + B.name : ""));
+
+    /* Brand bar: the brand's logo, or a placeholder that says "your logo here" */
+    var bl = $("blogo");
+    if (B.logo) {
+      var li = document.createElement("img"); li.src = B.logo; li.alt = B.name || ""; bl.appendChild(li);
+      if (B.wordmark) { var wm = document.createElement("b"); wm.textContent = B.wordmark; bl.appendChild(wm); }
+      li.onerror = function () { li.remove(); var w = document.createElement("b"); w.textContent = (B.name || "").toUpperCase(); bl.appendChild(w); };
+    } else if (B.name) {
+      var w = document.createElement("b"); w.textContent = B.name.toUpperCase(); bl.appendChild(w);
+    } else {
+      bl.innerHTML = '<svg width="36" height="36" viewBox="0 0 36 36" aria-hidden="true"><circle cx="18" cy="18" r="17" fill="#16181D"></circle><circle cx="18" cy="18" r="13.5" fill="none" stroke="#CBA44F" stroke-width="1.2" stroke-dasharray="3 2.2"></circle><text x="18" y="16.2" text-anchor="middle" font-family="Jost, Helvetica, Arial, sans-serif" font-size="4.6" font-weight="600" letter-spacing=".9" fill="#EDD596">' + T.logoTop + '</text><text x="18" y="23" text-anchor="middle" font-family="Georgia, serif" font-size="6.6" fill="#EDD596">BRAND</text></svg><b>' + T.yourBrand + '</b>';
+      if (!EMBED) { $("btag").hidden = false; $("btag").textContent = T.logoTag; }
+    }
+
+    var log = $("log"), msg = $("msg"), send = $("send");
+    var S = load() || {};
+    var seen = {}, sentEcho = {}, polling = null, emailAsked = false, firstSent = false, visible = !EMBED, unreadSent = {};
+
+    function load() { try { return JSON.parse(localStorage.getItem(KEY) || "null"); } catch (e) { return null; } }
+    function save() { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} }
+    function esc(s) { return String(s).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); }
+    function linkify(s) { return esc(s).replace(/(https?:\/\/[^\s<]+)/g, '<a href="$1" target="_blank" rel="noopener">$1</a>'); }
+    function hhmm(ts) { var d = ts ? new Date(ts * 1000) : new Date(); return d.toLocaleTimeString(T.locale, { hour: "2-digit", minute: "2-digit" }); }
+    function bottom() { log.scrollTop = log.scrollHeight; }
+    function toParent(m) { if (EMBED && window.parent !== window) try { window.parent.postMessage(Object.assign({ aag: 1 }, m), "*"); } catch (e) {} }
+
+    /* Product card: the piece the visitor is looking at (from the brand's site), or the demo ring */
+    var hasProduct = !!product.title;
+    if (hasProduct || !B.name) {
+      var pc = document.createElement(product.url ? "a" : "div"); pc.className = "piece";
+      if (product.url) { pc.href = product.url; pc.target = "_top"; }
+      var pi = document.createElement("div"); pi.className = "pi";
+      if (product.image) { var im = document.createElement("img"); im.src = product.image; im.alt = ""; pi.appendChild(im); } else pi.innerHTML = RING_SVG;
+      var tx = document.createElement("div");
+      tx.innerHTML = '<div class="pk"></div><div class="pt"></div><div class="pp"></div>';
+      tx.children[0].textContent = hasProduct ? T.viewing : T.piece;
+      tx.children[1].textContent = hasProduct ? product.title : T.demoRing;
+      tx.children[2].textContent = hasProduct ? product.price : T.demoSpecs;
+      if (!tx.children[2].textContent) tx.children[2].remove();
+      pc.appendChild(pi); pc.appendChild(tx); log.appendChild(pc);
+    }
+    addElena(hasProduct ? T.welcomeP : T.welcome);
+    var chipsBox = document.createElement("div"); chipsBox.className = "chips"; log.appendChild(chipsBox);
+    /* No preset answer buttons: the client writes in their own words. */
+
+    function addElena(text) { var r = document.createElement("div"); r.className = "row el"; r.innerHTML = '<img class="av" alt="" width="28" height="28"><div class="b"></div>'; r.firstChild.src = PHOTO; r.lastChild.innerHTML = linkify(text); log.appendChild(r); }
+    function addRow(who, text, ts, id) {
+      if (id && seen[id]) return; if (id) seen[id] = 1;
+      var r = document.createElement("div"); r.className = "row " + (who === "me" ? "me" : "el");
+      if (who !== "me") { var im = document.createElement("img"); im.className = "av"; im.src = PHOTO; im.alt = ""; im.width = 28; im.height = 28; r.appendChild(im); }
+      var b = document.createElement("div"); b.className = "b"; b.innerHTML = linkify(text); r.appendChild(b); log.appendChild(r);
+      var m = document.createElement("div"); m.className = "meta" + (who === "me" ? " me" : ""); m.textContent = who === "me" ? hhmm(ts) : "Elena · " + T.role + " · " + hhmm(ts); log.appendChild(m);
+      bottom();
+    }
+
+    /* Online status from the inbox working hours, in Italian time */
+    function romeNow() {
+      var p = new Intl.DateTimeFormat("en-GB", { timeZone: "Europe/Rome", weekday: "short", hour: "2-digit", minute: "2-digit", hour12: false }).formatToParts(new Date());
+      var o = {}; p.forEach(function (x) { o[x.type] = x.value; });
+      return { dow: ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].indexOf(o.weekday), min: (+o.hour % 24) * 60 + (+o.minute) };
+    }
+    function setStatus(wh) {
+      var n = romeNow(), open = false, next = null;
+      function day(d) { for (var i = 0; i < wh.length; i++) if (wh[i].day_of_week === d) return wh[i]; return null; }
+      var today = day(n.dow);
+      if (today && !today.closed_all_day) {
+        var o = today.open_all_day ? 0 : today.open_hour * 60 + (today.open_minutes || 0);
+        var c = today.open_all_day ? 1440 : today.close_hour * 60 + (today.close_minutes || 0);
+        open = n.min >= o && n.min < c;
+        if (!open && n.min < o) next = { d: 0, h: today.open_hour, m: today.open_minutes || 0 };
+      }
+      if (!open && !next) for (var k = 1; k <= 7; k++) { var dd = day((n.dow + k) % 7); if (dd && !dd.closed_all_day) { next = { d: k, dow: (n.dow + k) % 7, h: dd.open_all_day ? 0 : dd.open_hour, m: dd.open_minutes || 0 }; break; } }
+      $("dot").className = "dot" + (open ? "" : " off");
+      if (open) { $("status").textContent = T.online; return; }
+      var when = next ? (next.d === 0 ? T.today : next.d === 1 ? T.tomorrow : T.days[next.dow]) + " " + String(next.h).padStart(2, "0") + ":" + String(next.m).padStart(2, "0") : "";
+      $("status").textContent = T.offline.replace("{when}", when);
+    }
+
+    function api(path, method, body) {
+      return fetch(API + path, { method: method || "GET", headers: body ? { "Content-Type": "application/json" } : {}, body: body ? JSON.stringify(body) : undefined })
+        .then(function (r) { if (!r.ok) throw new Error("HTTP " + r.status); return r.json(); });
+    }
+    function attrs() { var a = { page: product.url || location.href, language: B.lang || "en" }; if (product.title) a.product = product.title; if (product.price) a.price = product.price; if (B.name) a.brand = B.name; return a; }
+    function ensureConversation() {
+      if (S.source_id && S.conv_id) return Promise.resolve();
+      var c = S.source_id ? Promise.resolve({ source_id: S.source_id }) : api("/contacts", "POST", { custom_attributes: attrs() });
+      return c.then(function (ct) { S.source_id = ct.source_id; save(); return api("/contacts/" + S.source_id + "/conversations", "POST", { custom_attributes: attrs() }); })
+        .then(function (cv) { S.conv_id = cv.id; save(); });
+    }
+    function poll() {
+      if (!S.source_id || !S.conv_id) return;
+      api("/contacts/" + S.source_id + "/conversations/" + S.conv_id + "/messages").then(function (list) {
+        (list || []).forEach(function (m) {
+          var t = m.message_type, incoming = t === 0 || t === "incoming", out = t === 1 || t === "outgoing" || t === 3 || t === "template";
+          if (!m.content || (!incoming && !out) || m.private) return;
+          if (incoming && (sentEcho[m.echo_id] || seen[m.id])) { seen[m.id] = 1; return; }
+          var isNew = !seen[m.id];
+          if (out) hideTyping();
+          addRow(incoming ? "me" : "el", m.content, m.created_at, m.id);
+          if (out && isNew && booted && !visible && !unreadSent[m.id]) { unreadSent[m.id] = 1; toParent({ type: "unread", text: m.content }); }
+        });
+        booted = true;
+      }).catch(function () {});
+    }
+    var booted = false;
+    function startPolling() { if (polling) return; poll(); polling = setInterval(function () { if (!document.hidden || EMBED) poll(); }, 3000); }
+
+    var typingEl = null;
+    function showTyping() { if (typingEl) return; typingEl = document.createElement("div"); typingEl.className = "row el"; typingEl.innerHTML = '<img class="av" alt="" width="28" height="28"><div class="b typing"><i></i><i></i><i></i></div>'; typingEl.firstChild.src = PHOTO; typingEl.lastChild.setAttribute("aria-label", T.typing); log.appendChild(typingEl); bottom(); setTimeout(hideTyping, 20000); }
+    function hideTyping() { if (typingEl) { typingEl.remove(); typingEl = null; } }
+
+    function askEmail() {
+      if (emailAsked || S.email) return; emailAsked = true;
+      var c = document.createElement("div"); c.className = "card";
+      c.innerHTML = '<p></p><form><input type="email" required><button type="submit"></button></form>';
+      c.querySelector("p").textContent = T.emailAsk; var inp = c.querySelector("input"); inp.placeholder = T.emailPh; inp.setAttribute("aria-label", T.emailPh); c.querySelector("button").textContent = T.emailBtn;
+      log.appendChild(c); bottom();
+      c.querySelector("form").addEventListener("submit", function (e) {
+        e.preventDefault(); var v = inp.value.trim(); if (!/^\S+@\S+\.\S+$/.test(v)) return;
+        api("/contacts/" + S.source_id, "PATCH", { email: v }).then(function () { S.email = v; save(); c.innerHTML = '<p class="ok"></p>'; c.firstChild.textContent = "✓ " + T.emailOk; }).catch(function () { c.querySelector("button").textContent = "!"; });
+      });
+    }
+
+    function sendText(text) {
+      text = (text || "").trim(); if (!text) return;
+      if (!B.inbox) { var e0 = document.createElement("div"); e0.className = "err"; e0.textContent = T.error; log.appendChild(e0); return; }
+      var echo = "e" + Date.now() + Math.random().toString(36).slice(2, 7); sentEcho[echo] = 1;
+      addRow("me", text); chipsBox.innerHTML = ""; send.disabled = true;
+      ensureConversation().then(function () {
+        return api("/contacts/" + S.source_id + "/conversations/" + S.conv_id + "/messages", "POST", { content: text, echo_id: echo });
+      }).then(function (m) {
+        if (m && m.id) seen[m.id] = 1; send.disabled = false; startPolling();
+        if (!firstSent) { firstSent = true; showTyping(); setTimeout(askEmail, 1500); }
+        toParent({ type: "sent" });
+      }).catch(function () {
+        send.disabled = false; var e = document.createElement("div"); e.className = "err"; e.textContent = T.error; log.appendChild(e); bottom();
+      });
+    }
+
+    $("comp").addEventListener("submit", function (e) { e.preventDefault(); var v = msg.value; msg.value = ""; grow(); sendText(v); });
+    msg.addEventListener("keydown", function (e) { if (e.key === "Enter" && !e.shiftKey && !e.isComposing) { e.preventDefault(); $("comp").requestSubmit(); } });
+    function grow() { msg.style.height = "auto"; var h = msg.scrollHeight; msg.style.height = Math.min(120, h) + "px"; msg.style.overflowY = h > 120 ? "auto" : "hidden"; }
+    msg.addEventListener("input", grow);
+    $("xbtn").addEventListener("click", function () { toParent({ type: "close" }); });
+
+    window.addEventListener("message", function (e) {
+      var d = e.data || {}; if (!d.aagHost) return;
+      if (d.type === "visible") { visible = !!d.value; if (visible) { bottom(); if (window.innerWidth > 520) setTimeout(function () { msg.focus(); }, 150); } }
+    });
+
+    if (S.source_id && S.conv_id) { chipsBox.innerHTML = ""; firstSent = true; emailAsked = !!S.email; startPolling(); }
+    if (B.inbox) api("").then(function (ib) { if (ib && ib.working_hours) { setStatus(ib.working_hours); setInterval(function () { setStatus(ib.working_hours); }, 60000); } }).catch(function () { $("status").textContent = T.online; });
+    toParent({ type: "ready" });
+  }
+})();
+</script>
+</body>
+</html>

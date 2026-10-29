@@ -1,0 +1,126 @@
+<!-- ASK A GEMOLOGIST - LIVE · short page for Squarespace (one Code Block, HTML, no JavaScript) -->
+<div id="aag">
+<style>
+#aag{--ink:#16181D;--muted:#5B606A;--line:#E7E4DC;--soft:#F6F4EF;--gold:#8C6A2B;--gold-hi:#EDD596;--live:#1E7A4F;
+  color:var(--ink);font-family:inherit;line-height:1.45;max-width:1080px;margin:0 auto;padding:0 4px}
+#aag *{box-sizing:border-box}
+#aag h1,#aag h2,#aag h3,#aag p,#aag ul,#aag figure{margin:0;padding:0}
+#aag p,#aag li,#aag span,#aag b{line-height:1.45}
+#aag li{list-style:none!important;margin:0}
+#aag li::before,#aag li::marker{content:none}
+#aag a{text-decoration:none!important;background-image:none!important}
+#aag .eb{display:inline-flex;align-items:center;gap:8px;font-size:13px!important;letter-spacing:.18em;text-transform:uppercase;font-weight:600;color:var(--gold)}
+#aag .eb i{width:9px;height:9px;border-radius:50%;background:var(--live);display:block}
+#aag .hero{padding:12px 0 36px}
+#aag .hero h1{margin-top:14px;font-size:clamp(34px,5.4vw,60px)!important;line-height:1.08!important;font-weight:400;letter-spacing:-.01em;color:var(--ink)}
+#aag .hero h1 em{font-style:italic;color:var(--gold)}
+#aag .hero p{margin-top:16px;font-size:clamp(17px,1.9vw,20px)!important;color:var(--muted);max-width:640px}
+#aag .ctas{display:flex;flex-wrap:wrap;gap:12px;margin-top:26px}
+#aag .btn{display:inline-flex;align-items:center;justify-content:center;gap:10px;min-height:52px;padding:0 26px;border-radius:999px;font-size:16px!important;font-weight:600;letter-spacing:.02em;line-height:1}
+#aag .gold{background:linear-gradient(140deg,#EDD596,#CBA44F 55%,#A9833A)!important;color:#1C1406!important;border:1px solid #8C6A2B;box-shadow:0 10px 24px -14px rgba(120,86,20,.9)}
+#aag .ghost{background:#fff!important;color:var(--ink)!important;border:1px solid var(--ink)}
+#aag .dot{width:9px;height:9px;border-radius:50%;background:var(--live);display:block}
+#aag .demos{background:var(--soft);border-radius:24px;padding:30px 26px 26px}
+#aag .dh{display:flex;justify-content:space-between;align-items:baseline;gap:12px;flex-wrap:wrap}
+#aag .dh h2{font-size:clamp(24px,3vw,32px)!important;font-weight:400;color:var(--ink)}
+#aag .dh span{font-size:14px;color:var(--muted)}
+#aag .reel{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:16px;margin-top:20px}
+#aag .ph{aspect-ratio:9/19;border-radius:22px;padding:5px;background:#0B0C0F;overflow:hidden}
+#aag .ph video{display:block;width:100%;height:100%;object-fit:cover;border-radius:17px;background:#0B0C0F}
+#aag figcaption{margin-top:10px;font-size:14px;font-weight:500;color:var(--ink)}
+#aag .swipe{display:none;margin-top:12px;font-size:14px;font-weight:600;color:var(--gold)}
+#aag .goals{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;padding:40px 0 8px}
+#aag .goal{border-top:2px solid var(--gold);padding-top:14px}
+#aag .goal b{display:block;font-size:19px;font-weight:600;color:var(--ink)}
+#aag .goal span{display:block;margin-top:6px;font-size:15.5px;color:var(--muted)}
+#aag .elena{display:flex;align-items:center;gap:22px;margin-top:36px;padding:22px 24px;border:1px solid var(--line);border-radius:22px}
+#aag .elena img{width:92px;height:92px;border-radius:50%;object-fit:cover;flex:none;border:2px solid #CBA44F}
+#aag .elena h3{font-size:24px!important;font-weight:400;color:var(--ink)}
+#aag .elena p{margin-top:4px;font-size:15.5px;color:var(--muted)}
+#aag .elena .hrs{margin-top:8px;color:var(--ink);font-weight:500}
+#aag .plans{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px;margin-top:36px}
+#aag .plan{border-radius:22px;padding:26px;border:1px solid var(--line);display:flex;flex-direction:column}
+#aag .plan.g{background:linear-gradient(140deg,#F4E6BD,#E2C67E 55%,#CFAE62);border-color:#B9944A}
+#aag .plan .k{font-size:12.5px;letter-spacing:.16em;text-transform:uppercase;font-weight:600;color:var(--gold)}
+#aag .plan.g .k{color:#5A4214}
+#aag .plan h3{margin-top:8px;font-size:clamp(24px,2.6vw,30px)!important;font-weight:400;color:var(--ink)}
+#aag .plan ul{list-style:none;margin:14px 0 20px;flex:1}
+#aag .plan li{padding:9px 0;border-bottom:1px solid rgba(28,20,6,.14);font-size:16px;color:var(--ink)}
+#aag .plan li:last-child{border-bottom:0}
+#aag .plan .btn{align-self:flex-start}
+#aag .dark{background:var(--ink)!important;color:var(--gold-hi)!important;border:1px solid var(--ink)}
+#aag .end{text-align:center;padding:44px 0 10px}
+#aag .end h2{font-size:clamp(24px,3.2vw,34px)!important;font-weight:400;color:var(--ink)}
+#aag .end .ctas{justify-content:center}
+@media (max-width:760px){
+  #aag .demos{padding:24px 0 20px;border-radius:0;margin:0 -4px}
+  #aag .dh{padding:0 18px}
+  #aag .reel{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;padding:0 18px 6px;gap:14px;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+  #aag .reel::-webkit-scrollbar{display:none}
+  #aag figure{flex:0 0 62%;scroll-snap-align:center}
+  #aag .swipe{display:block;padding:0 18px}
+  #aag .goals,#aag .plans{grid-template-columns:minmax(0,1fr)}
+  #aag .elena{align-items:flex-start}
+  #aag .elena img{width:72px;height:72px}
+  #aag .btn{width:100%}
+  #aag .plan .btn{align-self:stretch}
+}
+</style>
+
+<section class="hero">
+  <span class="eb"><i></i>Ask a Gemologist - Live</span>
+  <h1>Your clients ask.<br>A Gemologist answers. <em>Live.</em></h1>
+  <p>A live chat with your logo, on your website, Instagram, WhatsApp and warranty card. Run by Elena Goglio, GIA Graduate Gemologist.</p>
+  <div class="ctas">
+    <a class="btn gold" href="https://live.gemsandjewelrytechlab.com/chat/" target="_blank" rel="noopener"><span class="dot"></span>Try the live chat</a>
+    <a class="btn ghost" href="https://calendar.app.google/BUyfVKK1xjSReoSc7" target="_blank" rel="noopener">Book a call</a>
+  </div>
+</section>
+
+<section class="demos" aria-label="Demos">
+  <div class="dh"><h2>See it in 20 seconds</h2><span>5 short demos</span></div>
+  <div class="reel">
+    <figure><div class="ph"><video src="https://live.gemsandjewelrytechlab.com/videos/instagram.mp4" muted autoplay loop playsinline preload="metadata"></video></div><figcaption>Instagram bio</figcaption></figure>
+    <figure><div class="ph"><video src="https://live.gemsandjewelrytechlab.com/videos/website.mp4" muted autoplay loop playsinline preload="metadata"></video></div><figcaption>Product page</figcaption></figure>
+    <figure><div class="ph"><video src="https://live.gemsandjewelrytechlab.com/videos/whatsapp.mp4" muted autoplay loop playsinline preload="metadata"></video></div><figcaption>WhatsApp</figcaption></figure>
+    <figure><div class="ph"><video src="https://live.gemsandjewelrytechlab.com/videos/warranty.mp4" muted autoplay loop playsinline preload="metadata"></video></div><figcaption>QR on the warranty</figcaption></figure>
+    <figure><div class="ph"><video src="https://live.gemsandjewelrytechlab.com/videos/booking.mp4" muted autoplay loop playsinline preload="metadata"></video></div><figcaption>Book in store</figcaption></figure>
+  </div>
+  <div class="swipe">Swipe to see all 5 &rarr;</div>
+</section>
+
+<section class="goals" aria-label="The goal of every conversation">
+  <div class="goal"><b>A sale online</b><span>Product links shared in the chat, sales tracked.</span></div>
+  <div class="goal"><b>A client in your store</b><span>The appointment comes with a short client brief.</span></div>
+  <div class="goal"><b>What your clients ask</b><span>A one-page report every month.</span></div>
+</section>
+
+<section class="elena" aria-label="Your Gemologist">
+  <img src="https://live.gemsandjewelrytechlab.com/img/elena.png" alt="Elena Goglio">
+  <div>
+    <h3>Meet Elena, your Gemologist.</h3>
+    <p>GIA Graduate Gemologist · AJP · Christie's Education, History of Jewellery · 20 years in fine jewelry</p>
+    <p class="hrs">English · Français · Italiano &nbsp;·&nbsp; Mon–Fri 9:00–18:00 CET, extended hours on request</p>
+  </div>
+</section>
+
+<section class="plans" aria-label="Plans">
+  <div class="plan g">
+    <span class="k">For independent brands</span>
+    <h3>Ask a Gemologist - Live</h3>
+    <ul><li>Live chat on all your channels</li><li>Your logo and colours</li><li>Unlimited conversations</li><li>Monthly report</li></ul>
+    <a class="btn dark" href="https://live.gemsandjewelrytechlab.com/#price" target="_blank" rel="noopener">See plans &rarr;</a>
+  </div>
+  <div class="plan">
+    <span class="k">For maisons and retailers</span>
+    <h3>Tailored</h3>
+    <ul><li>Multi-store and multi-market</li><li>Shopify, Gorgias, Zendesk, WhatsApp</li><li>Flexible hours and languages</li><li>Pricing on request</li></ul>
+    <a class="btn ghost" href="https://calendar.app.google/BUyfVKK1xjSReoSc7" target="_blank" rel="noopener">Book a call</a>
+  </div>
+</section>
+
+<section class="end">
+  <h2>Ask a real jewelry question. See for yourself.</h2>
+  <div class="ctas"><a class="btn gold" href="https://live.gemsandjewelrytechlab.com/chat/" target="_blank" rel="noopener"><span class="dot"></span>Try the live chat</a></div>
+</section>
+</div>

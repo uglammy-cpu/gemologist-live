@@ -265,8 +265,7 @@ var BAKED = null;
     }
     addElena(hasProduct ? T.welcomeP : T.welcome);
     var chipsBox = document.createElement("div"); chipsBox.className = "chips"; log.appendChild(chipsBox);
-    var chips = hasProduct ? (product.ring ? T.chipsRing : T.chipsPiece) : (B.name ? T.chipsNone : T.chipsRing);
-    chips.forEach(function (c) { var b = document.createElement("button"); b.type = "button"; b.className = "chip"; b.textContent = c; b.addEventListener("click", function () { sendText(c); }); chipsBox.appendChild(b); });
+    /* No preset answer buttons: the client writes in their own words. */
 
     function addElena(text) { var r = document.createElement("div"); r.className = "row el"; r.innerHTML = '<img class="av" alt="" width="28" height="28"><div class="b"></div>'; r.firstChild.src = PHOTO; r.lastChild.innerHTML = linkify(text); log.appendChild(r); }
     function addRow(who, text, ts, id) {

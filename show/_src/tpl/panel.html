@@ -1,0 +1,438 @@
+<!doctype html><html lang="it"><head>{{HEAD}}<title>Pannello diretta</title><style>{{CSS}}
+.cam{position:relative;background:var(--video);border-radius:12px;aspect-ratio:4/3;overflow:hidden;display:grid;place-items:center;color:#9AA0A8;font-size:13px;text-align:center;padding:12px}
+.cam .videos{display:block}
+.cam .videos:empty{display:none}
+.cam .pips{top:8px;right:8px;width:30%;max-width:96px;min-width:64px;gap:6px}
+.cam .pip{border-width:1px;border-radius:8px}
+.cam .hintv{position:relative;z-index:1}
+.cam.on .hintv{display:none}
+.cam .live-dot{position:absolute;left:10px;top:10px;z-index:2}
+.cam-actions{display:flex;gap:6px;flex-wrap:wrap}
+.cam-actions .btn{flex:1 1 auto}
+.panel{display:grid;grid-template-columns:300px minmax(0,1fr) 340px;gap:14px;margin-top:14px;align-items:start}
+.card{border:1px solid var(--line);border-radius:18px;padding:16px;display:flex;flex-direction:column;gap:10px;background:var(--paper)}
+.card h2{font-family:var(--display);font-size:24px;line-height:1.15}
+.card .msgs{min-height:320px;max-height:560px;border:1px solid var(--line);border-radius:12px}
+.pieces{display:flex;flex-direction:column;gap:6px}
+.piece{display:flex;align-items:center;gap:10px;border:1px solid var(--line);border-radius:12px;padding:8px 10px;background:var(--paper);text-align:left;width:100%}
+.piece.on{border-color:var(--gold-edge);background:var(--soft-2)}
+.piece svg{width:40px;height:40px;flex:none;background:var(--video);border-radius:8px;padding:3px}
+.piece b{font-weight:500;font-size:14px;display:block;line-height:1.2}.piece small{color:var(--muted);font-size:12px}
+.list{display:flex;flex-direction:column;gap:8px}
+.item{border:1px solid var(--line);border-radius:12px;padding:10px 12px;font-size:14px;display:flex;flex-direction:column;gap:4px}
+.item.new{border-color:var(--gold-edge);background:var(--soft-2)}
+.item .meta{font-size:12px;color:var(--muted)}
+.item .link{display:flex;gap:6px;align-items:center}
+.item .link input{flex:1;min-width:0;font-size:12px;min-height:36px;padding:6px 10px}
+.actions{display:flex;gap:8px;flex-wrap:wrap}
+.pill{display:inline-block;font-size:11px;letter-spacing:.1em;text-transform:uppercase;padding:3px 8px;border-radius:999px;background:var(--soft);color:var(--muted);width:max-content}
+.pill.interest{background:var(--soft-2);color:var(--gold-edge)}.pill.appointment{background:#E6F4EC;color:var(--live)}
+label{font-size:13px;color:var(--muted);display:flex;flex-direction:column;gap:4px}
+label input,label select,label textarea{width:100%}
+.share{display:flex;gap:6px;align-items:center;flex-wrap:wrap;font-size:13px;color:var(--muted)}
+.share input{flex:1;min-width:180px;font-size:13px;min-height:38px;padding:6px 12px}
+.sel{width:100%}
+.count{display:inline-grid;place-items:center;min-width:22px;height:22px;border-radius:999px;background:var(--gold-ink);color:var(--gold-hi);font-size:12px;margin-left:6px}
+.who-badge{font-size:13px;color:var(--muted);white-space:nowrap}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:999px;padding:2px;width:100%}
+.seg button{flex:1;border:0;background:none;border-radius:999px;padding:7px 10px;font-size:13px;color:var(--muted)}
+.seg button.on{background:var(--gold-ink);color:var(--gold-hi)}
+.stats{display:flex;gap:10px;font-size:13px;color:var(--muted);align-items:center}
+.stats span{display:inline-flex;align-items:center;gap:5px}
+.stats svg{width:14px;height:14px}
+.admin{grid-column:1/-1}
+.app{border:1px solid var(--line);border-radius:12px;padding:12px;display:flex;flex-direction:column;gap:6px;font-size:14px}
+.app.new{border-color:var(--gold-edge);background:var(--soft-2)}
+.app .meta2{font-size:12px;color:var(--muted)}
+.app .acts{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.app .acts input{min-height:36px;padding:6px 10px;font-size:13px;width:160px}
+.keybox{font-size:12px;overflow-wrap:anywhere;background:var(--soft);padding:6px 8px;border-radius:8px}
+.grid2{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:10px}
+.mcard form{display:flex;flex-direction:column;gap:10px}
+@media (max-width:1000px){.panel{grid-template-columns:1fr}.card .msgs{min-height:240px;max-height:360px}}
+</style></head>
+<body>
+<header class="top wrap"><div class="col"><div class="wordmark" id="brand">…</div><span class="who-badge" id="who"></span><span class="stats" id="stats" hidden><span id="likesIc"></span><span id="likesN">0</span><span id="eyeIc2"></span><span id="viewersN">0</span></span><span class="status" id="status"><i></i><span id="statusTxt"></span></span></div></header>
+<main class="wrap"><div class="col">
+  <div id="denied" hidden><p class="hint" style="padding:40px 0">Accesso non valido. Controlla il link del pannello.</p></div>
+  <div class="panel" id="app" hidden>
+    <section class="card">
+      <p class="eyebrow">Diretta</p>
+      <select class="sel" id="showSel"></select>
+      <h2 id="title"></h2>
+      <p class="muted" style="font-size:14px" id="when"></p>
+      <div class="actions"><button class="btn dark" type="button" id="toggle"></button><button class="btn sm" type="button" id="edit">Modifica</button><button class="btn sm" type="button" id="newShow">Nuova diretta</button></div>
+      <div class="seg" id="visSeg"><button type="button" data-vis="private">Privata su invito</button><button type="button" data-vis="public">In vetrina</button></div>
+      <p class="hint" id="visHint"></p>
+      <div class="share"><span>Link per i clienti</span><input id="shareUrl" readonly><button class="btn sm" type="button" id="copyShare">Copia</button></div>
+      <p class="eyebrow" style="margin-top:6px">La tua camera</p>
+      <div class="cam" id="cam"><span class="hintv" id="camHint">Camera spenta. Accendila per trasmettere: i clienti vedono il video quando la diretta è «In diretta».</span><div class="videos" id="camVideos"></div></div>
+      <div class="cam-actions"><button class="btn dark sm" type="button" id="camBtn">Accendi la camera</button><button class="btn sm" type="button" id="micBtn" hidden>Microfono: on</button><button class="btn sm" type="button" id="flipBtn" hidden>Cambia camera</button></div>
+      <p class="hint" id="camWho"></p>
+      <p class="eyebrow" style="margin-top:6px">Pezzo in primo piano</p>
+      <div class="pieces" id="pieces"></div>
+      <button class="btn sm" type="button" id="addPiece">Aggiungi un pezzo</button>
+      <p class="eyebrow" style="margin-top:6px">La tua attività</p>
+      <p class="muted" style="font-size:13px" id="jinfo"></p>
+      <button class="btn sm" type="button" id="editJ">Modifica nome, città e tipo</button>
+    </section>
+    <section class="card">
+      <p class="eyebrow">Chat della diretta</p>
+      <div class="msgs" id="msgs" aria-live="polite"></div>
+      <form class="row" id="form"><input id="msg" type="text" maxlength="500" placeholder="Rispondi ai clienti…" autocomplete="off"><button class="btn dark sm" type="submit">Invia</button></form>
+      <p class="hint">I messaggi arrivano a tutti i clienti collegati.</p>
+    </section>
+    <section class="card">
+      <p class="eyebrow">Richieste <span class="count" id="reqCount" hidden>0</span></p>
+      <div class="list" id="reqs"><p class="hint">Nessuna richiesta per ora.</p></div>
+      <p class="eyebrow" style="margin-top:8px">Inviti personali</p>
+      <form id="invForm" style="display:flex;flex-direction:column;gap:8px"><input id="invName" type="text" maxlength="60" placeholder="Nome del cliente" required><div class="row"><input id="invEmail" type="email" placeholder="Email (facoltativa)"><button class="btn dark sm" type="submit">Crea link</button></div></form>
+      <div class="list" id="invs"></div>
+    </section>
+    <section class="card admin" id="admin" hidden>
+      <p class="eyebrow">Amministrazione · solo gemmologa</p>
+      <div class="grid2"><div><h2 style="font-size:20px">Candidature <span class="count" id="appCount" hidden>0</span></h2><div class="list" id="apps" style="margin-top:8px"><p class="hint">Nessuna candidatura.</p></div></div><div><h2 style="font-size:20px">Venditori attivi</h2><div class="list" id="sellers" style="margin-top:8px"></div></div></div>
+    </section>
+  </div>
+</div></main>
+<footer class="wrap">Pannello riservato · Live show · Gems &amp; Jewelry Tech Lab</footer>
+<div class="modal" id="modal" hidden></div>
+<script>
+{{LKJS}}
+(function(){
+  var CFG = {"url":"{{URL}}","key":"{{KEY}}","slug":"{{SLUG}}","token":"{{TOKEN}}","base":"{{BASE}}","tokenUrl":"{{TOKENURL}}","art":{{ART}}};
+  var sb = window.supabase.createClient(CFG.url, CFG.key);
+  var $ = function(id){ return document.getElementById(id); };
+  var state = { jeweler:null, shows:[], show:null, pieces:[], role:"", name:"", seen:0, firstReq:true, pendingStop:false, timer:null };
+  var LANGS = { it:"Italiano", en:"Inglese", fr:"Francese" };
+  var ARTS = { ring:"Anello solitario", sapphire:"Anello con pietra colorata", earrings:"Orecchini", loose:"Pietre sciolte", none:"Nessuna immagine" };
+  var KINDS = { shop:"Gioielleria", gems:"Gem dealer" };
+  $("likesIc").innerHTML = ICON.heart; $("eyeIc2").innerHTML = ICON.eye;
+
+  function esc(s){ return String(s == null ? "" : s).replace(/[&<>"']/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]; }); }
+  function toast(text){ var old = document.querySelector(".toast"); if (old) old.remove(); var t = document.createElement("div"); t.className = "toast"; t.innerHTML = "<i></i>"; t.appendChild(document.createTextNode(text)); document.body.appendChild(t); setTimeout(function(){ t.remove(); }, 3200); }
+  function fmtDate(iso){ try { return new Intl.DateTimeFormat("it-IT", { weekday:"long", day:"numeric", month:"long", hour:"2-digit", minute:"2-digit" }).format(new Date(iso)); } catch(e){ return iso; } }
+  function fmtShort(iso){ try { return new Intl.DateTimeFormat("it-IT", { day:"2-digit", month:"2-digit", hour:"2-digit", minute:"2-digit" }).format(new Date(iso)); } catch(e){ return iso; } }
+  function fmtTime(iso){ try { return new Intl.DateTimeFormat("it-IT", { hour:"2-digit", minute:"2-digit" }).format(new Date(iso)); } catch(e){ return ""; } }
+  function toLocalInput(iso){ var d = iso ? new Date(iso) : new Date(Date.now() + 86400000); var p = function(n){ return (n < 10 ? "0" : "") + n; }; return d.getFullYear() + "-" + p(d.getMonth()+1) + "-" + p(d.getDate()) + "T" + p(d.getHours()) + ":" + p(d.getMinutes()); }
+  function statusLabel(s){ return s === "live" ? "In diretta" : (s === "ended" ? "Terminata" : "In programma"); }
+  function viewerUrl(){ return CFG.base + "/live/" + CFG.slug; }
+  function copy(text, btn){
+    var done = function(){ var o = btn.textContent; btn.textContent = "Copiato"; setTimeout(function(){ btn.textContent = o; }, 1500); };
+    if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text).then(done, function(){ toast("Copia manualmente il link"); });
+    else { var i = document.createElement("textarea"); i.value = text; document.body.appendChild(i); i.select(); try { document.execCommand("copy"); done(); } catch(e){ toast("Copia manualmente il link"); } i.remove(); }
+  }
+  function err(r){ if (r && r.error){ toast(r.error.message || "Errore"); return true; } return false; }
+
+  var modal = $("modal");
+  function openModal(html){ modal.innerHTML = '<div class="mcard">' + html + '<button class="x" type="button" aria-label="Chiudi">×</button></div>'; modal.hidden = false; modal.querySelector(".x").addEventListener("click", closeModal); }
+  function closeModal(){ modal.hidden = true; modal.innerHTML = ""; }
+  modal.addEventListener("click", function(e){ if (e.target === modal) closeModal(); });
+
+  function renderHeader(){
+    $("brand").textContent = state.jeweler.name;
+    $("who").textContent = state.name + " · " + (state.role === "gemologist" ? "gemmologa" : "gioielleria");
+    var s = state.show;
+    $("status").className = "status" + (s && s.status === "live" ? " live" : "");
+    $("statusTxt").textContent = s ? statusLabel(s.status) : "";
+  }
+  function renderShow(){
+    var s = state.show;
+    var sel = $("showSel"); sel.innerHTML = "";
+    state.shows.forEach(function(x){ var o = document.createElement("option"); o.value = x.id; o.textContent = x.title + " · " + fmtShort(x.scheduled_at) + " · " + statusLabel(x.status); if (s && x.id === s.id) o.selected = true; sel.appendChild(o); });
+    $("title").textContent = s.title; $("when").textContent = fmtDate(s.scheduled_at) + " · " + LANGS[s.lang] ;
+    var t = $("toggle"); state.pendingStop = false;
+    if (s.status === "scheduled"){ t.textContent = "Inizia la diretta"; t.className = "btn dark"; }
+    else if (s.status === "live"){ t.textContent = "Termina la diretta"; t.className = "btn"; }
+    else { t.textContent = "Riapri la diretta"; t.className = "btn"; }
+    $("shareUrl").value = viewerUrl();
+    Array.prototype.forEach.call(document.querySelectorAll("#visSeg button"), function(b){ b.classList.toggle("on", b.getAttribute("data-vis") === (s.visibility || "private")); });
+    $("visHint").textContent = s.visibility === "public" ? "Compare nella vetrina pubblica: chiunque può entrare." : "Entra solo chi ha il link o un invito personale.";
+    $("stats").hidden = false; $("likesN").textContent = s.likes || 0;
+    $("jinfo").textContent = state.jeweler.name + " · " + (state.jeweler.city || "città non indicata") + " · " + (KINDS[state.jeweler.kind] || "Gioielleria");
+    renderHeader(); renderPieces();
+    document.title = "Pannello · " + s.title;
+  }
+  function renderPieces(){
+    var box = $("pieces"); box.innerHTML = "";
+    if (!state.pieces.length){ box.innerHTML = '<p class="hint">Nessun pezzo ancora. Aggiungine uno: i clienti lo vedono in primo piano e possono dire «Mi interessa».</p>'; return; }
+    state.pieces.forEach(function(p){
+      var b = document.createElement("button"); b.type = "button"; b.className = "piece" + (state.show.current_piece_id === p.id ? " on" : "");
+      b.innerHTML = (CFG.art[p.art] || CFG.art.none) + '<span><b>' + esc(p.name) + '</b><small>' + esc(p.caption || "") + '</small></span>';
+      b.addEventListener("click", function(){ sb.rpc("set_current_piece", { p_show: state.show.id, p_token: CFG.token, p_piece: p.id }).then(function(r){ if (!err(r)){ state.show.current_piece_id = p.id; renderPieces(); toast("In primo piano: " + p.short); } }); });
+      box.appendChild(b);
+    });
+  }
+  // Video (LiveKit): lo staff trasmette camera e microfono e vede gli altri presentatori
+  var cam = { room:null, tiles:null, facing:"user", mic:true, busy:false };
+  function camUi(){
+    var on = !!cam.room;
+    $("cam").className = "cam" + (on ? " on" : "");
+    $("camBtn").textContent = on ? "Spegni la camera" : "Accendi la camera";
+    $("camBtn").className = on ? "btn sm" : "btn dark sm";
+    $("micBtn").hidden = !on; $("micBtn").textContent = cam.mic ? "Microfono: on" : "Microfono: off";
+    $("flipBtn").hidden = !on || !/Mobi|Android|iPhone|iPad/i.test(navigator.userAgent);
+  }
+  function camWho(){
+    var names = [];
+    if (cam.room) cam.room.remoteParticipants.forEach(function(p){ if (p.identity.indexOf("staff:") === 0) names.push(p.name || p.identity); });
+    $("camWho").textContent = cam.room ? (names.length ? "In collegamento con te: " + names.join(", ") : "Sei l’unico presentatore collegato.") : "";
+  }
+  function localVideoEl(){
+    var pub = cam.room && cam.room.localParticipant.getTrackPublication(window.LivekitClient.Track.Source.Camera);
+    return pub && pub.track ? pub.track : null;
+  }
+  function showLocal(){
+    var t = localVideoEl(); if (!t) return;
+    var el = t.attach(); el.muted = true;
+    cam.tiles.add("me", el, state.name, cam.facing === "user");
+    cam.tiles.promote("me");
+  }
+  function startCam(){
+    var LK = window.LivekitClient;
+    if (!LK){ toast("Libreria video non caricata: ricarica la pagina"); return; }
+    if (cam.busy) return; cam.busy = true; $("camBtn").disabled = true;
+    if (!cam.tiles) cam.tiles = new LkTiles($("camVideos"), { onChange: function(){ camWho(); } });
+    fetch(CFG.tokenUrl + "?show=" + encodeURIComponent(state.show.id) + "&k=" + encodeURIComponent(CFG.token), { cache:"no-store" }).then(function(r){ return r.json(); }).then(function(j){
+      if (!j || !j.token) throw new Error(j && j.error || "token");
+      var room = new LK.Room({ adaptiveStream:true, dynacast:true, videoCaptureDefaults: { facingMode: cam.facing, resolution: LK.VideoPresets.h720.resolution }, publishDefaults: { simulcast:true } });
+      lkAttachRemote(room, cam.tiles, LK);
+      room.on(LK.RoomEvent.ParticipantConnected, camWho);
+      room.on(LK.RoomEvent.ParticipantDisconnected, camWho);
+      room.on(LK.RoomEvent.Disconnected, function(){ cam.room = null; camUi(); camWho(); });
+      return room.connect(j.url, j.token).then(function(){
+        cam.room = room;
+        return room.localParticipant.enableCameraAndMicrophone();
+      }).then(function(){ showLocal(); camUi(); camWho(); toast("Camera accesa"); startCovers(); });
+    }).catch(function(e){
+      console.warn("cam", e);
+      toast(/NotAllowed|Permission/i.test(String(e)) ? "Consenti l’uso di camera e microfono nel browser" : "Impossibile avviare il video: " + (e && e.message ? e.message : e));
+      if (cam.room){ cam.room.disconnect(); cam.room = null; }
+      camUi();
+    }).then(function(){ cam.busy = false; $("camBtn").disabled = false; });
+  }
+  function stopCam(){ if (!cam.room) return; var r = cam.room; cam.room = null; r.disconnect(); if (cam.tiles) cam.tiles.clear(); camUi(); camWho(); stopCovers(); toast("Camera spenta"); }
+  // Copertina per la vetrina: un fotogramma della camera ogni 20 secondi
+  function captureCover(){
+    try {
+      if (!cam.room || !cam.tiles) return;
+      var v = cam.tiles.mainVideo(); if (!v || v.videoWidth < 10) return;
+      var W = 270, H = 480, c = document.createElement("canvas"); c.width = W; c.height = H; var g = c.getContext("2d");
+      var vw = v.videoWidth, vh = v.videoHeight, scale = Math.max(W / vw, H / vh), dw = vw * scale, dh = vh * scale;
+      if (cam.facing === "user"){ g.translate(W, 0); g.scale(-1, 1); }
+      g.drawImage(v, (W - dw) / 2, (H - dh) / 2, dw, dh);
+      var data = c.toDataURL("image/jpeg", 0.55);
+      if (data.length > 150000) data = c.toDataURL("image/jpeg", 0.35);
+      sb.rpc("set_cover", { p_show: state.show.id, p_token: CFG.token, p_data: data });
+    } catch(e){ console.warn("cover", e); }
+  }
+  function startCovers(){ stopCovers(); setTimeout(captureCover, 2500); cam.coverTimer = setInterval(captureCover, 20000); }
+  function stopCovers(){ if (cam.coverTimer){ clearInterval(cam.coverTimer); cam.coverTimer = null; } }
+  $("camBtn").addEventListener("click", function(){ if (cam.room) stopCam(); else startCam(); });
+  $("micBtn").addEventListener("click", function(){ if (!cam.room) return; cam.mic = !cam.mic; cam.room.localParticipant.setMicrophoneEnabled(cam.mic).then(camUi); });
+  $("flipBtn").addEventListener("click", function(){
+    if (!cam.room || cam.busy) return; cam.busy = true;
+    var LK = window.LivekitClient; cam.facing = cam.facing === "user" ? "environment" : "user";
+    var lp = cam.room.localParticipant;
+    lp.setCameraEnabled(false).then(function(){ return lp.setCameraEnabled(true, { facingMode: cam.facing, resolution: LK.VideoPresets.h720.resolution }); })
+      .then(function(){ cam.tiles.remove("me"); showLocal(); }).catch(function(e){ toast("Cambio camera non riuscito"); console.warn(e); }).then(function(){ cam.busy = false; });
+  });
+  window.addEventListener("beforeunload", function(){ if (cam.room) cam.room.disconnect(); });
+
+  var pending = [];
+  function myRole(){ return state.role === "gemologist" ? "gemologist" : "shop"; }
+  function track(body){ var e = { body: body, shown: false }; pending.push(e); setTimeout(function(){ var k = pending.indexOf(e); if (k >= 0) pending.splice(k, 1); }, 15000); return e; }
+  function echo(e){ if (pending.indexOf(e) < 0) return; e.shown = true; addMsg({ role: myRole(), author: state.name, body: e.body, created_at: new Date().toISOString() }, true); }
+  function addMsg(m, force){
+    var box = $("msgs");
+    var mine = m.role === myRole() && m.author === state.name;
+    if (!force && mine && m.id){ for (var i = 0; i < pending.length; i++) if (pending[i].body === m.body){ var e = pending.splice(i, 1)[0]; if (e.shown) return; break; } }
+    var d = document.createElement("div"); d.className = "msg " + m.role + (mine ? " me" : "");
+    var w = document.createElement("span"); w.className = "who"; w.textContent = (mine ? "Tu" : m.author) + " · " + fmtTime(m.created_at);
+    var x = document.createElement("span"); x.className = "txt"; x.textContent = m.body;
+    d.appendChild(w); d.appendChild(x); box.appendChild(d); box.scrollTop = box.scrollHeight;
+  }
+  function renderRequests(rows){
+    var box = $("reqs"); box.innerHTML = "";
+    $("reqCount").hidden = !rows.length; $("reqCount").textContent = rows.length;
+    if (!rows.length){ box.innerHTML = '<p class="hint">Nessuna richiesta per ora.</p>'; return; }
+    var maxId = 0, fresh = 0;
+    rows.forEach(function(r){
+      if (r.id > maxId) maxId = r.id;
+      var isNew = r.id > state.seen;
+      if (isNew) fresh++;
+      var d = document.createElement("div"); d.className = "item" + (isNew ? " new" : "");
+      var what = r.type === "appointment" ? "Appuntamento" + (r.slot ? ": " + r.slot : "") : "Mi interessa";
+      d.innerHTML = '<span class="pill ' + esc(r.type) + '">' + esc(what) + '</span><b style="font-weight:500">' + esc(r.guest_name) + '</b>' + (r.piece_name ? '<span>' + esc(r.piece_name) + '</span>' : '') + '<span class="meta">' + esc(fmtShort(r.created_at)) + '</span>';
+      box.appendChild(d);
+    });
+    if (!state.firstReq && fresh > 0) toast(fresh === 1 ? "Nuova richiesta da " + rows[0].guest_name : fresh + " nuove richieste");
+    state.firstReq = false;
+    if (maxId > state.seen){ state.seen = maxId; try { localStorage.setItem("seen-" + state.show.id, String(maxId)); } catch(e){} }
+  }
+  function renderInvites(rows){
+    var box = $("invs"); box.innerHTML = "";
+    rows.forEach(function(i){
+      var link = viewerUrl() + "?t=" + i.token;
+      var d = document.createElement("div"); d.className = "item";
+      d.innerHTML = '<b style="font-weight:500">' + esc(i.client_name) + '</b><span class="meta">' + (i.email ? esc(i.email) + " · " : "") + (i.joined_at ? "Entrato " + esc(fmtShort(i.joined_at)) : "Non ancora entrato") + '</span><div class="link"><input readonly value="' + esc(link) + '"><button class="btn sm" type="button">Copia</button></div>';
+      d.querySelector("button").addEventListener("click", function(){ copy(link, this); });
+      box.appendChild(d);
+    });
+  }
+  function loadRequests(){ sb.rpc("list_requests", { p_show: state.show.id, p_token: CFG.token }).then(function(r){ if (!r.error) renderRequests(r.data || []); }); }
+  function loadInvites(){ sb.rpc("list_invites", { p_show: state.show.id, p_token: CFG.token }).then(function(r){ if (!r.error) renderInvites((r.data || []).sort(function(a,b){ return a.client_name.localeCompare(b.client_name); })); }); }
+  function loadPieces(){ return sb.from("pieces").select("*").eq("show_id", state.show.id).order("position").then(function(r){ state.pieces = r.data || []; renderPieces(); }); }
+
+  Array.prototype.forEach.call(document.querySelectorAll("#visSeg button"), function(b){
+    b.addEventListener("click", function(){ var v = b.getAttribute("data-vis"); sb.rpc("set_visibility", { p_show: state.show.id, p_token: CFG.token, p_vis: v }).then(function(r){ if (!err(r)){ state.show.visibility = v; renderShow(); toast(v === "public" ? "La diretta è in vetrina" : "La diretta è privata"); } }); });
+  });
+  $("editJ").addEventListener("click", function(){
+    var j = state.jeweler;
+    openModal('<p class="eyebrow">La tua attività</p><form id="jf"><label>Nome<input id="jfName" type="text" maxlength="80" value="' + esc(j.name) + '"></label><label>Città<input id="jfCity" type="text" maxlength="60" value="' + esc(j.city || "") + '"></label><label>Tipo<select id="jfKind"><option value="shop">Gioielleria</option><option value="gems">Gem dealer</option></select></label><label>Una riga di presentazione (facoltativa)<input id="jfTag" type="text" maxlength="160" value="' + esc(j.tagline || "") + '"></label><button class="btn dark" type="submit">Salva</button></form>');
+    $("jfKind").value = j.kind || "shop";
+    $("jf").addEventListener("submit", function(e){ e.preventDefault(); sb.rpc("update_jeweler", { p_token: CFG.token, p_jeweler: j.id, p_name: $("jfName").value, p_city: $("jfCity").value, p_kind: $("jfKind").value, p_tagline: $("jfTag").value }).then(function(r){ if (!err(r)){ closeModal(); location.reload(); } }); });
+  });
+  $("showSel").addEventListener("change", function(){ var u = new URL(location.href); u.searchParams.set("show", this.value); location.href = u.toString(); });
+  $("copyShare").addEventListener("click", function(){ copy(viewerUrl(), this); });
+  $("toggle").addEventListener("click", function(){
+    var s = state.show, next;
+    if (s.status === "scheduled") next = "live";
+    else if (s.status === "live"){ if (!state.pendingStop){ state.pendingStop = true; this.textContent = "Confermi? Termina la diretta"; return; } next = "ended"; }
+    else next = "scheduled";
+    sb.rpc("set_show_status", { p_show: s.id, p_token: CFG.token, p_status: next }).then(function(r){ if (!err(r)){ s.status = next; renderShow(); if (next === "ended" && cam.room) stopCam(); toast(next === "live" ? "Sei in diretta" : (next === "ended" ? "Diretta terminata" : "Diretta riaperta: in programma")); } });
+  });
+  $("form").addEventListener("submit", function(e){
+    e.preventDefault(); var body = ($("msg").value || "").trim(); if (!body) return; $("msg").value = "";
+    var en = track(body);
+    sb.rpc("staff_message", { p_show: state.show.id, p_token: CFG.token, p_body: body }).then(function(r){ if (err(r)){ var k = pending.indexOf(en); if (k >= 0) pending.splice(k, 1); } else echo(en); });
+  });
+  $("invForm").addEventListener("submit", function(e){
+    e.preventDefault(); var n = ($("invName").value || "").trim(); if (!n) return;
+    sb.rpc("add_invite", { p_show: state.show.id, p_token: CFG.token, p_name: n, p_email: ($("invEmail").value || "").trim() }).then(function(r){ if (!err(r)){ $("invName").value = ""; $("invEmail").value = ""; toast("Invito creato per " + n); loadInvites(); } });
+  });
+  function showForm(existing){
+    var s = existing || {};
+    var slots = Array.isArray(s.slots) ? s.slots.join("\n") : "Giovedì 17:30\nVenerdì 11:00\nSabato 10:30";
+    openModal('<p class="eyebrow">' + (existing ? "Modifica diretta" : "Nuova diretta") + '</p><form id="sf">' +
+      '<label>Titolo<input id="sfTitle" type="text" maxlength="120" required value="' + esc(s.title || "") + '"></label>' +
+      '<label>Titolo in inglese (per la vetrina, facoltativo)<input id="sfEn" type="text" maxlength="120" value="' + esc((s.title_i18n || {}).en || "") + '"></label>' +
+      '<label>Titolo in francese (facoltativo)<input id="sfFr" type="text" maxlength="120" value="' + esc((s.title_i18n || {}).fr || "") + '"></label>' +
+      '<label>Visibilità<select id="sfVis"><option value="private">Privata su invito</option><option value="public">In vetrina pubblica</option></select></label>' +
+      '<label>Data e ora<input id="sfAt" type="datetime-local" required value="' + toLocalInput(s.scheduled_at) + '"></label>' +
+      '<label>Lingua della pagina clienti<select id="sfLang"><option value="it">Italiano</option><option value="en">Inglese</option><option value="fr">Francese</option></select></label>' +
+      '<label>Orari proposti per gli appuntamenti privati (uno per riga)<textarea id="sfSlots">' + esc(slots) + '</textarea></label>' +
+      '<button class="btn dark" type="submit">' + (existing ? "Salva" : "Crea la diretta") + '</button></form>');
+    $("sfLang").value = s.lang || "it"; $("sfVis").value = s.visibility || "private";
+    $("sf").addEventListener("submit", function(e){
+      e.preventDefault();
+      var at = new Date($("sfAt").value); if (isNaN(at.getTime())){ toast("Data non valida"); return; }
+      var slotsArr = $("sfSlots").value.split("\n").map(function(x){ return x.trim(); }).filter(Boolean);
+      var i18n = {}; if ($("sfEn").value.trim()) i18n.en = $("sfEn").value.trim(); if ($("sfFr").value.trim()) i18n.fr = $("sfFr").value.trim();
+      var vis = $("sfVis").value;
+      if (existing){
+        sb.rpc("update_show2", { p_show: s.id, p_token: CFG.token, p_title: $("sfTitle").value, p_at: at.toISOString(), p_lang: $("sfLang").value, p_slots: slotsArr, p_i18n: i18n, p_vis: vis }).then(function(r){ if (!err(r)){ closeModal(); location.reload(); } });
+      } else {
+        sb.rpc("create_show", { p_token: CFG.token, p_jeweler: state.jeweler.id, p_title: $("sfTitle").value, p_at: at.toISOString(), p_lang: $("sfLang").value, p_slots: slotsArr }).then(function(r){ if (err(r)) return; var id = r.data.id; sb.rpc("update_show2", { p_show: id, p_token: CFG.token, p_title: null, p_at: null, p_lang: null, p_slots: null, p_i18n: i18n, p_vis: vis }).then(function(){ var u = new URL(location.href); u.searchParams.set("show", id); location.href = u.toString(); }); });
+      }
+    });
+  }
+  $("newShow").addEventListener("click", function(){ showForm(null); });
+  $("edit").addEventListener("click", function(){ showForm(state.show); });
+  $("addPiece").addEventListener("click", function(){
+    var opts = ""; for (var k in ARTS) opts += '<option value="' + k + '">' + ARTS[k] + '</option>';
+    openModal('<p class="eyebrow">Nuovo pezzo</p><form id="pf">' +
+      '<label>Nome<input id="pfName" type="text" maxlength="120" required placeholder="Solitario 1,02 ct · oro bianco"></label>' +
+      '<label>Nome breve (nelle richieste)<input id="pfShort" type="text" maxlength="80" placeholder="Solitario 1,02 ct"></label>' +
+      '<label>Didascalia sotto il video<input id="pfCaption" type="text" maxlength="240" placeholder="Diamante 1,02 ct · colore F · purezza VS1"></label>' +
+      '<label>Immagine (finché non c’è il video)<select id="pfArt">' + opts + '</select></label>' +
+      '<button class="btn dark" type="submit">Aggiungi</button></form>');
+    $("pf").addEventListener("submit", function(e){
+      e.preventDefault();
+      sb.rpc("add_piece", { p_show: state.show.id, p_token: CFG.token, p_name: $("pfName").value, p_caption: $("pfCaption").value, p_short: $("pfShort").value, p_art: $("pfArt").value }).then(function(r){ if (!err(r)){ closeModal(); toast("Pezzo aggiunto"); if (!state.show.current_piece_id) state.show.current_piece_id = r.data.id; loadPieces(); } });
+    });
+  });
+
+  function subscribe(){
+    sb.channel("panel-" + state.show.id)
+      .on("postgres_changes", { event:"INSERT", schema:"public", table:"messages", filter:"show_id=eq." + state.show.id }, function(p){ addMsg(p.new); })
+      .on("postgres_changes", { event:"UPDATE", schema:"public", table:"shows", filter:"id=eq." + state.show.id }, function(p){ var prev = state.show; state.show = p.new; if (p.new.likes !== prev.likes){ $("likesN").textContent = p.new.likes || 0; } if (p.new.status !== prev.status || p.new.current_piece_id !== prev.current_piece_id || p.new.visibility !== prev.visibility || p.new.title !== prev.title) renderShow(); })
+      .on("postgres_changes", { event:"INSERT", schema:"public", table:"pieces", filter:"show_id=eq." + state.show.id }, function(){ loadPieces(); })
+      .subscribe();
+    var pres = sb.channel("show-" + state.show.id, { config: { presence: { key: "p" + Math.random().toString(36).slice(2, 10) } } });
+    pres.on("presence", { event:"sync" }, function(){ var n = 0; var st = pres.presenceState(); Object.keys(st).forEach(function(k){ if (k.charAt(0) === "v") n++; }); $("viewersN").textContent = n; }).subscribe();
+    state.timer = setInterval(loadRequests, 5000);
+    document.addEventListener("visibilitychange", function(){ if (!document.hidden) loadRequests(); });
+  }
+
+  function loadAdmin(){
+    $("admin").hidden = false;
+    sb.rpc("list_applications", { p_token: CFG.token }).then(function(r){
+      if (r.error) return; var rows = r.data || []; var box = $("apps"); box.innerHTML = "";
+      var fresh = rows.filter(function(a){ return a.status === "new"; }).length; $("appCount").hidden = !fresh; $("appCount").textContent = fresh;
+      if (!rows.length){ box.innerHTML = '<p class="hint">Nessuna candidatura.</p>'; return; }
+      rows.forEach(function(a){
+        var d = document.createElement("div"); d.className = "app" + (a.status === "new" ? " new" : "");
+        var slug = (a.name || "").toLowerCase().normalize("NFD").replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 30);
+        d.innerHTML = '<b style="font-weight:500">' + esc(a.name) + '</b><span class="meta2">' + esc(a.city) + ' · ' + esc(KINDS[a.kind] || a.kind) + ' · ' + esc(fmtShort(a.created_at)) + ' · ' + esc(a.lang.toUpperCase()) + (a.status !== "new" ? ' · <b>' + (a.status === "approved" ? "approvata" : "rifiutata") + '</b>' : '') + '</span>' +
+          (a.show_what ? '<span>' + esc(a.show_what) + '</span>' : '') + '<span class="meta2">' + esc(a.email) + (a.phone ? ' · ' + esc(a.phone) : '') + (a.site ? ' · ' + esc(a.site) : '') + '</span>' +
+          (a.status === "new" ? '<div class="acts"><input type="text" value="' + esc(slug) + '" placeholder="indirizzo (slug)" data-slug><button class="btn dark sm" type="button" data-ok>Approva e crea pagina</button><button class="btn sm" type="button" data-no>Rifiuta</button></div>' : '') + '<div data-out></div>';
+        if (a.status === "new"){
+          d.querySelector("[data-ok]").addEventListener("click", function(){
+            var sl = d.querySelector("[data-slug]").value.trim();
+            if (!/^[a-z0-9-]{2,40}$/.test(sl)){ toast("Indirizzo non valido: solo lettere minuscole, numeri e trattini"); return; }
+            sb.rpc("approve_application", { p_token: CFG.token, p_id: a.id, p_slug: sl }).then(function(r){ if (err(r)) return; var row = r.data && r.data[0]; if (!row) return; d.querySelector("[data-out]").innerHTML = '<div class="keybox">Pagina: ' + esc(CFG.base + "/live/" + sl) + '<br>Pannello del venditore: ' + esc(CFG.base + "/live/" + sl + "/panel?k=" + row.staff_token) + '</div>'; toast("Venditore creato: manda il link del pannello a " + a.email); loadSellers(); });
+          });
+          d.querySelector("[data-no]").addEventListener("click", function(){ sb.rpc("reject_application", { p_token: CFG.token, p_id: a.id, p_notes: "" }).then(function(r){ if (!err(r)) loadAdmin(); }); });
+        }
+        box.appendChild(d);
+      });
+    });
+    loadSellers();
+  }
+  function loadSellers(){
+    sb.rpc("list_sellers", { p_token: CFG.token }).then(function(r){
+      if (r.error) return; var box = $("sellers"); box.innerHTML = "";
+      (r.data || []).forEach(function(j){
+        var d = document.createElement("div"); d.className = "app";
+        d.innerHTML = '<b style="font-weight:500">' + esc(j.name) + '</b><span class="meta2">' + esc(j.city || "") + ' · ' + esc(KINDS[j.kind] || j.kind) + ' · /live/' + esc(j.slug) + '</span><div class="keybox">Pannello: ' + esc(CFG.base + "/live/" + j.slug + "/panel?k=" + (j.staff_token || "")) + '</div><div class="acts"><a class="btn sm" href="' + esc(CFG.base + "/live/" + j.slug + "/panel?k=" + CFG.token) + '">Apri come gemmologa</a></div>';
+        box.appendChild(d);
+      });
+    });
+  }
+  function boot(){
+    sb.from("jewelers").select("*").eq("slug", CFG.slug).maybeSingle().then(function(r){
+      if (!r.data){ $("denied").hidden = false; return; }
+      state.jeweler = r.data;
+      return sb.from("shows").select("*").eq("jeweler_id", state.jeweler.id).order("scheduled_at", { ascending:false }).then(function(r2){
+        state.shows = r2.data || [];
+        var want = new URLSearchParams(location.search).get("show");
+        var byId = state.shows.filter(function(s){ return s.id === want; })[0];
+        var live = state.shows.filter(function(s){ return s.status === "live"; })[0];
+        var sched = state.shows.filter(function(s){ return s.status === "scheduled"; }).sort(function(a,b){ return new Date(a.scheduled_at) - new Date(b.scheduled_at); })[0];
+        state.show = byId || live || sched || state.shows[0] || null;
+        if (!state.show){
+          return sb.rpc("staff_jeweler", { p_token: CFG.token, p_jeweler: state.jeweler.id }).then(function(r3){
+            var row = r3.data && r3.data[0]; if (!row){ $("denied").hidden = false; return; }
+            state.role = row.role; state.name = row.display_name; renderHeader();
+            $("app").hidden = false; $("brand").textContent = state.jeweler.name;
+            showForm(null);
+          });
+        }
+        return sb.rpc("staff_check", { p_token: CFG.token, p_show: state.show.id }).then(function(r3){
+          var row = r3.data && r3.data[0]; if (!row){ $("denied").hidden = false; return; }
+          state.role = row.role; state.name = row.display_name;
+          try { state.seen = parseInt(localStorage.getItem("seen-" + state.show.id) || "0", 10) || 0; } catch(e){}
+          $("app").hidden = false; renderShow();
+          return Promise.all([
+            loadPieces(),
+            sb.from("messages").select("*").eq("show_id", state.show.id).order("created_at").limit(300).then(function(m){ (m.data || []).forEach(addMsg); })
+          ]).then(function(){ loadRequests(); loadInvites(); subscribe(); if (state.role === "gemologist") loadAdmin(); });
+        });
+      });
+    });
+  }
+  boot();
+})();
+</script>
+</body></html>

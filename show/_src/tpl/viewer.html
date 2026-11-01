@@ -1,0 +1,230 @@
+<!doctype html><html lang="{{LANG}}"><head>{{HEAD}}<title>Diretta</title><style>{{CSS}}</style></head>
+<body class="dark">
+<div class="stagev">
+  <div class="phone" id="phone">
+    <div class="vid" id="vid"><img class="poster" id="poster" alt="" hidden><div class="artwrap" id="art"></div><div class="videos" id="videos"></div><div class="shade"></div></div>
+    <div class="ptop">
+      <a class="pill" id="pill" href="{{BASE}}/live"><span class="av" id="av"></span><span class="who"><b id="jname">…</b><span id="jsub"></span></span></a>
+      <span class="lbl off" id="lbl"><i></i><span id="lblTxt"></span></span>
+      <span class="eye" id="eye" hidden><span id="eyeIc"></span><span id="viewers">0</span></span>
+      <a class="x" id="back" href="{{BASE}}/live" aria-label="Chiudi">×</a>
+    </div>
+    <div class="pchip" id="pchip" hidden><i></i><span id="pchipTxt"></span></div>
+    <div class="waitv" id="wait" hidden><div><b id="waitT"></b><span id="waitS"></span></div></div>
+    <button class="audio-btn" type="button" id="audioBtn" hidden></button>
+    <div class="pchat" id="msgs" aria-live="polite"></div>
+    <div class="hearts" id="hearts"></div>
+    <div class="rail">
+      <button type="button" id="heart"><span class="ic heart" id="heartIc"></span><span id="likes">0</span></button>
+      <button type="button" id="interest"><span class="ic goldbg" id="gemIc"></span><span id="interestTxt"></span></button>
+      <button type="button" id="book"><span class="ic" id="calIc"></span><span id="bookTxt"></span></button>
+      <button type="button" id="share"><span class="ic" id="shareIc"></span><span id="shareTxt"></span></button>
+    </div>
+    <form class="pin" id="form"><input id="msg" type="text" maxlength="500" autocomplete="off"><button type="submit" id="send"></button></form>
+    <div class="waitv" id="notfound" hidden><div><b>404</b><span id="nfTxt">Pagina non trovata.</span></div></div>
+  </div>
+</div>
+<p class="credit" id="credit"></p>
+<div class="modal" id="modal" hidden></div>
+<script>
+{{LKJS}}
+(function(){
+  var CFG = {"url":"{{URL}}","key":"{{KEY}}","slug":"{{SLUG}}","token":"{{TOKEN}}","lang":"{{LANG}}","tokenUrl":"{{TOKENURL}}","base":"{{BASE}}","showId":"{{SHOWID}}","art":{{ART}}};
+  var TT = {{T}};
+  var sb = window.supabase.createClient(CFG.url, CFG.key);
+  var $ = function(id){ return document.getElementById(id); };
+  var LOC = { it:"it-IT", en:"en-GB", fr:"fr-FR" };
+  var state = { jeweler:null, show:null, pieces:[], invite:null, name:"", lang:"it", t:TT.it, likes:0, channel:null, lastTap:0, queued:0 };
+  try { state.name = localStorage.getItem("live-name") || ""; } catch(e){}
+  $("heartIc").innerHTML = ICON.heart; $("gemIc").innerHTML = ICON.gem; $("calIc").innerHTML = ICON.cal; $("shareIc").innerHTML = ICON.share; $("eyeIc").innerHTML = ICON.eye;
+
+  function fmtDate(iso){ try { return new Intl.DateTimeFormat(LOC[state.lang] || "it-IT", { weekday:"long", day:"numeric", month:"long", hour:"2-digit", minute:"2-digit", hour12:false }).format(new Date(iso)); } catch(e){ return iso; } }
+  function currentPiece(){ var id = state.show && state.show.current_piece_id; for (var i = 0; i < state.pieces.length; i++) if (state.pieces[i].id === id) return state.pieces[i]; return state.pieces[0] || null; }
+  function showTitle(){ var s = state.show; return (s.title_i18n && s.title_i18n[state.lang]) || s.title; }
+
+  function render(){
+    var s = state.show, t = state.t, j = state.jeweler;
+    $("av").textContent = (j.name || "?").charAt(0).toUpperCase();
+    $("jname").textContent = j.name; $("jsub").textContent = (j.city ? j.city + " · " : "") + showTitle();
+    var live = s.status === "live";
+    $("lbl").className = "lbl" + (live ? "" : " off"); $("lblTxt").textContent = live ? t.live : (s.status === "ended" ? t.ended : t.soon);
+    $("eye").hidden = !live;
+    var p = currentPiece();
+    $("art").innerHTML = p ? (CFG.art[p.art] || CFG.art.none) : CFG.art.none;
+    $("pchip").hidden = !p || !p.caption; $("pchipTxt").textContent = p ? p.caption : "";
+    var w = $("wait");
+    if (s.status === "scheduled"){ w.hidden = false; $("waitT").textContent = t.waitSoon; $("waitS").textContent = fmtDate(s.scheduled_at); }
+    else if (s.status === "ended"){ w.hidden = false; $("waitT").textContent = t.waitEnded; $("waitS").textContent = t.waitEndedSub; }
+    else { w.hidden = true; }
+    $("likes").textContent = fmtK(s.likes, LOC[state.lang]); state.likes = s.likes || 0;
+    $("interestTxt").textContent = t.interest; $("bookTxt").textContent = t.book; $("shareTxt").textContent = t.invite; $("send").textContent = t.send; $("msg").placeholder = t.ask; $("audioBtn").textContent = t.audio;
+    $("interest").disabled = s.status === "ended"; $("heart").disabled = !live; $("send").disabled = s.status === "ended"; $("msg").disabled = s.status === "ended";
+    $("back").title = t.backTo; $("pill").title = t.backTo;
+    $("credit").textContent = t.foot;
+    document.title = j.name + " · " + showTitle();
+    if (live) connectVideo(); else disconnectVideo();
+  }
+
+  // ---- video (solo ricezione) ----
+  var video = { room:null, tiles:null, connecting:false, tries:0 };
+  function connectVideo(){
+    var LK = window.LivekitClient;
+    if (video.room || video.connecting) return;
+    if (!LK){ video.tries++; if (video.tries < 20 && state.show && state.show.status === "live") setTimeout(connectVideo, 1500); return; }
+    video.connecting = true;
+    if (!video.tiles) video.tiles = new LkTiles($("videos"), { onChange: function(n){ $("videos").className = "videos" + (n ? " on" : ""); $("art").hidden = n > 0; $("poster").hidden = n > 0 || !$("poster").getAttribute("src"); } });
+    var qs = "?show=" + encodeURIComponent(state.show.id) + (CFG.token ? "&t=" + encodeURIComponent(CFG.token) : "") + "&name=" + encodeURIComponent(guestName() || state.t.guest);
+    fetch(CFG.tokenUrl + qs, { cache:"no-store" }).then(function(r){ return r.json(); }).then(function(j){
+      if (!j || !j.token) throw new Error(j && j.error || "token");
+      var room = new LK.Room({ adaptiveStream:true, dynacast:true });
+      lkAttachRemote(room, video.tiles, LK);
+      room.on(LK.RoomEvent.AudioPlaybackStatusChanged, function(){ $("audioBtn").hidden = room.canPlaybackAudio; });
+      room.on(LK.RoomEvent.Disconnected, function(){ video.room = null; $("audioBtn").hidden = true; });
+      return room.connect(j.url, j.token).then(function(){ video.room = room; $("audioBtn").hidden = room.canPlaybackAudio; });
+    }).catch(function(e){ console.warn("video", e); }).then(function(){ video.connecting = false; });
+  }
+  function disconnectVideo(){ if (video.room){ var r = video.room; video.room = null; r.disconnect(); } if (video.tiles) video.tiles.clear(); $("audioBtn").hidden = true; }
+  $("audioBtn").addEventListener("click", function(){ if (video.room) video.room.startAudio().then(function(){ $("audioBtn").hidden = true; }); });
+
+  // ---- nome ospite ----
+  function guestName(){ return state.invite ? state.invite.client_name : state.name; }
+  function requireName(cb){
+    var n = guestName(); if (n){ cb(n); return; }
+    openModal('<p class="eyebrow">' + esc(state.t.yourName) + '</p><p class="muted" style="font-size:14px">' + esc(state.t.nameLead) + '</p><form id="nf"><input id="nameIn" type="text" maxlength="60" autocomplete="name" placeholder="' + esc(state.t.yourName) + '"><button class="btn dark" type="submit">' + esc(state.t.cont) + '</button></form>');
+    $("nameIn").focus();
+    $("nf").addEventListener("submit", function(e){ e.preventDefault(); var v = ($("nameIn").value || "").trim(); if (!v){ toast(state.t.askName); return; } state.name = v; try { localStorage.setItem("live-name", v); } catch(x){} closeModal(); cb(v); });
+  }
+  var modal = $("modal");
+  function openModal(html){ modal.innerHTML = '<div class="mcard">' + html + '<button class="x" type="button" aria-label="Chiudi">×</button></div>'; modal.hidden = false; modal.querySelector(".x").addEventListener("click", closeModal); }
+  function closeModal(){ modal.hidden = true; modal.innerHTML = ""; }
+  modal.addEventListener("click", function(e){ if (e.target === modal) closeModal(); });
+
+  // ---- chat ----
+  var pending = [];
+  function track(body){ var e = { body: body, shown: false }; pending.push(e); setTimeout(function(){ var k = pending.indexOf(e); if (k >= 0) pending.splice(k, 1); }, 15000); return e; }
+  function echo(e){ if (pending.indexOf(e) < 0) return; e.shown = true; addMsg({ role:"client", author: guestName(), body: e.body }, true); }
+  function addMsg(m, force){
+    var box = $("msgs");
+    var mine = m.role === "client" && m.author === (guestName() || "\u0000");
+    if (!force && mine && m.id){ for (var i = 0; i < pending.length; i++) if (pending[i].body === m.body){ var e = pending.splice(i, 1)[0]; if (e.shown) return; break; } }
+    var d = document.createElement("div"); d.className = "pm " + m.role + (mine ? " me" : "");
+    var b = document.createElement("b"); b.textContent = mine ? state.t.me : m.author; d.appendChild(b); d.appendChild(document.createTextNode(m.body));
+    box.appendChild(d); while (box.children.length > 8) box.removeChild(box.firstChild);
+  }
+  function sendClient(body){
+    return sb.rpc("client_message", { p_show: state.show.id, p_invite: state.invite ? state.invite.invite_id : null, p_guest: guestName(), p_body: body });
+  }
+  $("form").addEventListener("submit", function(e){
+    e.preventDefault();
+    var body = ($("msg").value || "").trim(); if (!body) return;
+    requireName(function(){
+      $("msg").value = "";
+      var en = track(body);
+      sendClient(body).then(function(r){ if (r.error){ toast(r.error.message); var k = pending.indexOf(en); if (k >= 0) pending.splice(k, 1); } else echo(en); });
+    });
+  });
+  $("interest").addEventListener("click", function(){
+    requireName(function(n){
+      var p = currentPiece();
+      sb.rpc("create_request", { p_show: state.show.id, p_invite: state.invite ? state.invite.invite_id : null, p_guest: n, p_type: "interest", p_piece: p ? p.id : null, p_slot: null }).then(function(r){
+        if (r.error){ toast(r.error.message); return; }
+        toast(state.t.sentInterest + state.jeweler.name + (p ? ": " + p.short : ""));
+        sendClient(state.t.interestMsg + (p ? p.short : showTitle()));
+      });
+    });
+  });
+  $("book").addEventListener("click", function(){
+    requireName(function(n){
+      var slots = Array.isArray(state.show.slots) ? state.show.slots : [];
+      var html = '<p class="eyebrow">' + esc(state.t.book) + '</p><h3>' + esc(state.t.when) + '</h3><p class="muted" style="font-size:14px">' + esc(state.t.book2 + state.jeweler.name) + '</p><div class="slots">';
+      for (var i = 0; i < slots.length; i++) html += '<button class="slot" type="button" data-slot="' + esc(slots[i]) + '">' + esc(slots[i]) + '</button>';
+      if (!slots.length) html += '<input id="slotFree" type="text" placeholder="…"><button class="btn dark" type="button" id="slotSend">OK</button>';
+      html += '</div>';
+      openModal(html);
+      function choose(slot){
+        var p = currentPiece();
+        sb.rpc("create_request", { p_show: state.show.id, p_invite: state.invite ? state.invite.invite_id : null, p_guest: n, p_type: "appointment", p_piece: p ? p.id : null, p_slot: slot }).then(function(r){
+          if (r.error){ toast(r.error.message); return; }
+          openModal('<p class="ok">✓ ' + esc(state.t.confirmed) + '</p><h3>' + esc(slot) + '</h3><p class="muted" style="font-size:14px">' + esc(state.jeweler.name) + '</p><button class="btn dark" type="button" id="mClose">' + esc(state.t.back) + '</button>');
+          $("mClose").addEventListener("click", closeModal);
+          sendClient(state.t.booked + slot);
+        });
+      }
+      Array.prototype.forEach.call(modal.querySelectorAll(".slot"), function(b){ b.addEventListener("click", function(){ choose(b.getAttribute("data-slot")); }); });
+      var fs = $("slotSend"); if (fs) fs.addEventListener("click", function(){ var v = ($("slotFree").value || "").trim(); if (v) choose(v); });
+    });
+  });
+  $("share").addEventListener("click", function(){
+    var link = CFG.base + "/live/" + CFG.slug;
+    var done = function(){ toast(state.t.copied); };
+    if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(link).then(done, function(){ openModal('<p class="eyebrow">' + esc(state.t.invite) + '</p><input type="text" readonly value="' + esc(link) + '">'); });
+    else openModal('<p class="eyebrow">' + esc(state.t.invite) + '</p><input type="text" readonly value="' + esc(link) + '">');
+  });
+
+  // ---- cuori ----
+  $("heart").addEventListener("click", function(){
+    if (!state.show || state.show.status !== "live") return;
+    state.lastTap = Date.now(); state.queued++; state.likes++; $("likes").textContent = fmtK(state.likes, LOC[state.lang]);
+    $("heartIc").classList.add("on"); burstHearts($("hearts"), 1);
+  });
+  setInterval(function(){
+    if (!state.queued || !state.show) return;
+    var n = state.queued; state.queued = 0;
+    sb.rpc("like_show", { p_show: state.show.id, p_n: n }).then(function(r){ if (!r.error && typeof r.data === "number" && r.data > state.likes){ state.likes = r.data; $("likes").textContent = fmtK(state.likes, LOC[state.lang]); } });
+  }, 1200);
+
+  // ---- realtime: chat, stato, cuori, presenze ----
+  function subscribe(){
+    var ch = sb.channel("show-" + state.show.id, { config: { presence: { key: "v" + Math.random().toString(36).slice(2, 10) } } });
+    ch.on("postgres_changes", { event:"INSERT", schema:"public", table:"messages", filter:"show_id=eq." + state.show.id }, function(p){ addMsg(p.new); })
+      .on("postgres_changes", { event:"UPDATE", schema:"public", table:"shows", filter:"id=eq." + state.show.id }, function(p){
+        var prev = state.show; state.show = p.new;
+        if (p.new.likes > state.likes && Date.now() - state.lastTap > 1500) burstHearts($("hearts"), Math.min(p.new.likes - state.likes, 5));
+        if (p.new.status !== prev.status || p.new.current_piece_id !== prev.current_piece_id || p.new.title !== prev.title) render();
+        else { state.likes = Math.max(state.likes, p.new.likes || 0); $("likes").textContent = fmtK(state.likes, LOC[state.lang]); }
+      })
+      .on("postgres_changes", { event:"*", schema:"public", table:"pieces", filter:"show_id=eq." + state.show.id }, function(){ sb.from("pieces").select("*").eq("show_id", state.show.id).order("position").then(function(r){ state.pieces = r.data || []; render(); }); })
+      .on("postgres_changes", { event:"*", schema:"public", table:"show_covers", filter:"show_id=eq." + state.show.id }, function(p){ if (p.new && p.new.data) setPoster(p.new.data); })
+      .on("presence", { event:"sync" }, function(){ var n = Object.keys(ch.presenceState()).length; $("viewers").textContent = n; })
+      .subscribe(function(status){ if (status === "SUBSCRIBED") ch.track({ at: Date.now() }); });
+    state.channel = ch;
+  }
+  function setPoster(data){ var img = $("poster"); img.setAttribute("src", data); img.hidden = !!(video.tiles && video.tiles.count()); $("art").hidden = !img.hidden || $("art").hidden; }
+
+  function boot(){
+    sb.from("jewelers").select("*").eq("slug", CFG.slug).maybeSingle().then(function(r){
+      if (!r.data){ $("notfound").hidden = false; return; }
+      state.jeweler = r.data;
+      var inv = CFG.token ? sb.rpc("join_show", { p_token: CFG.token }).then(function(x){ return (x.data && x.data[0]) || null; }) : Promise.resolve(null);
+      inv.then(function(invite){
+        state.invite = invite;
+        if (CFG.showId) return sb.from("shows").select("*").eq("id", CFG.showId).eq("jeweler_id", state.jeweler.id).limit(1);
+        if (invite) return sb.from("shows").select("*").eq("id", invite.show_id).limit(1);
+        return sb.from("shows").select("*").eq("jeweler_id", state.jeweler.id).order("scheduled_at", { ascending:false }).limit(8);
+      }).then(function(r){
+        var rows = r.data || []; if (!rows.length){ $("notfound").hidden = false; return; }
+        var live = rows.filter(function(s){ return s.status === "live"; })[0];
+        var sched = rows.filter(function(s){ return s.status === "scheduled"; }).sort(function(a,b){ return new Date(a.scheduled_at) - new Date(b.scheduled_at); })[0];
+        state.show = live || sched || rows[0];
+        var q = new URLSearchParams(location.search).get("lang");
+        state.lang = TT[q] ? q : (TT[state.show.lang] ? state.show.lang : "it"); state.t = TT[state.lang];
+        document.documentElement.lang = state.lang;
+        return Promise.all([
+          sb.from("pieces").select("*").eq("show_id", state.show.id).order("position"),
+          sb.from("messages").select("*").eq("show_id", state.show.id).order("created_at").limit(200),
+          sb.from("show_covers").select("data").eq("show_id", state.show.id).maybeSingle()
+        ]);
+      }).then(function(res){
+        if (!res) return;
+        state.pieces = res[0].data || [];
+        render();
+        if (res[2].data && res[2].data.data) setPoster(res[2].data.data);
+        (res[1].data || []).slice(-8).forEach(addMsg);
+        subscribe();
+      });
+    });
+  }
+  boot();
+})();
+</script>
+</body></html>

@@ -1,0 +1,64 @@
+
+var ICON = {
+  heart:'<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 21s-7.5-4.6-9.5-9.3C1 7.7 3.6 4 7.3 4c2 0 3.4 1.1 4.7 2.6C13.3 5.1 14.7 4 16.7 4 20.4 4 23 7.7 21.5 11.7 19.5 16.4 12 21 12 21z"/></svg>',
+  eye:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>',
+  gem:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M6 3h12l4 6-10 12L2 9z"/><path d="M2 9h20M9 3l3 6 3-6M6 9l6 12 6-12"/></svg>',
+  cal:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="5" width="18" height="16" rx="3"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>',
+  share:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 12v7a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-7M12 15V3M7 8l5-5 5 5"/></svg>',
+  search:'<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.8-3.8"/></svg>'
+};
+function esc(s){ return String(s == null ? "" : s).replace(/[&<>"']/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]; }); }
+function toast(text){ var old = document.querySelector(".toast"); if (old) old.remove(); var d = document.createElement("div"); d.className = "toast"; d.innerHTML = "<i></i>"; d.appendChild(document.createTextNode(text)); document.body.appendChild(d); setTimeout(function(){ d.remove(); }, 3200); }
+function fmtK(n, loc){ n = n || 0; return n >= 1000 ? (Math.round(n/100)/10).toLocaleString(loc || "it-IT") + "K" : String(n); }
+function burstHearts(container, n){
+  if (!container) return; n = Math.min(n || 3, 8);
+  for (var i = 0; i < n; i++){ (function(i){ setTimeout(function(){ var s = document.createElement("span"); s.innerHTML = ICON.heart; s.style.setProperty("--dx", (Math.random() * 40 - 20) + "px"); s.style.setProperty("--rot", (Math.random() * 40 - 20) + "deg"); container.appendChild(s); setTimeout(function(){ s.remove(); }, 1400); }, i * 110); })(i); }
+}
+function LkTiles(container, opts){
+  var self = this; opts = opts || {};
+  this.box = container; this.tiles = {}; this.audios = document.createElement("div"); this.audios.className = "audios"; container.appendChild(this.audios);
+  this.main = document.createElement("div"); this.main.className = "main"; container.appendChild(this.main);
+  this.pips = document.createElement("div"); this.pips.className = "pips"; container.appendChild(this.pips);
+  this.onChange = opts.onChange || function(){};
+  this.add = function(id, el, label, mirror){
+    if (self.tiles[id]) self.remove(id);
+    if (mirror) el.className = (el.className || "") + " mirror";
+    var wrap = document.createElement("div"); wrap.appendChild(el); wrap.title = label || "";
+    self.tiles[id] = wrap;
+    if (!self.main.firstChild){ wrap.className = ""; self.main.appendChild(wrap); } else { wrap.className = "pip"; self.pips.appendChild(wrap); }
+    wrap.addEventListener("click", function(){ self.promote(id); });
+    self.onChange(self.count());
+  };
+  this.promote = function(id){
+    var w = self.tiles[id]; if (!w || w.parentNode === self.main) return;
+    var cur = self.main.firstChild; self.main.appendChild(w); w.className = "";
+    if (cur){ cur.className = "pip"; self.pips.insertBefore(cur, self.pips.firstChild); }
+  };
+  this.remove = function(id){
+    var w = self.tiles[id]; if (!w) return; self.tiles[id] = null;
+    var wasMain = w.parentNode === self.main; w.remove();
+    if (wasMain && self.pips.firstChild){ var n = self.pips.firstChild; self.main.appendChild(n); n.className = ""; }
+    self.onChange(self.count());
+  };
+  this.addAudio = function(id, el){ el.setAttribute("data-id", id); self.audios.appendChild(el); };
+  this.removeAudio = function(id){ var a = self.audios.querySelector('[data-id="' + id + '"]'); if (a) a.remove(); };
+  this.count = function(){ return Object.keys(self.tiles).filter(function(k){ return !!self.tiles[k]; }).length; };
+  this.mainVideo = function(){ return self.main.querySelector("video"); };
+  this.clear = function(){ Object.keys(self.tiles).forEach(self.remove); self.audios.innerHTML = ""; };
+}
+function lkAttachRemote(room, tiles, LK){
+  function onTrack(track, pub, participant){
+    var id = participant.identity + ":" + (pub.trackSid || track.sid);
+    if (track.kind === "video"){ var el = track.attach(); el.muted = true; el.setAttribute("playsinline", ""); tiles.add(id, el, participant.name || participant.identity, false); }
+    else if (track.kind === "audio"){ tiles.addAudio(id, track.attach()); }
+  }
+  function offTrack(track, pub, participant){
+    var id = participant.identity + ":" + (pub.trackSid || track.sid);
+    track.detach().forEach(function(el){ el.remove(); });
+    if (track.kind === "video") tiles.remove(id); else tiles.removeAudio(id);
+  }
+  room.on(LK.RoomEvent.TrackSubscribed, onTrack);
+  room.on(LK.RoomEvent.TrackUnsubscribed, offTrack);
+  room.on(LK.RoomEvent.ParticipantDisconnected, function(p){ Object.keys(tiles.tiles).forEach(function(id){ if (id.indexOf(p.identity + ":") === 0) tiles.remove(id); }); });
+  room.on(LK.RoomEvent.Disconnected, function(){ tiles.clear(); });
+}

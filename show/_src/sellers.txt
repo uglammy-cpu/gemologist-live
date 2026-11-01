@@ -1,1 +1,5 @@
 rossi
+lombardi
+ferri
+pietrerare
+marchetti

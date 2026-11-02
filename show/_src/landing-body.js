@@ -4,6 +4,7 @@ function landingBody(d) {
   var t = d.t, s = d.show, j = d.jeweler, lang = d.lang, loc = d.loc || "it-IT";
   function esc(x){ return String(x == null ? "" : x).replace(/[&<>"']/g, function(c){ return { "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;" }[c]; }); }
   function catName(slug){ for (var i = 0; i < d.cats.length; i++) if (d.cats[i].slug === slug){ var n = d.cats[i].name_i18n || {}; return n[lang] || n.en || n.it || slug; } return slug; }
+  function tr(obj, fb){ var i = obj || {}; return i[lang] || (lang !== "it" && i.en) || fb || ""; }
   function title(){ var i = s.title_i18n || {}; return i[lang] || (lang !== "it" && i.en) || s.title; }
   function kindLabel(){ return j.kind === "gems" ? t.gems : t.shop; }
   function country(code){ try { return new Intl.DisplayNames([loc], { type:"region" }).of(code); } catch(e){ return code; } }
@@ -37,12 +38,12 @@ function landingBody(d) {
     (ended ? '' : '<a class="btn" download="' + esc(j.slug) + '-live.ics" href="' + icsUrl + '">' + esc(t.remind) + '</a>') +
     '<a class="btn" href="https://wa.me/?text=' + waText + '" target="_blank" rel="noopener">' + esc(t.share2) + ' · WhatsApp</a></div>';
   if (ended) html += '<p class="hint" style="margin-top:10px">' + esc(t.endedLead) + '</p>';
-  if (s.description) html += '<p class="eyebrow" style="margin-top:24px">' + esc(t.descH) + '</p><p class="ldesc" dir="auto">' + esc(s.description) + '</p>';
-  if (d.pieces.length) html += '<p class="eyebrow" style="margin-top:24px">' + esc(t.piecesH) + '</p><div class="lpieces">' + d.pieces.map(function(pc){ var ph = d.photoUrls[pc.id]; return '<div class="lpiece"><div class="ph">' + (ph ? '<img src="' + esc(ph) + '" alt="' + esc(pc.name) + '">' : (d.art[pc.art] || d.art.none)) + '</div><b dir="auto">' + esc(pc.name) + '</b><small dir="auto">' + esc(pc.caption || "") + '</small></div>'; }).join("") + '</div>';
-  html += '<a class="lseller" href="' + esc(profileUrl) + '"><span class="av">' + esc((j.name || "?").charAt(0).toUpperCase()) + '</span><span><b>' + esc(j.name) + ' <span class="chk">✓</span></b><small>' + esc([j.city, country(j.country || "IT"), kindLabel()].filter(Boolean).join(" · ")) + (j.tagline ? ' — ' + esc(j.tagline) : '') + '</small></span></a>';
+  var desc = tr(s.description_i18n, s.description); if (desc) html += '<p class="eyebrow" style="margin-top:24px">' + esc(t.descH) + '</p><p class="ldesc" dir="auto">' + esc(desc) + '</p>';
+  if (d.pieces.length) html += '<p class="eyebrow" style="margin-top:24px">' + esc(t.piecesH) + '</p><div class="lpieces">' + d.pieces.map(function(pc){ var ph = d.photoUrls[pc.id]; var pn = tr(pc.name_i18n, pc.name), pcap = tr(pc.caption_i18n, pc.caption); return '<div class="lpiece"><div class="ph">' + (ph ? '<img src="' + esc(ph) + '" alt="' + esc(pn) + '">' : (d.art[pc.art] || d.art.none)) + '</div><b dir="auto">' + esc(pn) + '</b><small dir="auto">' + esc(pcap) + '</small></div>'; }).join("") + '</div>';
+  html += '<a class="lseller" href="' + esc(profileUrl) + '"><span class="av">' + esc((j.name || "?").charAt(0).toUpperCase()) + '</span><span><b>' + esc(j.name) + ' <span class="chk">✓</span></b><small>' + esc([j.city, country(j.country || "IT"), kindLabel()].filter(Boolean).join(" · ")) + (tr(j.tagline_i18n, j.tagline) ? ' — ' + esc(tr(j.tagline_i18n, j.tagline)) : '') + '</small></span></a>';
   html += '<div class="howbox"><p class="eyebrow">' + esc(t.howTitle) + '</p><p>' + esc(t.howInterest) + '</p><p>' + esc(t.howBook) + '</p><p>' + esc(t.howBuy) + '</p></div>';
   html += '<p style="margin-top:22px"><a class="btn sm" href="' + d.site + d.prefix + '/?lang=' + lang + '">← ' + esc(t.backTo) + '</a></p>';
-  var descText = (s.description || "").replace(/\s+/g, " ").trim();
+  var descText = (desc || s.description || "").replace(/\s+/g, " ").trim();
   if (descText.length > 155) descText = descText.slice(0, 152).replace(/\s+\S*$/, "") + "…";
   return { html: html, title: title() + " · " + j.name, desc: descText || (title() + " · " + j.name + " · " + full), image: image, url: pageUrl, viewerUrl: viewerUrl, start: when.toISOString(), live: live, ended: ended };
 }

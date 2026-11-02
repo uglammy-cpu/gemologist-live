@@ -749,7 +749,7 @@ function lkAttachRemote(room, tiles, LK){
 
   function boot(){
     Promise.all([
-      sb.from("jewelers").select("id,slug,name,city,country,kind,tagline,categories").eq("is_public", true),
+      sb.from("jewelers").select("id,slug,name,city,country,kind,tagline,tagline_i18n,categories").eq("is_public", true),
       sb.from("categories").select("slug,position,name_i18n,art").eq("active", true).order("position")
     ]).then(function(r){
       (r[0].data || []).forEach(function(j){ state.jewelers[j.id] = j; });

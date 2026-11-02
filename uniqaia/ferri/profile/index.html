@@ -470,6 +470,7 @@ function lkAttachRemote(room, tiles, LK){
   function fdate(iso){ try { return new Intl.DateTimeFormat(LOC[lang], { day:"numeric", month:"long", year:"numeric" }).format(new Date(iso)); } catch(e){ return iso; } }
   function country(code){ try { return new Intl.DisplayNames([LOC[lang] || "it"], { type:"region" }).of(code); } catch(e){ return code; } }
   function pal(key){ var h = 0; for (var i = 0; i < key.length; i++) h = (h * 31 + key.charCodeAt(i)) >>> 0; return PAL[h % PAL.length].split(","); }
+  function tr(obj, fb){ var i = obj || {}; return i[lang] || (lang !== "it" && i.en) || fb || ""; }
   function title(s){ var i = s.title_i18n || {}; return i[lang] || (lang !== "it" && i.en) || s.title; }
   function catName(slug){ for (var i = 0; i < state.cats.length; i++) if (state.cats[i].slug === slug){ var n = state.cats[i].name_i18n || {}; return n[lang] || n.en || n.it || slug; } return slug; }
   function showUrl(s){ return (s.status === "live" || !s.slug) ? CFG.base + "/" + CFG.slug + "/?s=" + s.id + "&lang=" + lang : CFG.base + "/" + CFG.slug + "/" + s.slug + "/?lang=" + lang; }
@@ -506,7 +507,7 @@ function lkAttachRemote(room, tiles, LK){
     var soon = state.shows.filter(function(s){ return s.status === "scheduled" && new Date(s.scheduled_at) > new Date(Date.now() - 12 * 3600000); }).sort(function(a,b){ return new Date(a.scheduled_at) - new Date(b.scheduled_at); });
     var past = state.shows.filter(function(s){ return s.status === "ended"; }).sort(function(a,b){ return new Date(b.scheduled_at) - new Date(a.scheduled_at); }).slice(0, 10);
     var html = '<div class="phead"><span class="big">' + esc((j.name || "?").charAt(0).toUpperCase()) + '</span><div style="min-width:0"><h1>' + esc(j.name) + ' <span class="chk">✓</span></h1><div class="sub">' + esc([j.city, country(j.country || "IT"), kindLabel(j)].filter(Boolean).join(" · ")) + '</div></div></div>';
-    if (j.tagline) html += '<p class="ptag" dir="auto">' + esc(j.tagline) + '</p>';
+    var tag = tr(j.tagline_i18n, j.tagline); if (tag) html += '<p class="ptag" dir="auto">' + esc(tag) + '</p>';
     if ((j.categories || []).length) html += '<p class="eyebrow" style="margin-top:14px">' + esc(t.specialties) + '</p><div class="chips">' + j.categories.map(function(c){ return '<a href="' + CFG.base + '/?c=' + esc(c) + '&lang=' + lang + '">' + esc(catName(c)) + '</a>'; }).join("") + '</div>';
     html += '<div class="pacts"><button class="btn sm' + (isFollowed() ? ' dark' : '') + '" type="button" id="followBtn">' + esc(isFollowed() ? t.following : t.follow) + '</button>' +
       (j.website ? '<a class="btn sm" href="' + esc(siteHref(j.website)) + '" target="_blank" rel="noopener">' + esc(t.website) + '</a>' : '') +
@@ -546,7 +547,7 @@ function lkAttachRemote(room, tiles, LK){
 
   function boot(){
     Promise.all([
-      sb.from("jewelers").select("id,slug,name,city,country,kind,tagline,categories,website,shop_url").eq("slug", CFG.slug).maybeSingle(),
+      sb.from("jewelers").select("id,slug,name,city,country,kind,tagline,tagline_i18n,categories,website,shop_url").eq("slug", CFG.slug).maybeSingle(),
       sb.from("categories").select("slug,position,name_i18n,art").eq("active", true).order("position")
     ]).then(function(r){
       state.j = r[0].data; state.cats = r[1].data || [];

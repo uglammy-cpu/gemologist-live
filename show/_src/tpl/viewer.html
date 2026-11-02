@@ -42,6 +42,7 @@
 
   function fmtDate(iso){ try { return new Intl.DateTimeFormat(LOC[state.lang] || "it-IT", { weekday:"long", day:"numeric", month:"long", hour:"2-digit", minute:"2-digit", hour12:false }).format(new Date(iso)); } catch(e){ return iso; } }
   function currentPiece(){ var id = state.show && state.show.current_piece_id; for (var i = 0; i < state.pieces.length; i++) if (state.pieces[i].id === id) return state.pieces[i]; return state.pieces[0] || null; }
+  function tr(obj, fb){ var i = obj || {}; return i[state.lang] || (state.lang !== "it" && i.en) || fb || ""; }
   function showTitle(){ var s = state.show, i = s.title_i18n || {}; return i[state.lang] || (state.lang !== "it" && i.en) || s.title; }
 
   function render(){
@@ -53,7 +54,7 @@
     $("eye").hidden = !live;
     var p = currentPiece();
     $("art").innerHTML = (p && state.photos[p.id]) ? '<img src="' + state.photos[p.id] + '" alt="" style="width:100%;height:100%;object-fit:cover;display:block">' : (p ? (CFG.art[p.art] || CFG.art.none) : CFG.art.none);
-    $("pchip").hidden = !p || !p.caption; $("pchipTxt").textContent = p ? p.caption : "";
+    var cap = p ? tr(p.caption_i18n, p.caption) : ""; $("pchip").hidden = !cap; $("pchipTxt").textContent = cap;
     var w = $("wait");
     if (s.status === "scheduled"){ w.hidden = false; $("waitT").textContent = t.waitSoon; $("waitS").textContent = fmtDate(s.scheduled_at); }
     else if (s.status === "ended"){ w.hidden = false; $("waitT").textContent = t.waitEnded; $("waitS").textContent = t.waitEndedSub; }
@@ -149,8 +150,8 @@
       pickPiece(function(p){
         sb.rpc("create_request2", { p_show: state.show.id, p_invite: state.invite ? state.invite.invite_id : null, p_guest: n, p_contact: c, p_type: "interest", p_piece: p ? p.id : null, p_slot: null }).then(function(r){
           if (r.error){ toast(r.error.message); return; }
-          toast(state.t.sentInterest + state.jeweler.name + (p ? ": " + p.short : ""));
-          if (state.show.status !== "ended") sendClient(state.t.interestMsg + (p ? p.short : showTitle()));
+          toast(state.t.sentInterest + state.jeweler.name + (p ? ": " + tr(p.name_i18n, p.short || p.name) : ""));
+          if (state.show.status !== "ended") sendClient(state.t.interestMsg + (p ? tr(p.name_i18n, p.short || p.name) : showTitle()));
         });
       });
     });

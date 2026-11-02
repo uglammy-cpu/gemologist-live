@@ -1,4 +1,4 @@
-// Genera le pagine statiche della piattaforma Uniqaia dai modelli in _src/tpl, in due versioni:
+// Genera le pagine statiche della piattaforma Uniquaia dai modelli in _src/tpl, in due versioni:
 //   1. /show/…   sul sito live.gemsandjewelrytechlab.com (GitHub Pages di questo repository)
 //   2. /uniqaia/ pronta per il dominio uniquaia.com (Cloudflare Pages con cartella di output "uniqaia", oppure un repository a sé)
 // Uso:  node show/_src/build.mjs            usa i dati salvati in _src/data.json
@@ -21,7 +21,7 @@ const common = {
   SUPABASE_URL: "https://itoxzepuukyvdxxtfetf.supabase.co",
   SUPABASE_KEY: "sb_publishable_Y6m8EWUZt97nSTmYBsRwYg_Fnzidatk",
   TOKEN_BASE: "https://itoxzepuukyvdxxtfetf.supabase.co/functions/v1/live",
-  NAME: "Uniqaia",
+  NAME: "Uniquaia",
 };
 const TARGETS = [
   { out: path.join(ROOT, "show"), notFound: path.join(ROOT, "404.html"), site: "https://live.gemsandjewelrytechlab.com", prefix: "/show" },
@@ -85,11 +85,11 @@ function render(t, name, runtime) {
   const cfg = { ...common, SITE: t.site };
   const P = t.prefix; // "" oppure "/show"
   const OG = {
-    vetrina: { title: "Uniqaia · Fine jewelry & gemstones · Live", desc: "Dirette di gioiellerie e gem dealer selezionati, con una gemmologa GIA accanto. Live shows from selected jewellers and gem dealers, with a GIA gemologist at your side.", url: cfg.SITE + P + "/" },
-    join: { title: "Uniqaia · Trasmetti con noi · Go live with us", desc: "La piattaforma di live show per gioiellerie e gem dealer. The live-show platform for jewellers and gem dealers.", url: cfg.SITE + P + "/join/" },
-    viewer: { title: "Uniqaia · Live show", desc: "Gioielli e gemme dal vivo, con una gemmologa GIA. Jewellery and gems live, with a GIA gemologist.", url: "" },
-    panel: { title: "Uniqaia · Pannello", desc: "Pannello riservato ai venditori.", url: "" },
-    profile: { title: "Uniqaia · Scheda del venditore", desc: "Gioielleria o gem dealer selezionato su Uniqaia: specialità, dirette in programma, come acquistare.", url: "" },
+    vetrina: { title: "Uniquaia · Fine jewelry & gemstones · Live", desc: "Dirette di gioiellerie e gem dealer selezionati, con una gemmologa GIA accanto. Live shows from selected jewellers and gem dealers, with a GIA gemologist at your side.", url: cfg.SITE + P + "/" },
+    join: { title: "Uniquaia · Trasmetti con noi · Go live with us", desc: "La piattaforma di live show per gioiellerie e gem dealer. The live-show platform for jewellers and gem dealers.", url: cfg.SITE + P + "/join/" },
+    viewer: { title: "Uniquaia · Live show", desc: "Gioielli e gemme dal vivo, con una gemmologa GIA. Jewellery and gems live, with a GIA gemologist.", url: "" },
+    panel: { title: "Uniquaia · Pannello", desc: "Pannello riservato ai venditori.", url: "" },
+    profile: { title: "Uniquaia · Scheda del venditore", desc: "Gioielleria o gem dealer selezionato su Uniquaia: specialità, dirette in programma, come acquistare.", url: "" },
   };
   let b = tpl(name + ".html");
   for (const [k, v] of Object.entries(parts)) b = b.split(`{{${k}}}`).join(v);
@@ -142,7 +142,7 @@ function render(t, name, runtime) {
     (og.url ? '<meta property="og:url" content="' + og.url + '">' : '') +
     '<meta property="og:image" content="' + cfg.SITE + P + '/img/uniqaia-og.jpg"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630"><meta name="twitter:card" content="summary_large_image"><meta name="description" content="' + og.desc + '">';
   b = b.split('"/show/img/').join('"' + P + '/img/');
-  const PWA = '<link rel="manifest" href="' + P + '/manifest.webmanifest"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="Uniqaia"><meta name="apple-mobile-web-app-status-bar-style" content="default">';
+  const PWA = '<link rel="manifest" href="' + P + '/manifest.webmanifest"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="Uniquaia"><meta name="apple-mobile-web-app-status-bar-style" content="default">';
   const SW = '<script>if("serviceWorker" in navigator)addEventListener("load",function(){navigator.serviceWorker.register("' + P + '/sw.js").catch(function(){})});</scr' + 'ipt>';
   b = b.replace("</title>", "</title>" + DEMO_META + PWA + ogTags);
   if (b.includes("</body>")) b = b.replace("</body>", SW + "</body>");
@@ -161,7 +161,7 @@ function render(t, name, runtime) {
 function landingDoc(t, body, lang, extraHead, bodyAttrs, langRow) {
   const P = t.prefix;
   const head = parts.HEAD.split('href="/show/img/').join('href="' + P + '/img/');
-  return `<!doctype html><html lang="${lang}" dir="${lang === "ar" ? "rtl" : "ltr"}"><head>${head}<title>${H(body.title)} · ${common.NAME}</title>${DEMO_META}<link rel="manifest" href="${P}/manifest.webmanifest"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="Uniqaia"><meta name="apple-mobile-web-app-status-bar-style" content="default">${extraHead}<style>${parts.CSS}</style></head>
+  return `<!doctype html><html lang="${lang}" dir="${lang === "ar" ? "rtl" : "ltr"}"><head>${head}<title>${H(body.title)} · ${common.NAME}</title>${DEMO_META}<link rel="manifest" href="${P}/manifest.webmanifest"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="Uniquaia"><meta name="apple-mobile-web-app-status-bar-style" content="default">${extraHead}<style>${parts.CSS}</style></head>
 <body class="vetrina"${bodyAttrs || ""}>
 <header class="topv wrap"><div class="col"><div class="brand"><a class="logo" href="${t.site}${P}/?lang=${lang}" aria-label="${common.NAME}">${tpl("vetrina.html").match(/<a class="logo"[^>]*>([\s\S]*?)<\/a>/)[1]}</a><small>${H(T[lang].tag)}</small></div>${langRow || ""}</div></header>
 <main class="wrap"><div class="col" id="page">${body.html}</div></main>
@@ -287,8 +287,8 @@ for (const t of TARGETS) {
   const P = t.prefix;
   const write = (rel, body) => { const p = path.join(t.out, rel); fs.mkdirSync(path.dirname(p), { recursive: true }); fs.writeFileSync(p, body); };
   write("manifest.webmanifest", JSON.stringify({
-    name: "Uniqaia · Fine jewelry & gemstones live",
-    short_name: "Uniqaia",
+    name: "Uniquaia · Fine jewelry & gemstones live",
+    short_name: "Uniquaia",
     description: "Dirette di gioiellerie e gem dealer selezionati, con una gemmologa GIA accanto.",
     start_url: P + "/?src=app",
     scope: P + "/",

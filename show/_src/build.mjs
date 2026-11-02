@@ -139,7 +139,11 @@ function render(t, name, runtime) {
   const ogTags = '<meta property="og:type" content="website"><meta property="og:site_name" content="' + cfg.NAME + '"><meta property="og:title" content="' + og.title + '"><meta property="og:description" content="' + og.desc + '">' +
     (og.url ? '<meta property="og:url" content="' + og.url + '">' : '') +
     '<meta property="og:image" content="' + cfg.SITE + P + '/img/uniqaia-og.jpg"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630"><meta name="twitter:card" content="summary_large_image"><meta name="description" content="' + og.desc + '">';
-  b = b.replace("</title>", "</title>" + DEMO_META + ogTags);
+  b = b.split('"/show/img/').join('"' + P + '/img/');
+  const PWA = '<link rel="manifest" href="' + P + '/manifest.webmanifest"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="Uniqaia"><meta name="apple-mobile-web-app-status-bar-style" content="default">';
+  const SW = '<script>if("serviceWorker" in navigator)addEventListener("load",function(){navigator.serviceWorker.register("' + P + '/sw.js").catch(function(){})});</scr' + 'ipt>';
+  b = b.replace("</title>", "</title>" + DEMO_META + PWA + ogTags);
+  if (b.includes("</body>")) b = b.replace("</body>", SW + "</body>");
   if (DEMO_NOTE) b = b.replace("</footer>", "</footer>" + DEMO_NOTE);
   const vars = { URL: cfg.SUPABASE_URL, KEY: cfg.SUPABASE_KEY, BASE: cfg.SITE, NAME: cfg.NAME, LANG: "it" };
   for (const [k, v] of Object.entries(vars)) b = b.split(`{{${k}}}`).join(v);
@@ -155,7 +159,7 @@ function render(t, name, runtime) {
 function landingDoc(t, body, lang, extraHead, bodyAttrs) {
   const P = t.prefix;
   const head = parts.HEAD.split('href="/show/img/').join('href="' + P + '/img/');
-  return `<!doctype html><html lang="${lang}" dir="${lang === "ar" ? "rtl" : "ltr"}"><head>${head}<title>${H(body.title)} · ${common.NAME}</title>${DEMO_META}${extraHead}<style>${parts.CSS}</style></head>
+  return `<!doctype html><html lang="${lang}" dir="${lang === "ar" ? "rtl" : "ltr"}"><head>${head}<title>${H(body.title)} · ${common.NAME}</title>${DEMO_META}<link rel="manifest" href="${P}/manifest.webmanifest"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="Uniqaia"><meta name="apple-mobile-web-app-status-bar-style" content="default">${extraHead}<style>${parts.CSS}</style></head>
 <body class="vetrina"${bodyAttrs || ""}>
 <header class="topv wrap"><div class="col"><div class="brand"><a class="logo" href="${t.site}${P}/?lang=${lang}" aria-label="${common.NAME}">${tpl("vetrina.html").match(/<a class="logo"[^>]*>([\s\S]*?)<\/a>/)[1]}</a><small>${H(T[lang].tag)}</small></div></div></header>
 <main class="wrap"><div class="col" id="page">${body.html}</div></main>
@@ -172,6 +176,7 @@ function landingDoc(t, body, lang, extraHead, bodyAttrs) {
   }).catch(function(){});
 })();
 </script>
+<script>if("serviceWorker" in navigator)addEventListener("load",function(){navigator.serviceWorker.register("${P}/sw.js").catch(function(){})});</script>
 </body></html>`;
 }
 function landingFor(t, s) {
@@ -273,6 +278,50 @@ function prerenderVetrina(t, html) {
 for (const t of TARGETS) {
   const P = t.prefix;
   const write = (rel, body) => { const p = path.join(t.out, rel); fs.mkdirSync(path.dirname(p), { recursive: true }); fs.writeFileSync(p, body); };
+  write("manifest.webmanifest", JSON.stringify({
+    name: "Uniqaia · Fine jewelry & gemstones live",
+    short_name: "Uniqaia",
+    description: "Dirette di gioiellerie e gem dealer selezionati, con una gemmologa GIA accanto.",
+    start_url: P + "/?src=app",
+    scope: P + "/",
+    display: "standalone",
+    orientation: "portrait",
+    lang: "it",
+    background_color: "#FFFFFF",
+    theme_color: "#15121C",
+    categories: ["shopping", "lifestyle"],
+    icons: [
+      { src: P + "/img/uniqaia-icon-192.png", sizes: "192x192", type: "image/png" },
+      { src: P + "/img/uniqaia-icon-512.png", sizes: "512x512", type: "image/png" },
+      { src: P + "/img/uniqaia-icon-maskable.png", sizes: "512x512", type: "image/png", purpose: "maskable" }
+    ]
+  }, null, 1));
+  // Service worker: le pagine arrivano sempre dalla rete (così le correzioni si vedono subito),
+  // le immagini dalla cache e si aggiornano in sottofondo, e senza rete si vede l'ultima versione vista.
+  write("sw.js", `var V = "uniqaia-1", START = ${JSON.stringify(P + "/?src=app")};
+self.addEventListener("install", function(){ self.skipWaiting(); });
+self.addEventListener("activate", function(e){ e.waitUntil(caches.keys().then(function(ks){ return Promise.all(ks.map(function(k){ return k === V ? null : caches.delete(k); })); }).then(function(){ return self.clients.claim(); })); });
+self.addEventListener("fetch", function(e){
+  var req = e.request; if (req.method !== "GET") return;
+  var url; try { url = new URL(req.url); } catch (err) { return; }
+  if (url.origin !== location.origin) return;
+  if (/\\.(?:jpg|jpeg|png|svg|webp|woff2?)$/i.test(url.pathname)) {
+    e.respondWith(caches.open(V).then(function(c){
+      return c.match(req).then(function(hit){
+        var net = fetch(req).then(function(res){ if (res && res.ok) c.put(req, res.clone()); return res; }).catch(function(){ return hit; });
+        return hit || net;
+      });
+    }));
+    return;
+  }
+  if (req.mode === "navigate" || url.pathname.endsWith("/") || /\\.html?$/.test(url.pathname)) {
+    e.respondWith(fetch(req).then(function(res){
+      if (res && res.ok) { var cp = res.clone(); caches.open(V).then(function(c){ c.put(req, cp); }); }
+      return res;
+    }).catch(function(){ return caches.match(req).then(function(hit){ return hit || caches.match(START); }); }));
+  }
+});
+`);
   write("index.html", prerenderVetrina(t, render(t, "vetrina", {})));
   write("join/index.html", render(t, "join", {}));
   const viewer = render(t, "viewer", { tokenParam: "t" });

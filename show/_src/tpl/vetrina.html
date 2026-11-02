@@ -23,6 +23,7 @@
   <div class="cta" id="cta"></div>
 </div></main>
 <footer class="wrap" id="foot"></footer>
+<div class="install" id="install" hidden><span class="ic"><img src="/show/img/uniqaia-icon-192.png" alt="" width="42" height="42"></span><span class="tx"><b data-t="installT"></b><small id="installS"></small></span><button class="btn sm dark" type="button" id="installGo"></button><button class="no" type="button" id="installX" aria-label="Chiudi">×</button></div>
 <div class="welcome" id="welcome" hidden></div>
 <script>
 {{LKJS}}
@@ -227,6 +228,28 @@
     });
     box.appendChild(list);
   }
+  // ---- invito a installare l'app (icona sulla schermata Home)
+  var installEv = null;
+  function standalone(){ try { return matchMedia("(display-mode: standalone)").matches || navigator.standalone === true; } catch(e){ return false; } }
+  function showInstall(ios){
+    if (standalone()) return;
+    try { if (localStorage.getItem("uniqaia-install") === "no") return; } catch(e){}
+    var box = $("install"); if (!box) return;
+    $("installS").textContent = ios ? t.installIos : t.installText;
+    $("installGo").textContent = t.installB;
+    $("installGo").hidden = ios;
+    box.hidden = false;
+  }
+  addEventListener("beforeinstallprompt", function(e){ e.preventDefault(); installEv = e; showInstall(false); });
+  addEventListener("appinstalled", function(){ $("install").hidden = true; });
+  $("installGo").addEventListener("click", function(){
+    if (!installEv) return;
+    installEv.prompt();
+    (installEv.userChoice || Promise.resolve()).then(function(){ installEv = null; $("install").hidden = true; });
+  });
+  $("installX").addEventListener("click", function(){ try { localStorage.setItem("uniqaia-install", "no"); } catch(e){} $("install").hidden = true; });
+  if (/iphone|ipad|ipod/i.test(navigator.userAgent) && !standalone()) setTimeout(function(){ if (!installEv) showInstall(true); }, 3000);
+
   function renderAll(){ t = TT[lang]; renderStatic(); renderCats(); renderHero(); renderWeek(); renderTiles(); renderLive(); renderSoon(); renderShops(); armReveal(); }
 
   // benvenuto (prima visita)

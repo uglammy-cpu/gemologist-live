@@ -280,6 +280,11 @@ body.dark{background:#0E0B07;color:#F7EBCB;padding:0}
 .install .tx small{display:block;font-size:12.5px;color:var(--muted);line-height:1.4}
 .install .no{border:0;background:none;color:var(--muted);font-size:20px;width:34px;height:34px;flex:none;cursor:pointer;line-height:1}
 @media (display-mode:standalone){.install{display:none!important}}
+.langrow{margin-inline-start:auto;display:flex;gap:2px;align-items:center}
+.langrow a{display:inline-flex;align-items:center;justify-content:center;min-width:34px;height:32px;border-radius:999px;font-size:12px;letter-spacing:.06em;color:var(--muted);text-decoration:none}
+.langrow a:hover{background:var(--soft)}
+.langrow a.on{background:var(--gold-ink);color:var(--gold-hi)}
+.topv .col{display:flex;align-items:center;gap:12px}
 .demo{max-width:1120px;margin:0 auto;padding:0 16px 30px;font-size:12px;line-height:1.6;color:var(--muted);text-align:center}
 .demo b{display:inline-block;font-weight:500;color:var(--gold-edge);letter-spacing:.12em;text-transform:uppercase;font-size:10.5px;margin-inline-end:6px}
 body.dark .demo{color:rgba(247,235,203,.55)}body.dark .demo b{color:var(--gold-hi)}
@@ -493,7 +498,7 @@ function lkAttachRemote(room, tiles, LK){
   var FOLLOWS = []; try { FOLLOWS = JSON.parse(localStorage.getItem("vetrina-follows") || "[]"); } catch(e){}
   function followed(j){ return FOLLOWS.indexOf(j.slug) >= 0; }
   function inCat(x){ return !state.cat || ((x.categories || []).indexOf(state.cat) >= 0); }
-  function catLabel(s){ var bits = [(s.lang || "").toUpperCase()].concat((s.categories || []).slice(0, 2).map(catName)); if (s.price_range) bits.push(s.price_range); return '<small>' + esc(bits.filter(Boolean).join(" · ")) + '</small>'; }
+  function catLabel(s){ var bits = [(s.lang || "").toUpperCase()].concat((s.categories || []).slice(0, 2).map(catName)); if (s.price_range) bits.push(ltr(s.price_range)); return '<small>' + esc(bits.filter(Boolean).join(" · ")) + '</small>'; }
   function nShows(n){ if (n === 0) return t.catSoon; if (n === 1) return t.catOne; if (lang === "ru" && t.catFew){ var m10 = n % 10, m100 = n % 100; if (m10 >= 2 && m10 <= 4 && (m100 < 12 || m100 > 14)) return t.catFew.replace("{n}", n); } return t.catMany.replace("{n}", n); }
   function setCat(slug){ state.cat = slug === state.cat ? "" : slug; try { var u = new URL(location.href); if (state.cat) u.searchParams.set("c", state.cat); else u.searchParams.delete("c"); history.replaceState(null, "", u.toString()); } catch(e){} renderCats(); renderHero(); renderWeek(); renderTiles(); renderLive(); renderSoon(); renderShops(); }
   function renderCats(){
@@ -516,7 +521,8 @@ function lkAttachRemote(room, tiles, LK){
       box.appendChild(b);
     });
   }
-  function showUrl(s, j){ return (s.status === "live" || !s.slug) ? CFG.base + "/show/" + j.slug + "/?s=" + s.id + "&lang=" + lang : CFG.base + "/show/" + j.slug + "/" + s.slug + "/?lang=" + lang; }
+  function ltr(x){ return x ? "⁦" + x + "⁩" : x; }
+  function showUrl(s, j){ return (s.status === "live" || !s.slug) ? CFG.base + "/show/" + j.slug + "/?s=" + s.id + "&lang=" + lang : CFG.base + "/show/" + j.slug + "/" + s.slug + (lang === "it" ? "/" : "/" + lang + "/") + "?lang=" + lang; }
 
   function cover(s, j, extra){
     var p = pal(j.slug), cv = state.covers[s.id];
@@ -661,7 +667,7 @@ function lkAttachRemote(room, tiles, LK){
     rows.forEach(function(s){
       var j = state.jewelers[s.jeweler_id], p = pal(j.slug), live = s.status === "live", img = state.covers[s.id] || state.photos[s.id] || "";
       var wd = "", dn = ""; try { wd = new Intl.DateTimeFormat(LOC[lang], { weekday:"short" }).format(new Date(s.scheduled_at)); dn = new Intl.DateTimeFormat(LOC[lang], { day:"numeric" }).format(new Date(s.scheduled_at)); } catch(e){}
-      var bits = [(s.lang || "").toUpperCase()].concat((s.categories || []).slice(0, 2).map(catName)); if (s.price_range) bits.push(s.price_range);
+      var bits = [(s.lang || "").toUpperCase()].concat((s.categories || []).slice(0, 2).map(catName)); if (s.price_range) bits.push(ltr(s.price_range));
       var a = document.createElement("a"); a.className = "ag" + (live ? " live" : ""); a.href = showUrl(s, j);
       a.innerHTML = '<div class="agd"><small>' + esc(live ? t.live : wd) + '</small><b>' + esc(dn) + '</b><span>' + esc(ftime(s.scheduled_at)) + '</span></div>' +
         '<div class="agi" style="--c1:' + p[0] + ';--c2:' + p[1] + '">' + (img ? '<img alt="" src="' + img + '">' : ((s.pieces && s.pieces[0] && CFG.art[s.pieces[0].art]) || CFG.art.ring)) + '</div>' +

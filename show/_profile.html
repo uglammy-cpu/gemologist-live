@@ -280,6 +280,11 @@ body.dark{background:#0E0B07;color:#F7EBCB;padding:0}
 .install .tx small{display:block;font-size:12.5px;color:var(--muted);line-height:1.4}
 .install .no{border:0;background:none;color:var(--muted);font-size:20px;width:34px;height:34px;flex:none;cursor:pointer;line-height:1}
 @media (display-mode:standalone){.install{display:none!important}}
+.langrow{margin-inline-start:auto;display:flex;gap:2px;align-items:center}
+.langrow a{display:inline-flex;align-items:center;justify-content:center;min-width:34px;height:32px;border-radius:999px;font-size:12px;letter-spacing:.06em;color:var(--muted);text-decoration:none}
+.langrow a:hover{background:var(--soft)}
+.langrow a.on{background:var(--gold-ink);color:var(--gold-hi)}
+.topv .col{display:flex;align-items:center;gap:12px}
 .demo{max-width:1120px;margin:0 auto;padding:0 16px 30px;font-size:12px;line-height:1.6;color:var(--muted);text-align:center}
 .demo b{display:inline-block;font-weight:500;color:var(--gold-edge);letter-spacing:.12em;text-transform:uppercase;font-size:10.5px;margin-inline-end:6px}
 body.dark .demo{color:rgba(247,235,203,.55)}body.dark .demo b{color:var(--gold-hi)}
@@ -473,7 +478,8 @@ function lkAttachRemote(room, tiles, LK){
   function tr(obj, fb){ var i = obj || {}; return i[lang] || (lang !== "it" && i.en) || fb || ""; }
   function title(s){ var i = s.title_i18n || {}; return i[lang] || (lang !== "it" && i.en) || s.title; }
   function catName(slug){ for (var i = 0; i < state.cats.length; i++) if (state.cats[i].slug === slug){ var n = state.cats[i].name_i18n || {}; return n[lang] || n.en || n.it || slug; } return slug; }
-  function showUrl(s){ return (s.status === "live" || !s.slug) ? CFG.base + "/show/" + CFG.slug + "/?s=" + s.id + "&lang=" + lang : CFG.base + "/show/" + CFG.slug + "/" + s.slug + "/?lang=" + lang; }
+  function ltr(x){ return x ? "⁦" + x + "⁩" : x; }
+  function showUrl(s){ return (s.status === "live" || !s.slug) ? CFG.base + "/show/" + CFG.slug + "/?s=" + s.id + "&lang=" + lang : CFG.base + "/show/" + CFG.slug + "/" + s.slug + (lang === "it" ? "/" : "/" + lang + "/") + "?lang=" + lang; }
   function liveUrl(){ return CFG.base + "/show/" + CFG.slug + "/?lang=" + lang; }
   function kindLabel(j){ return j.kind === "gems" ? t.gems : t.shop; }
   function siteHref(u){ return /^https?:/i.test(u) ? u : "https://" + u; }
@@ -483,7 +489,7 @@ function lkAttachRemote(room, tiles, LK){
     var art = ((s.pieces && s.pieces[0] && CFG.art[s.pieces[0].art]) || CFG.art.ring);
     return '<div class="cover" style="--c1:' + p[0] + ';--c2:' + p[1] + '"><div class="ph"></div>' + (cv ? '<img class="cv" alt="" src="' + cv + '">' : '<div class="art">' + art + '</div>') + extra + '</div>';
   }
-  function label(s){ var bits = [(s.lang || "").toUpperCase()].concat((s.categories || []).slice(0, 2).map(catName)); if (s.price_range) bits.push(s.price_range); return '<small>' + esc(bits.filter(Boolean).join(" · ")) + '</small>'; }
+  function label(s){ var bits = [(s.lang || "").toUpperCase()].concat((s.categories || []).slice(0, 2).map(catName)); if (s.price_range) bits.push(ltr(s.price_range)); return '<small>' + esc(bits.filter(Boolean).join(" · ")) + '</small>'; }
   function icsUrl(s){
     function z(d){ return d.toISOString().replace(/[-:]/g, "").replace(/\.\d{3}/, ""); }
     var start = new Date(s.scheduled_at), end = new Date(start.getTime() + 60 * 60000);

@@ -102,6 +102,8 @@ function render(t, name, runtime) {
   b = b.split("var CFG = {").join('var Q = new URLSearchParams(location.search), SLUG = (location.pathname.match(/^' + esc(P) + '\\/([a-z0-9-]{2,40})(?:\\/|$)/) || [])[1] || "";\n  var CFG = {');
   // Indirizzi del sito: <prefix>/... al posto di /live/...
   const rep = [
+    ['"/live/" + j.slug + "/" + s.slug + (lang', '"' + P + '/" + j.slug + "/" + s.slug + (lang'],
+    ['"/live/" + CFG.slug + "/" + s.slug + (lang', '"' + P + '/" + CFG.slug + "/" + s.slug + (lang'],
     ['"/live/" + CFG.slug + "/profile?lang="', '"' + P + '/" + CFG.slug + "/profile/?lang="'],
     ["'/live/' + CFG.slug + '/profile?lang='", "'" + P + "/' + CFG.slug + '/profile/?lang='"],
     ['"/live/" + CFG.slug + "/profile"', '"' + P + '/" + CFG.slug + "/profile/"'],
@@ -156,12 +158,12 @@ function render(t, name, runtime) {
 }
 
 // ---------- pagina pubblica di una diretta (prerender) e sua versione "dinamica" per le dirette non ancora generate
-function landingDoc(t, body, lang, extraHead, bodyAttrs) {
+function landingDoc(t, body, lang, extraHead, bodyAttrs, langRow) {
   const P = t.prefix;
   const head = parts.HEAD.split('href="/show/img/').join('href="' + P + '/img/');
   return `<!doctype html><html lang="${lang}" dir="${lang === "ar" ? "rtl" : "ltr"}"><head>${head}<title>${H(body.title)} · ${common.NAME}</title>${DEMO_META}<link rel="manifest" href="${P}/manifest.webmanifest"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="Uniqaia"><meta name="apple-mobile-web-app-status-bar-style" content="default">${extraHead}<style>${parts.CSS}</style></head>
 <body class="vetrina"${bodyAttrs || ""}>
-<header class="topv wrap"><div class="col"><div class="brand"><a class="logo" href="${t.site}${P}/?lang=${lang}" aria-label="${common.NAME}">${tpl("vetrina.html").match(/<a class="logo"[^>]*>([\s\S]*?)<\/a>/)[1]}</a><small>${H(T[lang].tag)}</small></div></div></header>
+<header class="topv wrap"><div class="col"><div class="brand"><a class="logo" href="${t.site}${P}/?lang=${lang}" aria-label="${common.NAME}">${tpl("vetrina.html").match(/<a class="logo"[^>]*>([\s\S]*?)<\/a>/)[1]}</a><small>${H(T[lang].tag)}</small></div>${langRow || ""}</div></header>
 <main class="wrap"><div class="col" id="page">${body.html}</div></main>
 <footer class="wrap">${H(T[lang].foot)}<br>${H(T[lang].footJoin)}</footer>${DEMO_NOTE}
 <script>
@@ -179,16 +181,22 @@ function landingDoc(t, body, lang, extraHead, bodyAttrs) {
 <script>if("serviceWorker" in navigator)addEventListener("load",function(){navigator.serviceWorker.register("${P}/sw.js").catch(function(){})});</script>
 </body></html>`;
 }
-function landingFor(t, s) {
+const LANGS = ["it", "en", "fr", "ar", "ru"];
+function landingFor(t, s, lang = "it") {
   const j = jById[s.jeweler_id]; if (!j || !s.slug) return null;
-  const lang = T[s.lang] ? s.lang : "it";
+  if (!T[lang]) lang = "it";
   const P = t.prefix;
   const photoUrls = {}; for (const p of piecesByShow[s.id] || []) if (photoFile[p.id]) photoUrls[p.id] = t.site + P + "/img/" + photoFile[p.id];
+  const home = `${t.site}${P}/${j.slug}/${s.slug}/`;
+  const self = lang === "it" ? home : `${home}${lang}/`;
+  const alt = LANGS.map((l) => `<link rel="alternate" hreflang="${l}" href="${l === "it" ? home : home + l + "/"}">`).join("") + `<link rel="alternate" hreflang="x-default" href="${home}">`;
   const body = landingBody({ site: t.site, prefix: P, lang, show: s, jeweler: j, pieces: piecesByShow[s.id] || [], cats: DATA.categories, coverUrl: coverSrc(t, P, s.id), photoUrls, art: ART, t: T[lang], loc: LOC[lang] });
   const image = body.image || t.site + P + "/img/uniqaia-og.jpg";
   const ld = { "@context": "https://schema.org", "@type": "Event", name: body.title, description: body.desc, startDate: body.start, endDate: new Date(new Date(body.start).getTime() + 3600000).toISOString(), eventAttendanceMode: "https://schema.org/OnlineEventAttendanceMode", eventStatus: body.ended ? "https://schema.org/EventScheduled" : "https://schema.org/EventScheduled", location: { "@type": "VirtualLocation", url: body.viewerUrl }, organizer: { "@type": "Organization", name: j.name, url: t.site + P + "/" + j.slug + "/profile/" }, image: [image], inLanguage: lang, isAccessibleForFree: true, url: body.url };
-  const extra = '<meta name="description" content="' + H(body.desc) + '"><link rel="canonical" href="' + H(body.url) + '"><meta property="og:type" content="website"><meta property="og:site_name" content="' + common.NAME + '"><meta property="og:title" content="' + H(body.title) + '"><meta property="og:description" content="' + H(body.desc) + '"><meta property="og:url" content="' + H(body.url) + '"><meta property="og:image" content="' + H(image) + '"><meta name="twitter:card" content="summary_large_image"><script type="application/ld+json">' + JSON.stringify(ld).replace(/</g, "\\u003c") + '</script>';
-  return landingDoc(t, body, lang, extra, ' data-show="' + s.id + '"');
+  body.url = self;
+  const extra = alt + '<meta name="description" content="' + H(body.desc) + '"><link rel="canonical" href="' + H(self) + '"><meta property="og:type" content="website"><meta property="og:site_name" content="' + common.NAME + '"><meta property="og:title" content="' + H(body.title) + '"><meta property="og:description" content="' + H(body.desc) + '"><meta property="og:url" content="' + H(body.url) + '"><meta property="og:image" content="' + H(image) + '"><meta name="twitter:card" content="summary_large_image"><script type="application/ld+json">' + JSON.stringify(ld).replace(/</g, "\\u003c") + '</script>';
+  const langRow = '<nav class="langrow" aria-label="Lingua">' + LANGS.map((l) => `<a${l === lang ? ' class="on" aria-current="true"' : ""} hreflang="${l}" href="${l === "it" ? home : home + l + "/"}">${l.toUpperCase()}</a>`).join("") + '</nav>';
+  return landingDoc(t, body, lang, extra, ' data-show="' + s.id + '"', langRow);
 }
 function landingFallback(t) {
   // Pagina generica: legge venditore e diretta dall'indirizzo e costruisce la pagina nel browser (per le dirette create dopo l'ultima generazione)
@@ -336,7 +344,15 @@ self.addEventListener("fetch", function(e){
   // Una pagina per ogni diretta pubblica
   const urls = [`${t.site}${P}/`, `${t.site}${P}/join/`, ...sellers.map((s) => `${t.site}${P}/${s}/profile/`)];
   let nLanding = 0;
-  for (const s of DATA.shows) { const doc = landingFor(t, s); if (!doc) continue; write(`${jById[s.jeweler_id].slug}/${s.slug}/index.html`, doc); urls.push(`${t.site}${P}/${jById[s.jeweler_id].slug}/${s.slug}/`); nLanding++; }
+  for (const s of DATA.shows) {
+    const j = jById[s.jeweler_id]; if (!j || !s.slug) continue;
+    for (const lang of LANGS) {
+      const doc = landingFor(t, s, lang); if (!doc) continue;
+      write(lang === "it" ? `${j.slug}/${s.slug}/index.html` : `${j.slug}/${s.slug}/${lang}/index.html`, doc);
+      urls.push(lang === "it" ? `${t.site}${P}/${j.slug}/${s.slug}/` : `${t.site}${P}/${j.slug}/${s.slug}/${lang}/`);
+      if (lang === "it") nLanding++;
+    }
+  }
   write("sitemap.xml", `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls.map((u) => `  <url><loc>${H(u)}</loc></url>`).join("\n")}\n</urlset>\n`);
   if (P === "") write("robots.txt", DEMO ? `User-agent: *\nAllow: /\nDisallow: /*/panel/\n` : `User-agent: *\nAllow: /\nDisallow: /*/panel/\nSitemap: ${t.site}/sitemap.xml\n`);
   // Immagini (logo, icona, anteprima, copertine, foto) condivise tra le due versioni

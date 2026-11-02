@@ -275,6 +275,11 @@ body.dark{background:#0E0B07;color:#F7EBCB;padding:0}
 .install .tx small{display:block;font-size:12.5px;color:var(--muted);line-height:1.4}
 .install .no{border:0;background:none;color:var(--muted);font-size:20px;width:34px;height:34px;flex:none;cursor:pointer;line-height:1}
 @media (display-mode:standalone){.install{display:none!important}}
+.langrow{margin-inline-start:auto;display:flex;gap:2px;align-items:center}
+.langrow a{display:inline-flex;align-items:center;justify-content:center;min-width:34px;height:32px;border-radius:999px;font-size:12px;letter-spacing:.06em;color:var(--muted);text-decoration:none}
+.langrow a:hover{background:var(--soft)}
+.langrow a.on{background:var(--gold-ink);color:var(--gold-hi)}
+.topv .col{display:flex;align-items:center;gap:12px}
 .demo{max-width:1120px;margin:0 auto;padding:0 16px 30px;font-size:12px;line-height:1.6;color:var(--muted);text-align:center}
 .demo b{display:inline-block;font-weight:500;color:var(--gold-edge);letter-spacing:.12em;text-transform:uppercase;font-size:10.5px;margin-inline-end:6px}
 body.dark .demo{color:rgba(247,235,203,.55)}body.dark .demo b{color:var(--gold-hi)}

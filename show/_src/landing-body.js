@@ -21,7 +21,7 @@ function landingBody(d) {
   var image = d.coverUrl || firstPhoto || "";
   var heroArt = (d.pieces[0] && d.art[d.pieces[0].art]) || d.art.ring;
   var live = s.status === "live", ended = s.status === "ended";
-  var meta = [(s.lang || "").toUpperCase()].concat((s.categories || []).map(catName)); if (s.price_range) meta.push(s.price_range);
+  var meta = [(s.lang || "").toUpperCase()].concat((s.categories || []).map(catName)); if (s.price_range) meta.push("\u2066" + s.price_range + "\u2069");
   function z(dt){ return dt.toISOString().replace(/[-:]/g, "").replace(/\.\d{3}/, ""); }
   var ics = ["BEGIN:VCALENDAR","VERSION:2.0","PRODID:-//uniqaia//IT","BEGIN:VEVENT","UID:" + s.id + "@uniqaia","DTSTAMP:" + z(when),"DTSTART:" + z(when),"DTEND:" + z(new Date(when.getTime() + 3600000)),"SUMMARY:" + title().replace(/,/g, "\\,") + " · " + j.name.replace(/,/g, "\\,"),"URL:" + pageUrl,"DESCRIPTION:" + pageUrl,"END:VEVENT","END:VCALENDAR"].join("\r\n");
   var icsUrl = "data:text/calendar;charset=utf-8," + encodeURIComponent(ics);

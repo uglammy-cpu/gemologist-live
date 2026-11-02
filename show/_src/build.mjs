@@ -12,7 +12,7 @@ const cfg = {
   SUPABASE_KEY: "sb_publishable_Y6m8EWUZt97nSTmYBsRwYg_Fnzidatk",
   TOKEN_BASE: "https://itoxzepuukyvdxxtfetf.supabase.co/functions/v1/live",
   SITE: "https://live.gemsandjewelrytechlab.com",   // dominio del sito (senza barra finale)
-  NAME: "Nome piattaforma",
+  NAME: "Uniqaia",
 };
 
 const tpl = (n) => fs.readFileSync(path.join(HERE, "tpl", n), "utf8");
@@ -31,7 +31,7 @@ function render(name, runtime) {
   // Indirizzi del sito: /show/... al posto di /live/...
   b = b.split('"/live/" + CFG.slug').join('"/show/" + CFG.slug + "/"');
   b = b.split('"/live/" + j.slug + "?s="').join('"/show/" + j.slug + "/?s="');
-  b = b.split('"/live/" + j.slug;').join('"/show/" + j.slug + "/";');
+  b = b.split('"/live/" + j.slug + "?lang="').join('"/show/" + j.slug + "/?lang="');
   b = b.split('"/live/" + j.slug + "/panel?k="').join('"/show/" + j.slug + "/panel/?k="');
   b = b.split('"/live/" + sl + "/panel?k="').join('"/show/" + sl + "/panel/?k="');
   b = b.split('"/live/" + sl)').join('"/show/" + sl + "/")');

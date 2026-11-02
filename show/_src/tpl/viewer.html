@@ -4,12 +4,12 @@
   <div class="phone" id="phone">
     <div class="vid" id="vid"><img class="poster" id="poster" alt="" hidden><div class="artwrap" id="art"></div><div class="videos" id="videos"></div><div class="shade"></div></div>
     <div class="ptop">
-      <a class="pill" id="pill" href="{{BASE}}/live"><span class="av" id="av"></span><span class="who"><b id="jname">…</b><span id="jsub"></span></span></a>
+      <a class="pill" id="pill" href="{{BASE}}/live"><span class="av" id="av"></span><span class="who"><b id="jname">…</b><span id="jsub" dir="auto"></span></span></a>
       <span class="lbl off" id="lbl"><i></i><span id="lblTxt"></span></span>
       <span class="eye" id="eye" hidden><span id="eyeIc"></span><span id="viewers">0</span></span>
       <a class="x" id="back" href="{{BASE}}/live" aria-label="Chiudi">×</a>
     </div>
-    <div class="pchip" id="pchip" hidden><i></i><span id="pchipTxt"></span></div>
+    <div class="pchip" id="pchip" hidden><i></i><span id="pchipTxt" dir="auto"></span></div>
     <div class="waitv" id="wait" hidden><div><b id="waitT"></b><span id="waitS"></span></div></div>
     <button class="audio-btn" type="button" id="audioBtn" hidden></button>
     <div class="pchat" id="msgs" aria-live="polite"></div>
@@ -33,14 +33,14 @@
   var TT = {{T}};
   var sb = window.supabase.createClient(CFG.url, CFG.key);
   var $ = function(id){ return document.getElementById(id); };
-  var LOC = { it:"it-IT", en:"en-GB", fr:"fr-FR" };
+  var LOC = { it:"it-IT", en:"en-GB", fr:"fr-FR", ar:"ar-AE-u-nu-latn", ru:"ru-RU" };
   var state = { jeweler:null, show:null, pieces:[], invite:null, name:"", lang:"it", t:TT.it, likes:0, channel:null, lastTap:0, queued:0 };
   try { state.name = localStorage.getItem("live-name") || ""; } catch(e){}
   $("heartIc").innerHTML = ICON.heart; $("gemIc").innerHTML = ICON.gem; $("calIc").innerHTML = ICON.cal; $("shareIc").innerHTML = ICON.share; $("eyeIc").innerHTML = ICON.eye;
 
   function fmtDate(iso){ try { return new Intl.DateTimeFormat(LOC[state.lang] || "it-IT", { weekday:"long", day:"numeric", month:"long", hour:"2-digit", minute:"2-digit", hour12:false }).format(new Date(iso)); } catch(e){ return iso; } }
   function currentPiece(){ var id = state.show && state.show.current_piece_id; for (var i = 0; i < state.pieces.length; i++) if (state.pieces[i].id === id) return state.pieces[i]; return state.pieces[0] || null; }
-  function showTitle(){ var s = state.show; return (s.title_i18n && s.title_i18n[state.lang]) || s.title; }
+  function showTitle(){ var s = state.show, i = s.title_i18n || {}; return i[state.lang] || (state.lang !== "it" && i.en) || s.title; }
 
   function render(){
     var s = state.show, t = state.t, j = state.jeweler;
@@ -107,7 +107,7 @@
     var box = $("msgs");
     var mine = m.role === "client" && m.author === (guestName() || "\u0000");
     if (!force && mine && m.id){ for (var i = 0; i < pending.length; i++) if (pending[i].body === m.body){ var e = pending.splice(i, 1)[0]; if (e.shown) return; break; } }
-    var d = document.createElement("div"); d.className = "pm " + m.role + (mine ? " me" : "");
+    var d = document.createElement("div"); d.className = "pm " + m.role + (mine ? " me" : ""); d.setAttribute("dir", "auto");
     var b = document.createElement("b"); b.textContent = mine ? state.t.me : m.author; d.appendChild(b); d.appendChild(document.createTextNode(m.body));
     box.appendChild(d); while (box.children.length > 8) box.removeChild(box.firstChild);
   }
@@ -206,9 +206,13 @@
         var live = rows.filter(function(s){ return s.status === "live"; })[0];
         var sched = rows.filter(function(s){ return s.status === "scheduled"; }).sort(function(a,b){ return new Date(a.scheduled_at) - new Date(b.scheduled_at); })[0];
         state.show = live || sched || rows[0];
-        var q = new URLSearchParams(location.search).get("lang");
-        state.lang = TT[q] ? q : (TT[state.show.lang] ? state.show.lang : "it"); state.t = TT[state.lang];
-        document.documentElement.lang = state.lang;
+        // lingua: ?lang, poi la scelta fatta in vetrina, poi il browser, poi la lingua della diretta
+        var q = (new URLSearchParams(location.search).get("lang") || "").toLowerCase(), st = "";
+        try { st = localStorage.getItem("vetrina-lang") || ""; } catch(e){}
+        var nav = (navigator.language || "").slice(0, 2).toLowerCase();
+        state.lang = TT[q] ? q : (TT[st] ? st : (TT[nav] ? nav : (TT[state.show.lang] ? state.show.lang : "it"))); state.t = TT[state.lang];
+        if (TT[q]) { try { localStorage.setItem("vetrina-lang", q); } catch(e){} }
+        document.documentElement.lang = state.lang; document.documentElement.dir = state.lang === "ar" ? "rtl" : "ltr";
         return Promise.all([
           sb.from("pieces").select("*").eq("show_id", state.show.id).order("position"),
           sb.from("messages").select("*").eq("show_id", state.show.id).order("created_at").limit(200),

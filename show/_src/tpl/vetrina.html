@@ -2,7 +2,7 @@
 <body class="vetrina">
 <header class="topv wrap"><div class="col">
   <div class="wordmark" id="wordmark">{{NAME}}<small id="tag"></small></div>
-  <div class="topright"><button class="about-btn" type="button" id="aboutBtn"></button><div class="langs" id="langs"><button type="button" data-lang="it">IT</button><button type="button" data-lang="en">EN</button><button type="button" data-lang="fr">FR</button></div></div>
+  <div class="topright"><button class="about-btn" type="button" id="aboutBtn"></button><div class="langs" id="langs"><button type="button" class="cur" id="langCur" aria-haspopup="listbox">IT</button><div class="menu" id="langMenu" hidden><button type="button" data-lang="it">Italiano <small>IT</small></button><button type="button" data-lang="en">English <small>EN</small></button><button type="button" data-lang="fr">Français <small>FR</small></button><button type="button" data-lang="ar">العربية <small>AR</small></button><button type="button" data-lang="ru">Русский <small>RU</small></button></div></div></div>
 </div></header>
 <main class="wrap"><div class="col">
   <div class="search" style="display:flex;align-items:center;gap:10px;background:var(--soft);border-radius:999px;padding:10px 16px;margin-top:14px;color:var(--muted);font-size:15px"><span id="searchIc" style="display:flex"></span><input id="q" type="search" style="flex:1;min-width:0;border:0;background:none;outline:none;color:var(--ink);min-height:0;padding:0"></div>
@@ -26,7 +26,7 @@
   var TT = {{T}};
   var sb = window.supabase.createClient(CFG.url, CFG.key);
   var $ = function(id){ return document.getElementById(id); };
-  var LOC = { it:"it-IT", en:"en-GB", fr:"fr-FR" };
+  var LOC = { it:"it-IT", en:"en-GB", fr:"fr-FR", ar:"ar-AE-u-nu-latn", ru:"ru-RU" };
   var PAL = ["#3A2A17,#0F0A05","#122B45,#070D15","#2A2A30,#0A0A0D","#3A1F2C,#120810","#1C3328,#06100B","#2E2140,#0C0814","#22303A,#070B0E"];
   var lang = "";
   try { lang = localStorage.getItem("vetrina-lang") || ""; } catch(e){}
@@ -38,9 +38,9 @@
   function fday(iso){ try { return new Intl.DateTimeFormat(LOC[lang], { weekday:"short", day:"numeric", month:"short" }).format(new Date(iso)); } catch(e){ return iso; } }
   function ftime(iso){ try { return new Intl.DateTimeFormat(LOC[lang], { hour:"2-digit", minute:"2-digit", hour12:false }).format(new Date(iso)); } catch(e){ return ""; } }
   function pal(key){ var h = 0; for (var i = 0; i < key.length; i++) h = (h * 31 + key.charCodeAt(i)) >>> 0; return PAL[h % PAL.length].split(","); }
-  function title(s){ return (s.title_i18n && s.title_i18n[lang]) || s.title; }
+  function title(s){ var i = s.title_i18n || {}; return i[lang] || (lang !== "it" && i.en) || s.title; }
   function kindLabel(j){ return j.kind === "gems" ? t.gems : t.shop; }
-  function showUrl(s, j){ return CFG.base + "/live/" + j.slug + "?s=" + s.id; }
+  function showUrl(s, j){ return CFG.base + "/live/" + j.slug + "?s=" + s.id + "&lang=" + lang; }
 
   function cover(s, j, extra){
     var p = pal(j.slug), cv = state.covers[s.id];
@@ -51,11 +51,11 @@
     return '<div class="meta"><span class="av">' + esc((j.name || "?").charAt(0).toUpperCase()) + '</span><span style="min-width:0"><b>' + esc(j.name) + '<span class="chk">✓</span></b><small>' + esc(j.city || "") + (j.city ? ' · ' : '') + esc(kindLabel(j)) + '</small></span></div>';
   }
   function renderStatic(){
-    document.documentElement.lang = lang;
+    document.documentElement.lang = lang; document.documentElement.dir = lang === "ar" ? "rtl" : "ltr"; $("langCur").textContent = lang.toUpperCase();
     Array.prototype.forEach.call(document.querySelectorAll("[data-t]"), function(el){ el.textContent = t[el.getAttribute("data-t")]; });
     $("tag").textContent = t.tag; $("q").placeholder = t.search; $("aboutBtn").textContent = "i"; $("aboutBtn").title = t.about; $("aboutBtn").setAttribute("aria-label", t.about);
     $("trust").innerHTML = t.trust.map(function(x){ return '<span><i></i>' + esc(x) + '</span>'; }).join("");
-    Array.prototype.forEach.call(document.querySelectorAll("#langs button"), function(b){ b.classList.toggle("on", b.getAttribute("data-lang") === lang); });
+    Array.prototype.forEach.call(document.querySelectorAll("#langMenu button"), function(b){ b.classList.toggle("on", b.getAttribute("data-lang") === lang); });
     $("cta").innerHTML = '<div><b>' + esc(t.ctaTitle) + '</b><small>' + esc(t.ctaText) + '</small></div><a class="go" href="' + CFG.base + '/live/join?lang=' + lang + '">' + esc(t.ctaBtn) + '</a>';
     $("joinLink").href = CFG.base + "/live/join?lang=" + lang;
     $("foot").innerHTML = esc(t.foot) + '<br>' + esc(t.footJoin);
@@ -68,7 +68,7 @@
     rows.forEach(function(s){
       var j = state.jewelers[s.jeweler_id];
       var a = document.createElement("a"); a.className = "vcard"; a.href = showUrl(s, j);
-      a.innerHTML = cover(s, j, '<span class="lbl"><i></i>' + esc(t.live) + '</span><div class="stat"><span>' + ICON.heart + '<span data-likes="' + s.id + '">' + fmtK(s.likes, LOC[lang]) + '</span></span><span>' + ICON.eye + '<span data-viewers="' + s.id + '">' + (state.viewers[s.id] || 0) + '</span></span></div><div class="ctitle">' + esc(title(s)) + '</div>') + meta(j);
+      a.innerHTML = cover(s, j, '<span class="lbl"><i></i>' + esc(t.live) + '</span><div class="stat"><span>' + ICON.heart + '<span data-likes="' + s.id + '">' + fmtK(s.likes, LOC[lang]) + '</span></span><span>' + ICON.eye + '<span data-viewers="' + s.id + '">' + (state.viewers[s.id] || 0) + '</span></span></div><div class="ctitle" dir="auto">' + esc(title(s)) + '</div>') + meta(j);
       g.appendChild(a);
     });
     $("emptyLive").hidden = rows.length > 0; $("nLive").hidden = !rows.length; $("nLive").textContent = rows.length;
@@ -79,7 +79,7 @@
     rows.forEach(function(s){
       var j = state.jewelers[s.jeweler_id];
       var d = document.createElement("div"); d.className = "vcard";
-      d.innerHTML = '<a class="vcard" href="' + showUrl(s, j) + '">' + cover(s, j, '<span class="lbl off"><i></i>' + esc(t.soon) + '</span><div class="when"><small>' + esc(fday(s.scheduled_at)) + '</small><b>' + esc(ftime(s.scheduled_at)) + '</b></div><div class="ctitle">' + esc(title(s)) + '</div>') + meta(j) + '</a><a class="btn sm" style="align-self:flex-start;color:var(--gold-edge);border-color:var(--gold-hi);font-size:13px;min-height:34px" download="' + esc(j.slug) + '-live.ics" href="' + icsUrl(s, j) + '" data-remind>' + esc(t.remind) + '</a>';
+      d.innerHTML = '<a class="vcard" href="' + showUrl(s, j) + '">' + cover(s, j, '<span class="lbl off"><i></i>' + esc(t.soon) + '</span><div class="when"><small>' + esc(fday(s.scheduled_at)) + '</small><b>' + esc(ftime(s.scheduled_at)) + '</b></div><div class="ctitle" dir="auto">' + esc(title(s)) + '</div>') + meta(j) + '</a><a class="btn sm" style="align-self:flex-start;color:var(--gold-edge);border-color:var(--gold-hi);font-size:13px;min-height:34px" download="' + esc(j.slug) + '-live.ics" href="' + icsUrl(s, j) + '" data-remind>' + esc(t.remind) + '</a>';
       d.querySelector("[data-remind]").addEventListener("click", function(){ toast(t.remindToast + fday(s.scheduled_at) + " · " + ftime(s.scheduled_at)); });
       g.appendChild(d);
     });
@@ -95,7 +95,7 @@
     var row = $("shopsRow"); row.innerHTML = "";
     var liveBy = {}; state.shows.forEach(function(s){ if (s.status === "live") liveBy[s.jeweler_id] = true; });
     Object.keys(state.jewelers).map(function(k){ return state.jewelers[k]; }).sort(function(a,b){ return (liveBy[b.id] ? 1 : 0) - (liveBy[a.id] ? 1 : 0) || a.name.localeCompare(b.name); }).forEach(function(j){
-      var a = document.createElement("a"); a.href = CFG.base + "/live/" + j.slug; a.className = "seller" + (liveBy[j.id] ? " live" : "");
+      var a = document.createElement("a"); a.href = CFG.base + "/live/" + j.slug + "?lang=" + lang; a.className = "seller" + (liveBy[j.id] ? " live" : "");
       a.innerHTML = '<span class="big">' + esc((j.name || "?").charAt(0).toUpperCase()) + '</span>' + (liveBy[j.id] ? '<span class="live-tag">' + esc(t.live) + '</span>' : '') + '<b>' + esc(j.name) + '</b><small>' + esc(j.city || "") + '<br>' + esc(kindLabel(j)) + '</small>';
       row.appendChild(a);
     });
@@ -112,8 +112,10 @@
   function closeWelcome(){ $("welcome").hidden = true; document.body.style.overflow = ""; try { localStorage.setItem("vetrina-welcomed", "1"); } catch(e){} }
   $("aboutBtn").addEventListener("click", renderWelcome);
 
-  Array.prototype.forEach.call(document.querySelectorAll("#langs button"), function(b){
-    b.addEventListener("click", function(){ lang = b.getAttribute("data-lang"); try { localStorage.setItem("vetrina-lang", lang); } catch(e){} renderAll(); if (!$("welcome").hidden) renderWelcome(); });
+  $("langCur").addEventListener("click", function(e){ e.stopPropagation(); $("langMenu").hidden = !$("langMenu").hidden; });
+  document.addEventListener("click", function(){ $("langMenu").hidden = true; });
+  Array.prototype.forEach.call(document.querySelectorAll("#langMenu button"), function(b){
+    b.addEventListener("click", function(){ lang = b.getAttribute("data-lang"); $("langMenu").hidden = true; try { localStorage.setItem("vetrina-lang", lang); } catch(e){} renderAll(); if (!$("welcome").hidden) renderWelcome(); });
   });
   Array.prototype.forEach.call(document.querySelectorAll(".tab"), function(tb){
     tb.addEventListener("click", function(){ Array.prototype.forEach.call(document.querySelectorAll(".tab"), function(x){ x.classList.remove("on"); }); tb.classList.add("on"); var el = $(tb.getAttribute("data-to")); if (el) el.scrollIntoView({ behavior:"smooth", block:"start" }); });

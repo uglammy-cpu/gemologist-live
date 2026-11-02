@@ -15,6 +15,12 @@ const cfg = {
   NAME: "Uniqaia",
 };
 
+const OG = {
+  vetrina: { title: "Uniqaia · Fine jewelry & gemstones · Live", desc: "Dirette di gioiellerie e gem dealer selezionati, con una gemmologa GIA accanto. Live shows from selected jewellers and gem dealers, with a GIA gemologist at your side.", url: cfg.SITE + "/show/" },
+  join: { title: "Uniqaia · Trasmetti con noi · Go live with us", desc: "La piattaforma di live show per gioiellerie e gem dealer. The live-show platform for jewellers and gem dealers.", url: cfg.SITE + "/show/join/" },
+  viewer: { title: "Uniqaia · Live show", desc: "Gioielli e gemme dal vivo, con una gemmologa GIA. Jewellery and gems live, with a GIA gemologist.", url: "" },
+  panel: { title: "Uniqaia · Pannello", desc: "Pannello riservato ai venditori.", url: "" },
+};
 const tpl = (n) => fs.readFileSync(path.join(HERE, "tpl", n), "utf8");
 const parts = { HEAD: tpl("head.txt"), CSS: tpl("css.txt"), LKJS: tpl("lkjs.txt"), ART: tpl("art.txt"), T: tpl("t.txt") };
 
@@ -41,6 +47,12 @@ function render(name, runtime) {
   b = b.split('{{BASE}}/live"').join('{{BASE}}/show/"');
   b = b.split("{{BASE}}/live'").join("{{BASE}}/show/'");
   b = b.split('/live">').join('/show/">');
+  // Anteprima per WhatsApp, Instagram, LinkedIn… (Open Graph)
+  const og = OG[name] || OG.viewer;
+  const ogTags = '<meta property="og:type" content="website"><meta property="og:site_name" content="' + cfg.NAME + '"><meta property="og:title" content="' + og.title + '"><meta property="og:description" content="' + og.desc + '">' +
+    (og.url ? '<meta property="og:url" content="' + og.url + '">' : '') +
+    '<meta property="og:image" content="' + cfg.SITE + '/show/img/uniqaia-og.jpg"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630"><meta name="twitter:card" content="summary_large_image"><meta name="description" content="' + og.desc + '">';
+  b = b.replace("</title>", "</title>" + ogTags);
   const vars = { URL: cfg.SUPABASE_URL, KEY: cfg.SUPABASE_KEY, BASE: cfg.SITE, NAME: cfg.NAME, LANG: "it" };
   for (const [k, v] of Object.entries(vars)) b = b.split(`{{${k}}}`).join(v);
   const left = b.match(/\{\{[A-Z]+\}\}/g);

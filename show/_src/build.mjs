@@ -11,6 +11,12 @@ import { createRequire } from "node:module";
 
 const HERE = path.dirname(new URL(import.meta.url).pathname);
 const ROOT = path.resolve(HERE, "..", "..");         // radice del repository
+// Vetrina dimostrativa: gioiellieri, dirette e prezzi sono di esempio.
+// Al lancio con i gioiellieri veri: mettere DEMO = false (toglie noindex, riapre robots.txt e nasconde la riga in fondo alle pagine).
+const DEMO = true;
+const DEMO_META = DEMO ? '<meta name="robots" content="noindex,nofollow">' : "";
+const DEMO_NOTE = DEMO ? '<p class="demo"><b>Demo</b><span data-t="demoNote">Vetrina dimostrativa: gioiellieri, dirette e prezzi sono esempi. Le dirette vere partono con i gioiellieri selezionati.</span></p>' : "";
+
 const common = {
   SUPABASE_URL: "https://itoxzepuukyvdxxtfetf.supabase.co",
   SUPABASE_KEY: "sb_publishable_Y6m8EWUZt97nSTmYBsRwYg_Fnzidatk",
@@ -71,6 +77,7 @@ function writeImage(sub, id, dataUrl) {
   return rel;
 }
 const coverFile = {}; for (const [id, d] of Object.entries(coverByShow)) { const f = writeImage("shows", id, d); if (f) coverFile[id] = f; }
+function coverSrc(t, P, id) { return coverFile[id] ? `${t.site}${P}/img/${coverFile[id]}` : (/^https?:/.test(coverByShow[id] || "") ? coverByShow[id] : ""); }
 const photoFile = {}; for (const [id, d] of Object.entries(photoByPiece)) { const f = writeImage("pieces", id, d); if (f) photoFile[id] = f; }
 const hlFile = {}; for (const h of (DATA.highlights || [])) { if (h.image) { const f = writeImage("slides", h.id, h.image); if (f) hlFile[h.id] = f; } }
 
@@ -132,7 +139,8 @@ function render(t, name, runtime) {
   const ogTags = '<meta property="og:type" content="website"><meta property="og:site_name" content="' + cfg.NAME + '"><meta property="og:title" content="' + og.title + '"><meta property="og:description" content="' + og.desc + '">' +
     (og.url ? '<meta property="og:url" content="' + og.url + '">' : '') +
     '<meta property="og:image" content="' + cfg.SITE + P + '/img/uniqaia-og.jpg"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630"><meta name="twitter:card" content="summary_large_image"><meta name="description" content="' + og.desc + '">';
-  b = b.replace("</title>", "</title>" + ogTags);
+  b = b.replace("</title>", "</title>" + DEMO_META + ogTags);
+  if (DEMO_NOTE) b = b.replace("</footer>", "</footer>" + DEMO_NOTE);
   const vars = { URL: cfg.SUPABASE_URL, KEY: cfg.SUPABASE_KEY, BASE: cfg.SITE, NAME: cfg.NAME, LANG: "it" };
   for (const [k, v] of Object.entries(vars)) b = b.split(`{{${k}}}`).join(v);
   const left = b.match(/\{\{[A-Z]+\}\}/g);
@@ -147,11 +155,11 @@ function render(t, name, runtime) {
 function landingDoc(t, body, lang, extraHead, bodyAttrs) {
   const P = t.prefix;
   const head = parts.HEAD.split('href="/show/img/').join('href="' + P + '/img/');
-  return `<!doctype html><html lang="${lang}" dir="${lang === "ar" ? "rtl" : "ltr"}"><head>${head}<title>${H(body.title)} · ${common.NAME}</title>${extraHead}<style>${parts.CSS}</style></head>
+  return `<!doctype html><html lang="${lang}" dir="${lang === "ar" ? "rtl" : "ltr"}"><head>${head}<title>${H(body.title)} · ${common.NAME}</title>${DEMO_META}${extraHead}<style>${parts.CSS}</style></head>
 <body class="vetrina"${bodyAttrs || ""}>
 <header class="topv wrap"><div class="col"><div class="brand"><a class="logo" href="${t.site}${P}/?lang=${lang}" aria-label="${common.NAME}">${tpl("vetrina.html").match(/<a class="logo"[^>]*>([\s\S]*?)<\/a>/)[1]}</a><small>${H(T[lang].tag)}</small></div></div></header>
 <main class="wrap"><div class="col" id="page">${body.html}</div></main>
-<footer class="wrap">${H(T[lang].foot)}<br>${H(T[lang].footJoin)}</footer>
+<footer class="wrap">${H(T[lang].foot)}<br>${H(T[lang].footJoin)}</footer>${DEMO_NOTE}
 <script>
 (function(){
   // ora locale del visitatore e stato aggiornato (in diretta / terminata)
@@ -171,7 +179,7 @@ function landingFor(t, s) {
   const lang = T[s.lang] ? s.lang : "it";
   const P = t.prefix;
   const photoUrls = {}; for (const p of piecesByShow[s.id] || []) if (photoFile[p.id]) photoUrls[p.id] = t.site + P + "/img/" + photoFile[p.id];
-  const body = landingBody({ site: t.site, prefix: P, lang, show: s, jeweler: j, pieces: piecesByShow[s.id] || [], cats: DATA.categories, coverUrl: coverFile[s.id] ? t.site + P + "/img/" + coverFile[s.id] : "", photoUrls, art: ART, t: T[lang], loc: LOC[lang] });
+  const body = landingBody({ site: t.site, prefix: P, lang, show: s, jeweler: j, pieces: piecesByShow[s.id] || [], cats: DATA.categories, coverUrl: coverSrc(t, P, s.id), photoUrls, art: ART, t: T[lang], loc: LOC[lang] });
   const image = body.image || t.site + P + "/img/uniqaia-og.jpg";
   const ld = { "@context": "https://schema.org", "@type": "Event", name: body.title, description: body.desc, startDate: body.start, endDate: new Date(new Date(body.start).getTime() + 3600000).toISOString(), eventAttendanceMode: "https://schema.org/OnlineEventAttendanceMode", eventStatus: body.ended ? "https://schema.org/EventScheduled" : "https://schema.org/EventScheduled", location: { "@type": "VirtualLocation", url: body.viewerUrl }, organizer: { "@type": "Organization", name: j.name, url: t.site + P + "/" + j.slug + "/profile/" }, image: [image], inLanguage: lang, isAccessibleForFree: true, url: body.url };
   const extra = '<meta name="description" content="' + H(body.desc) + '"><link rel="canonical" href="' + H(body.url) + '"><meta property="og:type" content="website"><meta property="og:site_name" content="' + common.NAME + '"><meta property="og:title" content="' + H(body.title) + '"><meta property="og:description" content="' + H(body.desc) + '"><meta property="og:url" content="' + H(body.url) + '"><meta property="og:image" content="' + H(image) + '"><meta name="twitter:card" content="summary_large_image"><script type="application/ld+json">' + JSON.stringify(ld).replace(/</g, "\\u003c") + '</script>';
@@ -220,7 +228,7 @@ function prerenderVetrina(t, html) {
     const j = jById[s.jeweler_id];
     const url = s.status === "live" ? `${t.site}${P}/${j.slug}/?s=${s.id}` : `${t.site}${P}/${j.slug}/${s.slug}/`;
     const when = new Intl.DateTimeFormat(LOC[lang], { weekday: "short", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit", timeZone: "Europe/Rome" }).format(new Date(s.scheduled_at));
-    const img = coverFile[s.id] ? `<img class="cv" alt="" src="${t.site}${P}/img/${coverFile[s.id]}">` : `<div class="art">${(piecesByShow[s.id] && piecesByShow[s.id][0] && ART[piecesByShow[s.id][0].art]) || ART.ring}</div>`;
+    const cvSrc = coverSrc(t, P, s.id); const img = cvSrc ? `<img class="cv" alt="" src="${cvSrc}">` : `<div class="art">${(piecesByShow[s.id] && piecesByShow[s.id][0] && ART[piecesByShow[s.id][0].art]) || ART.ring}</div>`;
     const label = [(s.lang || "").toUpperCase(), ...(s.categories || []).slice(0, 2).map(catName), s.price_range].filter(Boolean).join(" · ");
     return `<a class="vcard" href="${url}"><div class="cover"><div class="ph"></div>${img}<span class="lbl${s.status === "live" ? "" : " off"}"><i></i>${H(s.status === "live" ? tt.live : tt.soon)}</span>${s.status === "live" ? "" : `<div class="when"><small>${H(when)}</small></div>`}<div class="ctitle"><small>${H(label)}</small>${H(s.title)}</div></div><div class="meta"><span class="av">${H(j.name.charAt(0).toUpperCase())}</span><span><b>${H(j.name)}<span class="chk">✓</span></b><small>${H(j.city || "")} · ${H(j.kind === "gems" ? tt.gems : tt.shop)}</small></span></div></a>`;
   };
@@ -238,10 +246,10 @@ function prerenderVetrina(t, html) {
   const linkOf = (l) => { l = l || ""; if (l.startsWith("cat:")) return `${t.site}${P}/?c=${l.slice(4)}`; if (l.startsWith("seller:")) return `${t.site}${P}/${l.slice(7)}/profile/`; if (l.startsWith("show:")) { const s = DATA.shows.find((x) => x.id === l.slice(5)); const j = s && jById[s.jeweler_id]; return j ? `${t.site}${P}/${j.slug}/${s.slug}/` : `${t.site}${P}/`; } return l || `${t.site}${P}/`; };
   const slides = [];
   for (const h of (DATA.highlights || [])) slides.push({ p: palOf("h" + h.id), img: hlFile[h.id] ? `${t.site}${P}/img/${hlFile[h.id]}` : (/^https?:/.test(h.image || "") ? h.image : ""), video: h.video_url || "", art: (h.link || "").startsWith("cat:") ? catArt(h.link.slice(4)) : ART.sparkle, eyebrow: "", title: i18n(h.title_i18n), sub: i18n(h.subtitle_i18n), cta: tt.discover, href: linkOf(h.link), live: false });
-  for (const s of week) { const j = jById[s.jeweler_id]; const isLive = s.status === "live"; const firstCat = (s.categories || [])[0]; const pc = (piecesByShow[s.id] || [])[0]; const img = coverFile[s.id] ? `${t.site}${P}/img/${coverFile[s.id]}` : (pc && photoFile[pc.id] ? `${t.site}${P}/img/${photoFile[pc.id]}` : ""); slides.push({ p: palOf(j.slug), img, art: pc ? (ART[pc.art] || ART.ring) : catArt(firstCat), eyebrow: (firstCat ? catName(firstCat) + " · " : "") + j.name, title: s.title, sub: isLive ? tt.heroLive : tt.liveOn.replace("{day}", new Intl.DateTimeFormat(LOC[lang], { weekday: "long", day: "numeric", month: "long", timeZone: "Europe/Rome" }).format(new Date(s.scheduled_at))).replace("{time}", new Intl.DateTimeFormat(LOC[lang], { hour: "2-digit", minute: "2-digit", hour12: false, timeZone: "Europe/Rome" }).format(new Date(s.scheduled_at))), cta: isLive ? tt.enter : tt.discover, href: isLive ? `${t.site}${P}/${j.slug}/?s=${s.id}` : `${t.site}${P}/${j.slug}/${s.slug}/`, live: isLive }); }
+  for (const s of week) { const j = jById[s.jeweler_id]; const isLive = s.status === "live"; const firstCat = (s.categories || [])[0]; const pc = (piecesByShow[s.id] || [])[0]; const img = coverSrc(t, P, s.id) || (pc && photoFile[pc.id] ? `${t.site}${P}/img/${photoFile[pc.id]}` : ""); slides.push({ p: palOf(j.slug), img, art: pc ? (ART[pc.art] || ART.ring) : catArt(firstCat), eyebrow: (firstCat ? catName(firstCat) + " · " : "") + j.name, title: s.title, sub: isLive ? tt.heroLive : tt.liveOn.replace("{day}", new Intl.DateTimeFormat(LOC[lang], { weekday: "long", day: "numeric", month: "long", timeZone: "Europe/Rome" }).format(new Date(s.scheduled_at))).replace("{time}", new Intl.DateTimeFormat(LOC[lang], { hour: "2-digit", minute: "2-digit", hour12: false, timeZone: "Europe/Rome" }).format(new Date(s.scheduled_at))), cta: isLive ? tt.enter : tt.discover, href: isLive ? `${t.site}${P}/${j.slug}/?s=${s.id}` : `${t.site}${P}/${j.slug}/${s.slug}/`, live: isLive }); }
   const hero = slides.slice(0, 8).map(slideHtml).join("");
   const dots = slides.slice(0, 8).map((_, i) => `<button type="button" class="${i === 0 ? "on" : ""}" aria-label="${i + 1}"></button>`).join("");
-  const agenda = week.length ? `<div class="agenda">${week.map((s) => { const j = jById[s.jeweler_id]; const p = palOf(j.slug); const pc = (piecesByShow[s.id] || [])[0]; const img = coverFile[s.id] ? `${t.site}${P}/img/${coverFile[s.id]}` : (pc && photoFile[pc.id] ? `${t.site}${P}/img/${photoFile[pc.id]}` : ""); const d = new Date(s.scheduled_at); const wd = new Intl.DateTimeFormat(LOC[lang], { weekday: "short", timeZone: "Europe/Rome" }).format(d), dn = new Intl.DateTimeFormat(LOC[lang], { day: "numeric", timeZone: "Europe/Rome" }).format(d), tm = new Intl.DateTimeFormat(LOC[lang], { hour: "2-digit", minute: "2-digit", hour12: false, timeZone: "Europe/Rome" }).format(d); const bits = [(s.lang || "").toUpperCase(), ...(s.categories || []).slice(0, 2).map(catName), s.price_range].filter(Boolean).join(" · "); return `<a class="ag${s.status === "live" ? " live" : ""}" href="${s.status === "live" ? `${t.site}${P}/${j.slug}/?s=${s.id}` : `${t.site}${P}/${j.slug}/${s.slug}/`}"><div class="agd"><small>${H(s.status === "live" ? tt.live : wd)}</small><b>${H(dn)}</b><span>${H(tm)}</span></div><div class="agi" style="--c1:${p[0]};--c2:${p[1]}">${img ? `<img alt="" src="${img}">` : (pc ? (ART[pc.art] || ART.ring) : ART.ring)}</div><div class="agt"><small>${H(bits)}</small><b>${H(s.title)}</b><span>${H(j.name)}${j.city ? " · " + H(j.city) : ""}</span></div></a>`; }).join("")}</div>` : `<div class="empty">${H(tt.noWeek)}</div>`;
+  const agenda = week.length ? `<div class="agenda">${week.map((s) => { const j = jById[s.jeweler_id]; const p = palOf(j.slug); const pc = (piecesByShow[s.id] || [])[0]; const img = coverSrc(t, P, s.id) || (pc && photoFile[pc.id] ? `${t.site}${P}/img/${photoFile[pc.id]}` : ""); const d = new Date(s.scheduled_at); const wd = new Intl.DateTimeFormat(LOC[lang], { weekday: "short", timeZone: "Europe/Rome" }).format(d), dn = new Intl.DateTimeFormat(LOC[lang], { day: "numeric", timeZone: "Europe/Rome" }).format(d), tm = new Intl.DateTimeFormat(LOC[lang], { hour: "2-digit", minute: "2-digit", hour12: false, timeZone: "Europe/Rome" }).format(d); const bits = [(s.lang || "").toUpperCase(), ...(s.categories || []).slice(0, 2).map(catName), s.price_range].filter(Boolean).join(" · "); return `<a class="ag${s.status === "live" ? " live" : ""}" href="${s.status === "live" ? `${t.site}${P}/${j.slug}/?s=${s.id}` : `${t.site}${P}/${j.slug}/${s.slug}/`}"><div class="agd"><small>${H(s.status === "live" ? tt.live : wd)}</small><b>${H(dn)}</b><span>${H(tm)}</span></div><div class="agi" style="--c1:${p[0]};--c2:${p[1]}">${img ? `<img alt="" src="${img}">` : (pc ? (ART[pc.art] || ART.ring) : ART.ring)}</div><div class="agt"><small>${H(bits)}</small><b>${H(s.title)}</b><span>${H(j.name)}${j.city ? " · " + H(j.city) : ""}</span></div></a>`; }).join("")}</div>` : `<div class="empty">${H(tt.noWeek)}</div>`;
   const soon = rows.filter((s) => s.status !== "live" && new Date(s.scheduled_at).getTime() > Date.now() + 7 * 86400000).sort((a, b) => new Date(a.scheduled_at) - new Date(b.scheduled_at)).map(card).join("");
   const tiles = DATA.categories.map((c) => { const n = rows.filter((s) => (s.categories || []).includes(c.slug)).length; return `<a class="tile" href="${t.site}${P}/?c=${c.slug}">${ART[c.art] || ART.ring}<b>${H(catName(c.slug))}</b><small>${H(n === 0 ? tt.catSoon : n === 1 ? tt.catOne : tt.catMany.replace("{n}", n))}</small></a>`; }).join("");
   const shops = DATA.jewelers.map((j) => `<a class="seller" href="${t.site}${P}/${j.slug}/profile/"><span class="big">${H(j.name.charAt(0).toUpperCase())}</span><b>${H(j.name)}</b><small>${H(j.city || "")}<br>${H(j.kind === "gems" ? tt.gems : tt.shop)}</small></a>`).join("");
@@ -273,7 +281,7 @@ for (const t of TARGETS) {
   let nLanding = 0;
   for (const s of DATA.shows) { const doc = landingFor(t, s); if (!doc) continue; write(`${jById[s.jeweler_id].slug}/${s.slug}/index.html`, doc); urls.push(`${t.site}${P}/${jById[s.jeweler_id].slug}/${s.slug}/`); nLanding++; }
   write("sitemap.xml", `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls.map((u) => `  <url><loc>${H(u)}</loc></url>`).join("\n")}\n</urlset>\n`);
-  if (P === "") write("robots.txt", `User-agent: *\nAllow: /\nDisallow: /*/panel/\nSitemap: ${t.site}/sitemap.xml\n`);
+  if (P === "") write("robots.txt", DEMO ? `User-agent: *\nAllow: /\nDisallow: /*/panel/\n` : `User-agent: *\nAllow: /\nDisallow: /*/panel/\nSitemap: ${t.site}/sitemap.xml\n`);
   // Immagini (logo, icona, anteprima, copertine, foto) condivise tra le due versioni
   if (P === "") { fs.cpSync(IMG, path.join(t.out, "img"), { recursive: true }); }
   // 404.html: instrada <prefix>/<slug>, /panel, /profile e <prefix>/<slug>/<diretta> verso le pagine giuste

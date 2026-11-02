@@ -1,4 +1,3 @@
 User-agent: *
 Allow: /
 Disallow: /*/panel/
-Sitemap: https://uniqaia.com/sitemap.xml

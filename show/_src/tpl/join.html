@@ -20,7 +20,7 @@
   function li(arr){ return '<ul>' + arr.map(function(x){ return '<li><i></i>' + esc(x) + '</li>'; }).join("") + '</ul>'; }
   function render(){
     t = TT[lang]; document.documentElement.lang = lang; document.documentElement.dir = lang === "ar" ? "rtl" : "ltr"; $("langCur").textContent = lang.toUpperCase();
-    $("tag").textContent = t.tag; $("foot").textContent = t.foot;
+    $("tag").textContent = t.tag; $("foot").textContent = t.foot; var dn = document.querySelector(".demo span"); if (dn && t.demoNote) dn.textContent = t.demoNote;
     Array.prototype.forEach.call(document.querySelectorAll("#langMenu button"), function(b){ b.classList.toggle("on", b.getAttribute("data-lang") === lang); });
     $("page").innerHTML = '<span class="eyebrow">' + esc(t.jEyebrow) + '</span><h1>' + esc(t.jTitle) + '</h1><p class="lead">' + esc(t.jLead) + '</p>' +
       '<h3>' + esc(t.jWhatH) + '</h3>' + li(t.jWhat) + '<h3>' + esc(t.jWhoH) + '</h3>' + li(t.jWho) +

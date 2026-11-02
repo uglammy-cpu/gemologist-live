@@ -56,7 +56,7 @@
   function render(){
     t = TT[lang]; document.documentElement.lang = lang; document.documentElement.dir = lang === "ar" ? "rtl" : "ltr"; $("langCur").textContent = lang.toUpperCase();
     Array.prototype.forEach.call(document.querySelectorAll("#langMenu button"), function(b){ b.classList.toggle("on", b.getAttribute("data-lang") === lang); });
-    $("tag").textContent = t.tag; $("foot").innerHTML = esc(t.foot) + '<br>' + esc(t.footJoin);
+    $("tag").textContent = t.tag; $("foot").innerHTML = esc(t.foot) + '<br>' + esc(t.footJoin); var dn = document.querySelector(".demo span"); if (dn && t.demoNote) dn.textContent = t.demoNote;
     var j = state.j, page = $("page");
     if (!j){ page.innerHTML = '<div class="empty" style="margin-top:30px"><b>404</b>Pagina non trovata.</div>'; return; }
     document.title = j.name + " · " + CFG.name;

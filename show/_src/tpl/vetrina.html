@@ -145,7 +145,7 @@
     var out = [];
     state.highlights.forEach(function(h){
       var l = h.link || "", art = l.indexOf("cat:") === 0 ? catArt(l.slice(4)) : CFG.art.sparkle;
-      out.push({ key: "h" + h.id, img: h.image || "", art: art, eyebrow: "", title: i18n(h.title_i18n), sub: i18n(h.subtitle_i18n), cta: t.discover, href: linkOf(h), live: false });
+      out.push({ key: "h" + h.id, img: h.image || "", video: h.video_url || "", art: art, eyebrow: "", title: i18n(h.title_i18n), sub: i18n(h.subtitle_i18n), cta: t.discover, href: linkOf(h), live: false });
     });
     weekShows().forEach(function(s){
       var j = state.jewelers[s.jeweler_id], live = s.status === "live";
@@ -154,29 +154,54 @@
     });
     return out.slice(0, 8);
   }
+  var MOTION = '<span class="grain"></span><span class="sheen"></span><span class="dust"><i style="inset-inline-start:8%;animation-duration:16s;animation-delay:0s"></i><i style="inset-inline-start:18%;animation-duration:21s;animation-delay:3s"></i><i style="inset-inline-start:27%;animation-duration:13s;animation-delay:6s"></i><i style="inset-inline-start:38%;animation-duration:19s;animation-delay:1.5s"></i><i style="inset-inline-start:46%;animation-duration:24s;animation-delay:8s"></i><i style="inset-inline-start:55%;animation-duration:15s;animation-delay:11s"></i><i style="inset-inline-start:64%;animation-duration:22s;animation-delay:4.5s"></i><i style="inset-inline-start:73%;animation-duration:18s;animation-delay:9.5s"></i><i style="inset-inline-start:84%;animation-duration:25s;animation-delay:13s"></i><i style="inset-inline-start:92%;animation-duration:17s;animation-delay:6.5s"></i></span><span class="sparks"><i style="top:21%;inset-inline-start:14%;animation-delay:0.2s"></i><i style="top:33%;inset-inline-start:72%;animation-delay:1.1s"></i><i style="top:15%;inset-inline-start:52%;animation-delay:2.0s"></i><i style="top:47%;inset-inline-start:30%;animation-delay:1.6s"></i><i style="top:26%;inset-inline-start:86%;animation-delay:0.7s"></i><i style="top:55%;inset-inline-start:62%;animation-delay:2.6s"></i></span>', MOTION_ART = '<span class="lights"><i></i><i></i></span><span class="halo"></span>';
+  function slideMedia(sl){
+    if (sl.video) return '<video class="cv" autoplay muted loop playsinline preload="metadata"' + (sl.img ? ' poster="' + sl.img + '"' : '') + ' src="' + sl.video + '"></video>';
+    if (sl.img) return '<img class="cv" alt="" src="' + sl.img + '">';
+    return MOTION_ART + '<div class="art">' + sl.art + '</div>';
+  }
   function renderHero(){
     var track = $("track"), dots = $("dots"), list = slides(); track.innerHTML = ""; dots.innerHTML = "";
     $("hero").hidden = !list.length;
     list.forEach(function(sl, i){
       var p = pal(sl.key);
-      var a = document.createElement("a"); a.className = "slide"; a.href = sl.href; a.style.cssText = "--c1:" + p[0] + ";--c2:" + p[1];
-      a.innerHTML = (sl.img ? '<img class="cv" alt="" src="' + sl.img + '">' : '<div class="art">' + sl.art + '</div>') + (sl.live ? '<span class="lbl"><i></i>' + esc(t.live) + '</span>' : '') + (sl.eyebrow ? '<span class="eyebrow">' + esc(sl.eyebrow) + '</span>' : '') + '<h2 dir="auto">' + esc(sl.title) + '</h2>' + (sl.sub ? '<p dir="auto">' + esc(sl.sub) + '</p>' : '') + '<span class="go">' + esc(sl.cta) + '</span>';
+      var a = document.createElement("a"); a.className = "slide" + (i === 0 ? " on" : ""); a.href = sl.href; a.style.cssText = "--c1:" + p[0] + ";--c2:" + p[1];
+      a.innerHTML = slideMedia(sl) + MOTION + (sl.live ? '<span class="lbl"><i></i>' + esc(t.live) + '</span>' : '') + (sl.eyebrow ? '<span class="eyebrow">' + esc(sl.eyebrow) + '</span>' : '') + '<h2 dir="auto">' + esc(sl.title) + '</h2>' + (sl.sub ? '<p dir="auto">' + esc(sl.sub) + '</p>' : '') + '<span class="go">' + esc(sl.cta) + '</span>';
       track.appendChild(a);
       var d = document.createElement("button"); d.type = "button"; d.className = i === 0 ? "on" : ""; d.setAttribute("aria-label", String(i + 1)); d.addEventListener("click", function(){ goSlide(i, true); }); dots.appendChild(d);
     });
     state.slide = 0; startAuto();
   }
+  function markSlide(){
+    var track = $("track");
+    Array.prototype.forEach.call(track.children, function(el, k){
+      var on = k === state.slide;
+      if (on) el.classList.add("on"); else el.classList.remove("on");
+      var v = el.querySelector ? el.querySelector("video") : null;
+      if (v) try { if (on) v.play(); else v.pause(); } catch(e){}
+    });
+    Array.prototype.forEach.call($("dots").children, function(d, k){ d.className = k === state.slide ? "on" : ""; });
+  }
   function goSlide(i, manual){
     var track = $("track"), n = track.children.length; if (!n) return;
     state.slide = (i + n) % n;
     track.scrollTo({ left: track.children[state.slide].offsetLeft, behavior: "smooth" });
-    Array.prototype.forEach.call($("dots").children, function(d, k){ d.className = k === state.slide ? "on" : ""; });
+    markSlide();
     if (manual) startAuto();
+  }
+  function armReveal(){
+    if (state.armed || !("IntersectionObserver" in window)) return;
+    state.armed = true;
+    var els = [];
+    ["week", "live", "soon", "browse", "shops"].forEach(function(id){ var e = document.getElementById(id); if (e) els.push(e); });
+    Array.prototype.push.apply(els, document.querySelectorAll(".ag, .tile, .card, .shop"));
+    var io = new IntersectionObserver(function(ents){ ents.forEach(function(en){ if (en.isIntersecting){ en.target.classList.add("in"); io.unobserve(en.target); } }); }, { rootMargin: "0px 0px -6% 0px", threshold: 0.06 });
+    els.forEach(function(e, i){ e.classList.add("reveal"); e.style.transitionDelay = ((i % 6) * 60) + "ms"; io.observe(e); });
   }
   function startAuto(){ if (state.timer) clearInterval(state.timer); state.timer = setInterval(function(){ if (document.hidden) return; goSlide(state.slide + 1); }, 6000); }
   $("prevSlide").addEventListener("click", function(){ goSlide(state.slide - 1, true); });
   $("nextSlide").addEventListener("click", function(){ goSlide(state.slide + 1, true); });
-  $("track").addEventListener("scroll", function(){ var tr = $("track"), w = tr.clientWidth || 1, i = Math.round(tr.scrollLeft / w); if (i !== state.slide && i >= 0 && i < tr.children.length){ state.slide = i; Array.prototype.forEach.call($("dots").children, function(d, k){ d.className = k === i ? "on" : ""; }); } });
+  $("track").addEventListener("scroll", function(){ var tr = $("track"), w = tr.clientWidth || 1, i = Math.round(Math.abs(tr.scrollLeft) / w); if (i !== state.slide && i >= 0 && i < tr.children.length){ state.slide = i; markSlide(); } });
   $("track").addEventListener("touchstart", function(){ if (state.timer) clearInterval(state.timer); }, { passive: true });
   function renderWeek(){
     var box = $("weekBody"); box.innerHTML = "";
@@ -195,7 +220,7 @@
     });
     box.appendChild(list);
   }
-  function renderAll(){ t = TT[lang]; renderStatic(); renderCats(); renderHero(); renderWeek(); renderTiles(); renderLive(); renderSoon(); renderShops(); }
+  function renderAll(){ t = TT[lang]; renderStatic(); renderCats(); renderHero(); renderWeek(); renderTiles(); renderLive(); renderSoon(); renderShops(); armReveal(); }
 
   // benvenuto (prima visita)
   function renderWelcome(){
@@ -237,7 +262,7 @@
       return Promise.all([
         sb.from("show_covers").select("show_id,data").in("show_id", ids),
         sb.from("pieces").select("id,show_id,art,position").in("show_id", ids).order("position"),
-        sb.from("highlights").select("id,position,title_i18n,subtitle_i18n,link,image").order("position")
+        sb.from("highlights").select("id,position,title_i18n,subtitle_i18n,link,image,video_url").order("position")
       ]).then(function(res){
         state.covers = {}; (res[0].data || []).forEach(function(c){ state.covers[c.show_id] = c.data; });
         var byShow = {}; (res[1].data || []).forEach(function(p){ (byShow[p.show_id] = byShow[p.show_id] || []).push(p); });
@@ -248,7 +273,7 @@
       });
     });
   }
-  function refresh(){ return loadShows().then(function(){ renderCats(); renderHero(); renderWeek(); renderTiles(); renderLive(); renderSoon(); renderShops(); watchPresence(); }); }
+  function refresh(){ return loadShows().then(function(){ renderCats(); renderHero(); renderWeek(); renderTiles(); renderLive(); renderSoon(); renderShops(); watchPresence(); armReveal(); }); }
 
   function boot(){
     Promise.all([

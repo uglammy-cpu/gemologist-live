@@ -212,6 +212,60 @@ body.dark{background:#0E0B07;color:#F7EBCB;padding:0}
 .hero .arr{position:absolute;top:50%;transform:translateY(-50%);width:40px;height:40px;border-radius:50%;border:0;background:rgba(255,255,255,.85);color:#1C1406;font-size:20px;display:none;place-items:center;z-index:3;cursor:pointer}
 .hero .arr.prev{inset-inline-start:12px}.hero .arr.next{inset-inline-end:12px}
 @media (min-width:720px){.hero .arr{display:grid}}
+
+/* ---- movimento: carosello animato, luce sull'oro, rivelazioni allo scroll ---- */
+@keyframes kenburns{from{transform:scale(1.02) translate3d(0,0,0)}to{transform:scale(1.18) translate3d(-2%,-2.5%,0)}}
+@keyframes sweep{0%{transform:translateX(-130%) skewX(-12deg)}55%,100%{transform:translateX(130%) skewX(-12deg)}}
+@keyframes twinkle{0%,100%{opacity:0;transform:scale(.35)}50%{opacity:1;transform:scale(1)}}
+@keyframes floaty{0%,100%{transform:translateY(0) rotate(-.7deg)}50%{transform:translateY(-11px) rotate(.7deg)}}
+@keyframes riseIn{from{opacity:0;transform:translateY(15px)}to{opacity:1;transform:none}}
+@keyframes dotfill{from{transform:scaleX(0)}to{transform:scaleX(1)}}
+@keyframes glow{0%,100%{opacity:.5}50%{opacity:1}}
+@keyframes drift1{from{transform:translate3d(0,0,0)}to{transform:translate3d(15%,11%,0) scale(1.16)}}
+@keyframes drift2{from{transform:translate3d(0,0,0)}to{transform:translate3d(-13%,-9%,0) scale(1.12)}}
+@keyframes drift{0%{transform:translate3d(0,0,0) scale(.6);opacity:0}14%{opacity:.8}86%{opacity:.45}100%{transform:translate3d(28px,-430px,0) scale(1.1);opacity:0}}
+.slide video.cv{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.slide .cv{transform:scale(1.02);transform-origin:50% 45%}
+.slide.on .cv{animation:kenburns 17s ease-out both}
+.slide .art svg{width:56%;max-width:360px;filter:drop-shadow(0 20px 46px rgba(0,0,0,.5));-webkit-box-reflect:below 2px linear-gradient(transparent 58%,rgba(255,255,255,.16))}
+.slide.on .art svg{animation:floaty 7.5s ease-in-out infinite}
+.slide .halo{position:absolute;inset:0;z-index:0;pointer-events:none;background:radial-gradient(42% 32% at 50% 34%,rgba(255,226,160,.42),transparent 70%);opacity:.5}
+.slide.on .halo{animation:glow 6s ease-in-out infinite}
+.slide .lights{position:absolute;inset:0;z-index:0;pointer-events:none;overflow:hidden}
+.slide .lights i{position:absolute;display:block;width:56%;padding-bottom:56%;border-radius:50%;filter:blur(44px)}
+.slide .lights i:first-child{background:radial-gradient(circle,rgba(255,212,146,.55),transparent 70%);top:-14%;inset-inline-start:-8%}
+.slide .lights i:last-child{background:radial-gradient(circle,rgba(168,202,255,.34),transparent 70%);bottom:-20%;inset-inline-end:-10%}
+.slide.on .lights i:first-child{animation:drift1 18s ease-in-out infinite alternate}
+.slide.on .lights i:last-child{animation:drift2 23s ease-in-out infinite alternate}
+.slide .grain{position:absolute;inset:0;z-index:1;pointer-events:none;opacity:.13;mix-blend-mode:overlay;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='150' height='150'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='150' height='150' filter='url(%23n)'/%3E%3C/svg%3E");background-size:150px 150px}
+.slide .dust{position:absolute;inset:0;z-index:1;pointer-events:none;overflow:hidden}
+.slide .dust i{position:absolute;bottom:-10px;width:3px;height:3px;border-radius:50%;background:rgba(255,238,200,.95);box-shadow:0 0 6px rgba(255,226,170,.8);opacity:0}
+.slide.on .dust i{animation-name:drift;animation-timing-function:linear;animation-iteration-count:infinite}
+.slide .sheen{position:absolute;inset:-12% -30%;z-index:1;pointer-events:none;background:linear-gradient(100deg,transparent 42%,rgba(255,243,214,.30) 48%,rgba(255,255,255,.60) 50%,rgba(255,243,214,.26) 52%,transparent 58%);transform:translateX(-130%) skewX(-12deg);opacity:0}
+.slide.on .sheen{opacity:1;animation:sweep 7s 1.4s ease-in-out infinite}
+.slide .sparks{position:absolute;inset:0;z-index:1;pointer-events:none}
+.slide .sparks i{position:absolute;width:5px;height:5px;border-radius:50%;background:#FFF8E7;box-shadow:0 0 10px 3px rgba(255,230,170,.75);opacity:0}
+.slide.on .sparks i{animation:twinkle 3.6s ease-in-out infinite}
+.slide.on .eyebrow{animation:riseIn .6s .08s ease-out both}
+.slide.on h2{animation:riseIn .7s .16s ease-out both}
+.slide.on p{animation:riseIn .7s .24s ease-out both}
+.slide.on .go{animation:riseIn .7s .32s ease-out both}
+.hero .dots button{position:relative;overflow:hidden}
+.hero .dots button.on{width:26px;border-radius:4px;background:var(--line)}
+.hero .dots button.on::after{content:"";position:absolute;inset:0;background:var(--gold-edge);transform-origin:0 50%;animation:dotfill 6s linear both}
+.reveal{opacity:0;transform:translateY(16px)}
+.reveal.in{opacity:1;transform:none;transition:opacity .75s ease-out,transform .75s cubic-bezier(.2,.7,.2,1)}
+.tile,.ag,.card,.shop{transition:transform .35s cubic-bezier(.2,.7,.2,1),box-shadow .35s,border-color .35s}
+.tile:hover,.ag:hover,.card:hover,.shop:hover{transform:translateY(-3px);box-shadow:0 14px 34px rgba(28,20,6,.12)}
+.ag .agi img,.card .ph img,.tile img{transition:transform .6s cubic-bezier(.2,.7,.2,1)}
+.ag:hover .agi img,.card:hover .ph img,.tile:hover img{transform:scale(1.08)}
+@media (prefers-reduced-motion:reduce){
+.slide.on .cv,.slide.on .art svg,.slide.on .sheen,.slide.on .halo,.slide.on .sparks i,.slide.on .lights i,.slide.on .dust i,.slide.on .eyebrow,.slide.on h2,.slide.on p,.slide.on .go,.hero .dots button.on::after{animation:none}
+.slide .sheen,.slide .dust{display:none}.slide .cv{transform:none}
+.reveal{opacity:1;transform:none}
+.tile:hover,.ag:hover,.card:hover,.shop:hover{transform:none}
+.ag:hover .agi img,.card:hover .ph img,.tile:hover img{transform:none}
+}
 .week{margin-top:26px}
 .agenda{display:flex;flex-direction:column;border-top:1px solid var(--line)}
 .ag{display:grid;grid-template-columns:52px 64px minmax(0,1fr);gap:12px;align-items:center;padding:12px 0;border-bottom:1px solid var(--line);color:inherit;text-decoration:none}
@@ -838,6 +892,7 @@ function lkAttachRemote(room, tiles, LK){
       '<label id="hShowL" hidden>Diretta<select id="hShow">' + showOpts + '</select></label>' +
       '<label id="hTxtL" hidden>Valore<input id="hTxt" type="text" maxlength="300" placeholder="es. rossi oppure https://…"></label>' +
       '<label>Immagine (facoltativa, orizzontale; senza immagine si usa l’illustrazione della categoria)<input id="hImg" type="file" accept="image/*"></label>' +
+      '<label>Video in loop (facoltativo): link https a un file .mp4 o .webm, pochi secondi, senza audio<input id="hVid" type="url" maxlength="400" placeholder="https://…/anello.mp4" value="' + esc(h.video_url || "") + '"></label>' +
       '<label>Posizione (le più basse prima)<input id="hPos" type="number" value="' + (h.position != null ? h.position : 10) + '"></label>' +
       '<label>Visibile dal (facoltativo)<input id="hFrom" type="datetime-local" value="' + (h.starts_at ? toLocalInput(h.starts_at) : "") + '"></label>' +
       '<label>Fino al (facoltativo)<input id="hTo" type="datetime-local" value="' + (h.ends_at ? toLocalInput(h.ends_at) : "") + '"></label>' +
@@ -853,7 +908,7 @@ function lkAttachRemote(room, tiles, LK){
       var f = $("hImg").files && $("hImg").files[0];
       var save = function(img){
         var from = $("hFrom").value ? new Date($("hFrom").value).toISOString() : null, to = $("hTo").value ? new Date($("hTo").value).toISOString() : null;
-        sb.rpc("save_highlight", { p_token: CFG.token, p_id: h.id || null, p_position: parseInt($("hPos").value, 10) || 0, p_title: title, p_subtitle: sub, p_link: link, p_image: img, p_active: h.id ? null : true, p_starts: from, p_ends: to }).then(function(r){ if (!err(r)){ closeModal(); toast("Slide salvata"); loadHighlights(); } });
+        sb.rpc("save_highlight", { p_token: CFG.token, p_id: h.id || null, p_position: parseInt($("hPos").value, 10) || 0, p_title: title, p_subtitle: sub, p_link: link, p_image: img, p_active: h.id ? null : true, p_starts: from, p_ends: to, p_video: $("hVid").value.trim() }).then(function(r){ if (!err(r)){ closeModal(); toast("Slide salvata"); loadHighlights(); } });
       };
       if (f) shrinkWide(f, function(data){ if (!data){ toast("Immagine non leggibile"); return; } save(data); }); else save(null);
     });

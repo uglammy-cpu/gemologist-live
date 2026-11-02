@@ -467,6 +467,7 @@ label input,label select,label textarea{width:100%}
       '<label id="hShowL" hidden>Diretta<select id="hShow">' + showOpts + '</select></label>' +
       '<label id="hTxtL" hidden>Valore<input id="hTxt" type="text" maxlength="300" placeholder="es. rossi oppure https://…"></label>' +
       '<label>Immagine (facoltativa, orizzontale; senza immagine si usa l’illustrazione della categoria)<input id="hImg" type="file" accept="image/*"></label>' +
+      '<label>Video in loop (facoltativo): link https a un file .mp4 o .webm, pochi secondi, senza audio<input id="hVid" type="url" maxlength="400" placeholder="https://…/anello.mp4" value="' + esc(h.video_url || "") + '"></label>' +
       '<label>Posizione (le più basse prima)<input id="hPos" type="number" value="' + (h.position != null ? h.position : 10) + '"></label>' +
       '<label>Visibile dal (facoltativo)<input id="hFrom" type="datetime-local" value="' + (h.starts_at ? toLocalInput(h.starts_at) : "") + '"></label>' +
       '<label>Fino al (facoltativo)<input id="hTo" type="datetime-local" value="' + (h.ends_at ? toLocalInput(h.ends_at) : "") + '"></label>' +
@@ -482,7 +483,7 @@ label input,label select,label textarea{width:100%}
       var f = $("hImg").files && $("hImg").files[0];
       var save = function(img){
         var from = $("hFrom").value ? new Date($("hFrom").value).toISOString() : null, to = $("hTo").value ? new Date($("hTo").value).toISOString() : null;
-        sb.rpc("save_highlight", { p_token: CFG.token, p_id: h.id || null, p_position: parseInt($("hPos").value, 10) || 0, p_title: title, p_subtitle: sub, p_link: link, p_image: img, p_active: h.id ? null : true, p_starts: from, p_ends: to }).then(function(r){ if (!err(r)){ closeModal(); toast("Slide salvata"); loadHighlights(); } });
+        sb.rpc("save_highlight", { p_token: CFG.token, p_id: h.id || null, p_position: parseInt($("hPos").value, 10) || 0, p_title: title, p_subtitle: sub, p_link: link, p_image: img, p_active: h.id ? null : true, p_starts: from, p_ends: to, p_video: $("hVid").value.trim() }).then(function(r){ if (!err(r)){ closeModal(); toast("Slide salvata"); loadHighlights(); } });
       };
       if (f) shrinkWide(f, function(data){ if (!data){ toast("Immagine non leggibile"); return; } save(data); }); else save(null);
     });

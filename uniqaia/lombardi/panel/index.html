@@ -1,0 +1,743 @@
+<!doctype html><html lang="it"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@0,6..96,400..600;1,6..96,400..600&family=Cormorant+Garamond:wght@500&family=Jost:wght@300..600&display=swap">
+<link rel="icon" type="image/svg+xml" href="/img/uniqaia-icon.svg"><link rel="icon" type="image/png" sizes="512x512" href="/img/uniqaia-icon.png"><link rel="apple-touch-icon" href="/img/uniqaia-icon.png"><meta name="theme-color" content="#15121C">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.4/dist/umd/supabase.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/livekit-client@2.22.0/dist/livekit-client.umd.min.js" onerror="var s=document.createElement('script');s.src='https://unpkg.com/livekit-client@2.22.0/dist/livekit-client.umd.min.js';document.head.appendChild(s)"></script><title>Pannello diretta</title><meta property="og:type" content="website"><meta property="og:site_name" content="Uniqaia"><meta property="og:title" content="Uniqaia · Pannello"><meta property="og:description" content="Pannello riservato ai venditori."><meta property="og:image" content="https://uniqaia.com/img/uniqaia-og.jpg"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630"><meta name="twitter:card" content="summary_large_image"><meta name="description" content="Pannello riservato ai venditori."><style>
+:root{--paper:#FFFFFF;--ink:#16181D;--muted:#5B606A;--line:#E7E4DC;--soft:#F6F4EF;--soft-2:#F8F1DF;--gold-hi:#EDD596;--gold:#CBA44F;--gold-lo:#A9833A;--gold-edge:#8C6A2B;--gold-ink:#1C1406;--live:#1E7A4F;--heart:#C6364E;--video:#1E2128;--display:"Bodoni Moda","Bodoni 72",Didot,Georgia,serif;--body:"Jost","Futura","Century Gothic","Helvetica Neue",Arial,sans-serif;color-scheme:light}
+*,*::before,*::after{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{background:var(--paper);color:var(--ink);font-family:var(--body);font-size:16px;line-height:1.5;-webkit-font-smoothing:antialiased;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+h1,h2,h3{margin:0;font-weight:400}
+p{margin:0}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:2px solid var(--gold-edge);outline-offset:3px}
+.wrap{padding-left:max(14px,env(safe-area-inset-left,0px));padding-right:max(14px,env(safe-area-inset-right,0px))}
+.col{max-width:1120px;margin:0 auto}
+.gold{background:linear-gradient(140deg,var(--gold-hi) 0%,var(--gold) 55%,var(--gold-lo) 100%)}
+.eyebrow{font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:var(--gold-edge);font-weight:500}
+.muted{color:var(--muted)}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:46px;padding:0 20px;border-radius:999px;text-decoration:none;font-weight:500;font-size:15px;border:1px solid var(--ink);background:none;color:var(--ink)}
+.btn.primary{color:var(--gold-ink);border-color:var(--gold-edge)}
+.btn.dark{background:var(--gold-ink);color:var(--gold-hi);border-color:var(--gold-ink)}
+.btn.sm{min-height:38px;padding:0 14px;font-size:14px}
+.btn:disabled{opacity:.5;cursor:default}
+.top{border-bottom:1px solid var(--line);background:var(--paper)}
+.top .col{min-height:60px;display:flex;align-items:center;justify-content:space-between;gap:12px;padding-block:8px}
+.brand{display:flex;flex-direction:column;gap:3px;min-width:0}
+.brand .logo{display:block;height:28px;color:var(--ink);text-decoration:none}
+.brand .logo svg,.wm svg{height:100%;width:auto;display:block;overflow:visible}
+.brand small{display:block;font-family:var(--body);font-size:10px;letter-spacing:.16em;color:var(--gold-edge);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.welcome,body.dark{--logo-gold:#D4AF6A;--logo-gem:#F0606F}
+.wordmark{font-family:var(--display);font-size:clamp(17px,3vw,22px);letter-spacing:.2em;text-transform:uppercase;padding-left:.2em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.wordmark small{display:block;font-family:var(--body);font-size:10px;letter-spacing:.16em;color:var(--gold-edge);margin-top:-2px}
+.status{display:inline-flex;align-items:center;gap:8px;font-size:13px;color:var(--muted);white-space:nowrap}
+.status i{width:9px;height:9px;border-radius:50%;background:var(--muted);display:block}
+.status.live{color:var(--live)}.status.live i{background:var(--live);animation:pulse 1.6s ease-out infinite}
+@keyframes pulse{0%{box-shadow:0 0 0 0 rgba(30,122,79,.5)}70%{box-shadow:0 0 0 8px transparent}100%{box-shadow:0 0 0 0 transparent}}
+.row{display:flex;gap:8px}
+.row input{flex:1;min-width:0}
+input,select,textarea{border:1px solid var(--line);border-radius:999px;padding:10px 14px;background:var(--paper);min-height:44px}
+textarea{border-radius:12px;min-height:90px;resize:vertical}
+.hint{font-size:13px;color:var(--muted);text-align:center}
+.toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:#1C1406;color:#EDD596;padding:11px 18px;border-radius:999px;font-size:14px;z-index:70;display:flex;gap:9px;align-items:center;animation:rise .3s ease-out both;max-width:calc(100% - 28px)}
+.toast i{width:8px;height:8px;border-radius:50%;background:var(--live);display:block;flex:none}
+@keyframes rise{from{opacity:0;transform:translate(-50%,8px)}to{opacity:1;transform:translate(-50%,0)}}
+.modal{position:fixed;inset:0;background:rgba(14,16,20,.6);display:grid;place-items:center;padding:14px;z-index:60}
+.mcard{position:relative;max-width:440px;width:100%;background:var(--paper);color:var(--ink);border:1px solid var(--line);border-radius:18px;padding:22px;display:flex;flex-direction:column;gap:12px}
+.mcard h3{font-family:var(--display);font-size:24px}
+.mcard form{display:flex;flex-direction:column;gap:10px}
+.slots{display:flex;flex-direction:column;gap:8px}
+.slot{border:1px solid var(--line);background:var(--paper);padding:11px 14px;border-radius:999px;text-align:start}
+.slot:hover{border-color:var(--gold-edge);background:var(--soft-2)}
+.x{position:absolute;top:6px;right:6px;width:36px;height:36px;border:0;background:none;font-size:22px;color:var(--muted)}
+.ok{display:flex;align-items:center;gap:10px;color:var(--live);font-weight:500}
+label{font-size:13px;color:var(--muted);display:flex;flex-direction:column;gap:4px}
+label input,label select,label textarea{width:100%}
+footer{padding:22px 0 30px;font-size:12px;color:var(--muted);text-align:center;line-height:1.7}
+[hidden]{display:none!important}
+
+/* ---- pannello: chat e tiles ---- */
+.msgs{flex:1;min-height:220px;overflow-y:auto;padding:12px 14px;display:flex;flex-direction:column;gap:10px}
+.msg{display:flex;flex-direction:column;gap:2px;animation:risemsg .3s ease-out both}
+.msg .who{font-size:12px;color:var(--muted)}
+.msg .txt{font-size:15px;line-height:1.4;background:var(--soft);padding:8px 12px;border-radius:12px 12px 12px 3px;max-width:94%;overflow-wrap:anywhere}
+.msg.gemologist .who{color:var(--gold-edge);font-weight:500}
+.msg.gemologist .txt{background:var(--soft-2);border:1px solid var(--gold-hi)}
+.msg.shop .who{color:var(--ink);font-weight:500}
+.msg.shop .txt{border:1px solid var(--line);background:var(--paper)}
+.msg.me{align-items:flex-end}
+.msg.me .txt{background:var(--gold-ink);color:var(--gold-hi);border-radius:12px 12px 3px 12px}
+@keyframes risemsg{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.videos{position:absolute;inset:0;display:none}
+.videos.on{display:block}
+.videos .main{position:absolute;inset:0;background:#000}
+.videos .main video{width:100%;height:100%;object-fit:cover;display:block}
+.videos .pips{position:absolute;right:12px;top:48px;display:flex;flex-direction:column;gap:8px;width:26%;max-width:190px;min-width:84px;z-index:2}
+.videos .pip{aspect-ratio:3/4;border-radius:12px;overflow:hidden;border:2px solid rgba(255,255,255,.7);box-shadow:0 10px 30px rgba(0,0,0,.45);background:#000;cursor:pointer}
+.videos .pip video{width:100%;height:100%;object-fit:cover;display:block}
+.videos video.mirror{transform:scaleX(-1)}
+.audios{display:none}
+
+/* ---- pagina diretta (verticale) ---- */
+body.dark{background:#0E0B07;color:#F7EBCB;padding:0}
+.stagev{min-height:100dvh;display:grid;place-items:center}
+.phone{position:relative;width:100%;height:100dvh;background:#000;overflow:hidden;color:#fff}
+@media (min-width:760px){.stagev{padding:24px}.phone{width:400px;height:min(820px,calc(100dvh - 48px));border-radius:36px;box-shadow:0 30px 80px rgba(0,0,0,.6),0 0 0 8px #1B1B1F}}
+.vid{position:absolute;inset:0;display:grid;place-items:center;background:linear-gradient(180deg,#2A2A30,#0A0A0D)}
+.vid::before{content:"";position:absolute;inset:0;background:radial-gradient(55% 35% at 50% 28%,rgba(255,228,170,.3),transparent 70%)}
+.vid .artwrap{position:relative;width:62%;margin-top:-56%;filter:drop-shadow(0 24px 30px rgba(0,0,0,.55));animation:sway 6s ease-in-out infinite}
+.vid .artwrap svg{width:100%;height:auto;display:block}
+.vid .poster{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;filter:blur(2px) brightness(.7)}
+@keyframes sway{0%,100%{transform:rotate(-2deg) translateY(0)}50%{transform:rotate(2deg) translateY(-6px)}}
+.shade{position:absolute;inset:0;pointer-events:none;z-index:2;background:linear-gradient(to top,rgba(0,0,0,.8) 0%,rgba(0,0,0,.35) 35%,transparent 60%),linear-gradient(to bottom,rgba(0,0,0,.5),transparent 25%)}
+.videos.on ~ .shade{background:linear-gradient(to top,rgba(0,0,0,.7) 0%,rgba(0,0,0,.25) 30%,transparent 50%),linear-gradient(to bottom,rgba(0,0,0,.45),transparent 22%)}
+.ptop{position:absolute;top:calc(12px + env(safe-area-inset-top,0px));left:12px;right:12px;display:flex;align-items:center;gap:8px;z-index:4}
+.ptop .pill{display:inline-flex;align-items:center;gap:8px;background:rgba(0,0,0,.45);backdrop-filter:blur(8px);border-radius:999px;padding:5px 12px 5px 5px;font-size:13px;min-width:0;flex:0 1 auto;line-height:1.2;color:#fff;text-decoration:none}
+.ptop .pill .who{min-width:0;display:flex;flex-direction:column}
+.ptop .pill .who b,.ptop .pill .who span{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ptop .pill b{font-weight:500}
+.av{width:30px;height:30px;border-radius:50%;background:var(--soft-2);color:var(--gold-edge);display:grid;place-items:center;font-family:var(--display);font-size:13px;flex:none;border:1px solid var(--gold-hi)}
+.ptop .av{width:28px;height:28px;font-size:12px}
+.lbl{display:inline-flex;align-items:center;gap:6px;background:var(--live);color:#fff;font-size:11px;font-weight:500;letter-spacing:.14em;text-transform:uppercase;padding:5px 9px;border-radius:999px;flex:none}
+.lbl i{width:6px;height:6px;border-radius:50%;background:#fff;display:block;animation:pulsew 1.6s ease-out infinite}
+.lbl.off{background:rgba(0,0,0,.55);backdrop-filter:blur(6px)}.lbl.off i{animation:none;opacity:.6}
+@keyframes pulsew{0%{box-shadow:0 0 0 0 rgba(255,255,255,.6)}70%{box-shadow:0 0 0 6px transparent}100%{box-shadow:0 0 0 0 transparent}}
+.ptop .eye{display:inline-flex;align-items:center;gap:5px;background:rgba(0,0,0,.45);border-radius:999px;padding:5px 9px;font-size:12px;flex:none}
+.ptop .eye svg{width:12px;height:12px}
+.ptop .x{position:static;margin-left:auto;width:34px;height:34px;border-radius:50%;background:rgba(0,0,0,.45);display:grid;place-items:center;font-size:20px;color:#fff;flex:none;text-decoration:none}
+.pchip{position:absolute;left:12px;top:calc(68px + env(safe-area-inset-top,0px));z-index:4;display:inline-flex;align-items:center;gap:8px;background:rgba(0,0,0,.5);backdrop-filter:blur(8px);border-radius:12px;padding:7px 11px;font-size:12.5px;max-width:72%}
+.pchip i{width:8px;height:8px;border-radius:50%;background:var(--gold);display:block;flex:none}
+.waitv{position:absolute;inset:0;z-index:3;display:grid;place-items:center;text-align:center;padding:24px;background:rgba(10,10,12,.55);color:#fff;font-size:16px;line-height:1.5}
+.waitv b{display:block;font-family:var(--display);font-size:26px;font-weight:400;margin-bottom:6px}
+.rail{position:absolute;right:10px;bottom:calc(120px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;gap:14px;align-items:center;z-index:5}
+.rail button{display:flex;flex-direction:column;align-items:center;gap:3px;color:#fff;font-size:11px;letter-spacing:.02em;border:0;background:none;padding:0}
+.rail .ic{width:46px;height:46px;border-radius:50%;background:rgba(0,0,0,.45);backdrop-filter:blur(8px);display:grid;place-items:center}
+.rail .ic svg{width:22px;height:22px}
+.rail .ic.goldbg{background:linear-gradient(140deg,var(--gold-hi),var(--gold) 55%,var(--gold-lo));color:#1C1406}
+.rail .ic.heart.on{color:var(--heart)}
+.rail button:disabled{opacity:.45}
+.subs{position:absolute;left:12px;right:76px;bottom:calc(64px + 30% + 10px + env(safe-area-inset-bottom,0px));z-index:4;display:flex;flex-direction:column;align-items:flex-start;gap:6px}
+.subs .txt{width:100%;background:rgba(0,0,0,.62);border-radius:10px;padding:7px 11px;font-size:14.5px;line-height:1.3;color:#fff;min-height:40px}
+.pchat{position:absolute;left:12px;right:76px;bottom:calc(64px + env(safe-area-inset-bottom,0px));z-index:4;display:flex;flex-direction:column;justify-content:flex-end;gap:6px;max-height:30%;overflow:hidden;mask-image:linear-gradient(to bottom,transparent,#000 22%)}
+.pm{align-self:flex-start;max-width:100%;background:rgba(0,0,0,.42);backdrop-filter:blur(6px);border-radius:14px;padding:6px 11px;font-size:13.5px;line-height:1.3;animation:up .35s ease-out both;color:#fff;overflow-wrap:anywhere}
+.pm b{font-weight:500;color:#EDD596;margin-right:5px}
+.pm.gemologist b{color:#F2E6C8}.pm.gemologist{border:1px solid rgba(237,213,150,.5)}
+.pm.shop b{color:#fff}
+.pm.me{align-self:flex-end;background:rgba(237,213,150,.9);color:#1C1406}.pm.me b{color:#8C6A2B}
+@keyframes up{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.pin{position:absolute;left:12px;right:76px;bottom:calc(14px + env(safe-area-inset-bottom,0px));z-index:4;display:flex;gap:8px;margin:0}
+.pin input{flex:1;min-width:0;border:1px solid rgba(255,255,255,.35);background:rgba(0,0,0,.4);backdrop-filter:blur(8px);color:#fff;border-radius:999px;padding:10px 14px;outline:none;min-height:44px}
+.pin input::placeholder{color:rgba(255,255,255,.7)}
+.pin button{border-radius:999px;background:#fff;color:#111;padding:0 14px;font-weight:500;font-size:14px;border:0}
+.hearts{position:absolute;right:22px;bottom:calc(150px + env(safe-area-inset-bottom,0px));width:60px;height:260px;pointer-events:none;z-index:6}
+.hearts span{position:absolute;bottom:0;left:50%;width:22px;height:22px;animation:fly 1.3s ease-out forwards;color:var(--heart)}
+.hearts span svg{width:100%;height:100%}
+@keyframes fly{0%{opacity:0;transform:translate(-50%,0) scale(.6)}15%{opacity:1}100%{opacity:0;transform:translate(calc(-50% + var(--dx)),-240px) scale(1.25) rotate(var(--rot))}}
+.audio-btn{position:absolute;left:50%;bottom:calc(64px + 30% + 60px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);z-index:6;border-radius:999px;background:#fff;color:#111;border:0;padding:10px 18px;font-weight:500;font-size:14px;box-shadow:0 10px 30px rgba(0,0,0,.45)}
+.credit{text-align:center;font-size:12px;color:rgba(247,235,203,.6);padding:14px;letter-spacing:.06em}
+@media (max-width:759px){.credit{display:none}}
+
+/* ---- vetrina ---- */
+.topv{position:sticky;top:0;z-index:20;background:var(--paper);border-bottom:1px solid var(--line);padding-top:env(safe-area-inset-top,0px)}
+.topv .col{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:58px}
+.topright{display:flex;align-items:center;gap:8px}
+.langs{position:relative}
+.langs .cur{display:inline-flex;align-items:center;gap:7px;font-size:12px;letter-spacing:.08em;padding:8px 12px;border-radius:999px;border:1px solid var(--line);background:#1C1406;color:#EDD596}
+.langs .cur::after{content:"";width:0;height:0;border-left:4px solid transparent;border-right:4px solid transparent;border-top:5px solid currentColor;opacity:.8}
+.langs .menu{position:absolute;top:calc(100% + 6px);inset-inline-end:0;background:var(--paper);border:1px solid var(--line);border-radius:14px;padding:6px;display:flex;flex-direction:column;min-width:160px;box-shadow:0 12px 30px rgba(0,0,0,.14);z-index:30}
+.langs .menu[hidden]{display:none}
+.langs .menu button{text-align:start;font-size:14px;padding:9px 12px;border-radius:9px;border:0;background:none;color:var(--ink);display:flex;justify-content:space-between;gap:12px;align-items:center}
+.langs .menu button small{font-size:11px;letter-spacing:.08em;color:var(--muted)}
+.langs .menu button.on{background:var(--soft-2);color:var(--gold-edge);font-weight:500}
+.about-btn{width:34px;height:34px;border-radius:50%;border:1px solid var(--gold-hi);color:var(--gold-edge);font-family:var(--display);font-style:italic;font-size:17px;display:grid;place-items:center;padding:0;background:none;flex:none}
+.tabs{display:flex;gap:4px;overflow-x:auto;scrollbar-width:none;padding:0 0 2px;margin-top:10px}
+.tabs::-webkit-scrollbar{display:none}
+.tab{flex:none;padding:10px 14px;font-size:15px;color:var(--muted);border:0;border-bottom:2px solid transparent;white-space:nowrap;background:none}
+.tab.on{color:var(--ink);border-color:var(--ink);font-weight:500}
+.tab .n{display:inline-grid;place-items:center;min-width:18px;height:18px;border-radius:999px;background:var(--live);color:#fff;font-size:11px;margin-left:5px;padding:0 5px;vertical-align:1px}
+.trust{display:flex;flex-wrap:wrap;gap:6px 16px;margin-top:12px;font-size:11.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--gold-edge)}
+.trust span{display:inline-flex;align-items:flex-start;gap:6px;line-height:1.35}
+.trust i{width:5px;height:5px;border-radius:50%;background:var(--gold);display:block;flex:none;margin-top:5px}
+.vetrina section{margin-top:26px;scroll-margin-top:118px}
+.sh{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin-bottom:12px}
+.sh h2{font-family:var(--display);font-size:clamp(22px,4vw,28px);line-height:1.1}
+.sh a,.sh button{font-size:14px;color:var(--muted);text-decoration:none;white-space:nowrap;border:0;background:none;padding:0}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:14px 12px}
+@media (min-width:700px){.grid{grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:18px 16px}}
+.vcard{display:flex;flex-direction:column;gap:8px;text-align:start;width:100%;color:inherit;text-decoration:none;border:0;background:none;padding:0;font:inherit}
+.cover{position:relative;aspect-ratio:9/16;border-radius:16px;overflow:hidden;background:var(--video);display:grid;place-items:center;isolation:isolate}
+.cover::before{content:"";position:absolute;inset:0;background:radial-gradient(60% 40% at 50% 38%,rgba(255,228,170,.26),transparent 70%);z-index:1}
+.cover::after{content:"";position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,.72) 0%,rgba(0,0,0,.25) 30%,transparent 55%);z-index:2}
+.cover .art{width:66%;position:relative;z-index:1;filter:drop-shadow(0 18px 24px rgba(0,0,0,.5));transition:transform .5s ease}
+.cover .art svg{width:100%;height:auto;display:block}
+.vcard:hover .cover .art{transform:scale(1.04)}
+.cover .ph{position:absolute;inset:0;z-index:0;background:linear-gradient(180deg,var(--c1,#2A2A30),var(--c2,#0A0A0D))}
+.cover img.cv{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:1}
+.cover .lbl{position:absolute;top:10px;inset-inline-start:10px;z-index:3}
+.stat{position:absolute;top:10px;inset-inline-end:10px;z-index:3;display:flex;flex-direction:column;gap:5px;align-items:flex-end}
+.stat span{display:inline-flex;align-items:center;gap:5px;background:rgba(0,0,0,.45);backdrop-filter:blur(6px);color:#fff;font-size:12px;padding:4px 8px;border-radius:999px}
+.stat svg{width:12px;height:12px}
+.ctitle{position:absolute;left:12px;right:12px;bottom:12px;z-index:3;color:#fff;font-family:var(--display);font-size:17px;line-height:1.2;text-shadow:0 2px 8px rgba(0,0,0,.5)}
+.ctitle small{display:block;font-family:var(--body);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--gold-hi);margin-top:5px;text-shadow:none}
+.when{position:absolute;left:50%;top:46%;transform:translate(-50%,-50%);z-index:3;background:rgba(255,255,255,.92);color:#16181D;border-radius:12px;padding:8px 12px;text-align:center;line-height:1.15;box-shadow:0 10px 30px rgba(0,0,0,.35);white-space:nowrap}
+.when b{display:block;font-family:var(--display);font-size:22px;font-weight:400}
+.when small{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:#8C6A2B}
+.meta{display:flex;align-items:center;gap:9px}
+.meta b{display:block;font-weight:500;font-size:14px;line-height:1.2}
+.meta small{display:block;font-size:12px;color:var(--muted)}
+.chk{display:inline-block;width:12px;height:12px;border-radius:50%;background:var(--gold);color:#fff;font-size:9px;line-height:12px;text-align:center;vertical-align:1px;margin-left:3px}
+.shops{display:flex;gap:18px;overflow-x:auto;scrollbar-width:none;padding:4px 2px 8px}
+.shops::-webkit-scrollbar{display:none}
+.seller{flex:none;width:96px;display:flex;flex-direction:column;align-items:center;gap:7px;text-align:center;color:inherit;text-decoration:none}
+.seller .big{width:68px;height:68px;border-radius:50%;background:var(--soft-2);color:var(--gold-edge);display:grid;place-items:center;font-family:var(--display);font-size:24px;border:2px solid var(--gold);box-shadow:0 0 0 3px var(--paper),0 0 0 4px var(--gold-hi)}
+.seller.live .big{border-color:var(--live);box-shadow:0 0 0 3px var(--paper),0 0 0 4px var(--live)}
+.seller b{font-weight:500;font-size:13px;line-height:1.15}
+.seller small{font-size:11px;color:var(--muted);line-height:1.3}
+.seller .live-tag{font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:#fff;background:var(--live);padding:2px 6px;border-radius:999px;margin-top:-16px;position:relative}
+.empty{border:1px dashed var(--line);border-radius:16px;padding:26px 18px;text-align:center;color:var(--muted);font-size:14px;line-height:1.5}
+.empty b{display:block;font-family:var(--display);font-size:22px;font-weight:400;color:var(--ink);margin-bottom:4px}
+.cta{margin-top:26px;border:1px solid var(--line);border-radius:18px;padding:18px;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px;background:var(--soft)}
+.cta b{font-family:var(--display);font-size:20px;font-weight:400;display:block}
+.cta small{color:var(--muted);font-size:13px}
+.cta .go{border-radius:999px;background:#1C1406;color:#EDD596;padding:11px 18px;font-weight:500;font-size:14px;white-space:nowrap;text-decoration:none;border:0}
+.welcome{position:fixed;inset:0;z-index:50;background:#0E0B07;color:#F7EBCB;display:grid;place-items:center;padding:max(20px,env(safe-area-inset-top,0px)) 22px max(24px,env(safe-area-inset-bottom,0px));overflow:auto}
+.welcome::before{content:"";position:absolute;inset:0;background:radial-gradient(70% 45% at 50% 20%,rgba(203,164,79,.35),transparent 70%),radial-gradient(40% 30% at 85% 90%,rgba(203,164,79,.18),transparent 70%);pointer-events:none}
+.wcard{position:relative;max-width:520px;width:100%;display:flex;flex-direction:column;gap:18px;animation:wrise .7s ease-out both}
+@keyframes wrise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+.wcard .wm{display:flex;flex-direction:column;align-items:center;gap:8px}
+.wm .logo{display:block;height:40px;color:#F7EBCB}
+.wcard .wm small{display:block;font-family:var(--body);font-size:10px;letter-spacing:.16em;color:#CBA44F;margin-top:2px}
+.wcard h1{font-family:var(--display);font-size:clamp(32px,8vw,48px);line-height:1.05;font-weight:400}
+.wcard h1 em{font-style:italic;color:#EDD596}
+.wcard .lead{font-size:16px;line-height:1.5;color:rgba(247,235,203,.85);max-width:460px}
+.wcard ul{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:10px}
+.wcard li{display:flex;gap:12px;align-items:flex-start;font-size:15px;line-height:1.4}
+.wcard li i{flex:none;width:8px;height:8px;border-radius:50%;background:linear-gradient(140deg,#EDD596,#A9833A);margin-top:7px;display:block}
+.wcard .actions{display:flex;flex-direction:column;gap:10px;margin-top:4px}
+.wcard .go{border-radius:999px;background:linear-gradient(140deg,#EDD596,#CBA44F 55%,#A9833A);color:#1C1406;padding:14px 22px;font-weight:500;font-size:16px;text-align:center;border:0}
+.wcard .sellers{font-size:14px;color:#EDD596;text-align:center;text-decoration:underline;text-underline-offset:3px;border:0;background:none}
+.wcard .sig{font-size:12px;color:rgba(247,235,203,.6);text-align:center;letter-spacing:.06em}
+
+/* ---- join ---- */
+.jpage{max-width:640px;margin:0 auto;padding:22px 16px 60px;display:flex;flex-direction:column;gap:14px}
+.jpage h1{font-family:var(--display);font-size:clamp(28px,6vw,40px);line-height:1.05}
+.jpage .lead{font-size:15px;color:var(--muted);line-height:1.5}
+.jpage h3{font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--gold-edge);margin-top:6px}
+.jpage ul{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:7px}
+.jpage li{display:flex;gap:10px;align-items:flex-start;font-size:14.5px;line-height:1.4}
+.jpage li i{flex:none;width:7px;height:7px;border-radius:50%;background:var(--gold);margin-top:7px;display:block}
+.jpage .price{border:1px solid var(--gold-hi);background:var(--soft-2);border-radius:12px;padding:10px 14px;font-size:14px;line-height:1.5}
+.jpage .price b{font-family:var(--display);font-size:22px;font-weight:400;color:var(--gold-ink);margin-right:4px}
+.jform{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.jform label.full{grid-column:1/-1}
+.jform input,.jform select,.jform textarea{border-radius:12px;font-size:15px}
+.jform .submit{grid-column:1/-1;border-radius:999px;background:#1C1406;color:#EDD596;padding:14px 20px;font-weight:500;font-size:15px;border:0}
+.thanks{display:flex;flex-direction:column;gap:10px;align-items:center;text-align:center;padding:40px 0}
+.thanks .okc{width:54px;height:54px;border-radius:50%;background:var(--soft-2);color:var(--gold-edge);display:grid;place-items:center;font-size:26px;border:1px solid var(--gold-hi)}
+.thanks h2{font-family:var(--display);font-size:28px}
+.thanks p{color:var(--muted);max-width:380px}
+
+.cam{position:relative;background:var(--video);border-radius:12px;aspect-ratio:4/3;overflow:hidden;display:grid;place-items:center;color:#9AA0A8;font-size:13px;text-align:center;padding:12px}
+.cam .videos{display:block}
+.cam .videos:empty{display:none}
+.cam .pips{top:8px;right:8px;width:30%;max-width:96px;min-width:64px;gap:6px}
+.cam .pip{border-width:1px;border-radius:8px}
+.cam .hintv{position:relative;z-index:1}
+.cam.on .hintv{display:none}
+.cam .live-dot{position:absolute;left:10px;top:10px;z-index:2}
+.cam-actions{display:flex;gap:6px;flex-wrap:wrap}
+.cam-actions .btn{flex:1 1 auto}
+.panel{display:grid;grid-template-columns:300px minmax(0,1fr) 340px;gap:14px;margin-top:14px;align-items:start}
+.card{border:1px solid var(--line);border-radius:18px;padding:16px;display:flex;flex-direction:column;gap:10px;background:var(--paper)}
+.card h2{font-family:var(--display);font-size:24px;line-height:1.15}
+.card .msgs{min-height:320px;max-height:560px;border:1px solid var(--line);border-radius:12px}
+.pieces{display:flex;flex-direction:column;gap:6px}
+.piece{display:flex;align-items:center;gap:10px;border:1px solid var(--line);border-radius:12px;padding:8px 10px;background:var(--paper);text-align:left;width:100%}
+.piece.on{border-color:var(--gold-edge);background:var(--soft-2)}
+.piece svg{width:40px;height:40px;flex:none;background:var(--video);border-radius:8px;padding:3px}
+.piece b{font-weight:500;font-size:14px;display:block;line-height:1.2}.piece small{color:var(--muted);font-size:12px}
+.list{display:flex;flex-direction:column;gap:8px}
+.item{border:1px solid var(--line);border-radius:12px;padding:10px 12px;font-size:14px;display:flex;flex-direction:column;gap:4px}
+.item.new{border-color:var(--gold-edge);background:var(--soft-2)}
+.item .meta{font-size:12px;color:var(--muted)}
+.item .link{display:flex;gap:6px;align-items:center}
+.item .link input{flex:1;min-width:0;font-size:12px;min-height:36px;padding:6px 10px}
+.actions{display:flex;gap:8px;flex-wrap:wrap}
+.pill{display:inline-block;font-size:11px;letter-spacing:.1em;text-transform:uppercase;padding:3px 8px;border-radius:999px;background:var(--soft);color:var(--muted);width:max-content}
+.pill.interest{background:var(--soft-2);color:var(--gold-edge)}.pill.appointment{background:#E6F4EC;color:var(--live)}
+label{font-size:13px;color:var(--muted);display:flex;flex-direction:column;gap:4px}
+label input,label select,label textarea{width:100%}
+.share{display:flex;gap:6px;align-items:center;flex-wrap:wrap;font-size:13px;color:var(--muted)}
+.share input{flex:1;min-width:180px;font-size:13px;min-height:38px;padding:6px 12px}
+.sel{width:100%}
+.count{display:inline-grid;place-items:center;min-width:22px;height:22px;border-radius:999px;background:var(--gold-ink);color:var(--gold-hi);font-size:12px;margin-left:6px}
+.who-badge{font-size:13px;color:var(--muted);white-space:nowrap}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:999px;padding:2px;width:100%}
+.seg button{flex:1;border:0;background:none;border-radius:999px;padding:7px 10px;font-size:13px;color:var(--muted)}
+.seg button.on{background:var(--gold-ink);color:var(--gold-hi)}
+.stats{display:flex;gap:10px;font-size:13px;color:var(--muted);align-items:center}
+.stats span{display:inline-flex;align-items:center;gap:5px}
+.stats svg{width:14px;height:14px}
+.admin{grid-column:1/-1}
+.app{border:1px solid var(--line);border-radius:12px;padding:12px;display:flex;flex-direction:column;gap:6px;font-size:14px}
+.app.new{border-color:var(--gold-edge);background:var(--soft-2)}
+.app .meta2{font-size:12px;color:var(--muted)}
+.app .acts{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.app .acts input{min-height:36px;padding:6px 10px;font-size:13px;width:160px}
+.keybox{font-size:12px;overflow-wrap:anywhere;background:var(--soft);padding:6px 8px;border-radius:8px}
+.grid2{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:10px}
+.mcard form{display:flex;flex-direction:column;gap:10px}
+@media (max-width:1000px){.panel{grid-template-columns:1fr}.card .msgs{min-height:240px;max-height:360px}}
+</style></head>
+<body>
+<header class="top wrap"><div class="col"><div class="wordmark" id="brand">…</div><span class="who-badge" id="who"></span><span class="stats" id="stats" hidden><span id="likesIc"></span><span id="likesN">0</span><span id="eyeIc2"></span><span id="viewersN">0</span></span><span class="status" id="status"><i></i><span id="statusTxt"></span></span></div></header>
+<main class="wrap"><div class="col">
+  <div id="denied" hidden><p class="hint" style="padding:40px 0">Accesso non valido. Controlla il link del pannello.</p></div>
+  <div class="panel" id="app" hidden>
+    <section class="card">
+      <p class="eyebrow">Diretta</p>
+      <select class="sel" id="showSel"></select>
+      <h2 id="title"></h2>
+      <p class="muted" style="font-size:14px" id="when"></p>
+      <div class="actions"><button class="btn dark" type="button" id="toggle"></button><button class="btn sm" type="button" id="edit">Modifica</button><button class="btn sm" type="button" id="newShow">Nuova diretta</button></div>
+      <div class="seg" id="visSeg"><button type="button" data-vis="private">Privata su invito</button><button type="button" data-vis="public">In vetrina</button></div>
+      <p class="hint" id="visHint"></p>
+      <div class="share"><span>Link per i clienti</span><input id="shareUrl" readonly><button class="btn sm" type="button" id="copyShare">Copia</button></div>
+      <p class="eyebrow" style="margin-top:6px">La tua camera</p>
+      <div class="cam" id="cam"><span class="hintv" id="camHint">Camera spenta. Accendila per trasmettere: i clienti vedono il video quando la diretta è «In diretta».</span><div class="videos" id="camVideos"></div></div>
+      <div class="cam-actions"><button class="btn dark sm" type="button" id="camBtn">Accendi la camera</button><button class="btn sm" type="button" id="micBtn" hidden>Microfono: on</button><button class="btn sm" type="button" id="flipBtn" hidden>Cambia camera</button></div>
+      <p class="hint" id="camWho"></p>
+      <p class="eyebrow" style="margin-top:6px">Pezzo in primo piano</p>
+      <div class="pieces" id="pieces"></div>
+      <button class="btn sm" type="button" id="addPiece">Aggiungi un pezzo</button>
+      <p class="eyebrow" style="margin-top:6px">La tua attività</p>
+      <p class="muted" style="font-size:13px" id="jinfo"></p>
+      <button class="btn sm" type="button" id="editJ">Modifica nome, città e tipo</button>
+    </section>
+    <section class="card">
+      <p class="eyebrow">Chat della diretta</p>
+      <div class="msgs" id="msgs" aria-live="polite"></div>
+      <form class="row" id="form"><input id="msg" type="text" maxlength="500" placeholder="Rispondi ai clienti…" autocomplete="off"><button class="btn dark sm" type="submit">Invia</button></form>
+      <p class="hint">I messaggi arrivano a tutti i clienti collegati.</p>
+    </section>
+    <section class="card">
+      <p class="eyebrow">Richieste <span class="count" id="reqCount" hidden>0</span></p>
+      <div class="list" id="reqs"><p class="hint">Nessuna richiesta per ora.</p></div>
+      <p class="eyebrow" style="margin-top:8px">Inviti personali</p>
+      <form id="invForm" style="display:flex;flex-direction:column;gap:8px"><input id="invName" type="text" maxlength="60" placeholder="Nome del cliente" required><div class="row"><input id="invEmail" type="email" placeholder="Email (facoltativa)"><button class="btn dark sm" type="submit">Crea link</button></div></form>
+      <div class="list" id="invs"></div>
+    </section>
+    <section class="card admin" id="admin" hidden>
+      <p class="eyebrow">Amministrazione · solo gemmologa</p>
+      <div class="grid2"><div><h2 style="font-size:20px">Candidature <span class="count" id="appCount" hidden>0</span></h2><div class="list" id="apps" style="margin-top:8px"><p class="hint">Nessuna candidatura.</p></div></div><div><h2 style="font-size:20px">Venditori attivi</h2><div class="list" id="sellers" style="margin-top:8px"></div></div></div>
+    </section>
+  </div>
+</div></main>
+<footer class="wrap">Uniqaia · Pannello riservato</footer>
+<div class="modal" id="modal" hidden></div>
+<script>
+
+var ICON = {
+  heart:'<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 21s-7.5-4.6-9.5-9.3C1 7.7 3.6 4 7.3 4c2 0 3.4 1.1 4.7 2.6C13.3 5.1 14.7 4 16.7 4 20.4 4 23 7.7 21.5 11.7 19.5 16.4 12 21 12 21z"/></svg>',
+  eye:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>',
+  gem:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M6 3h12l4 6-10 12L2 9z"/><path d="M2 9h20M9 3l3 6 3-6M6 9l6 12 6-12"/></svg>',
+  cal:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="5" width="18" height="16" rx="3"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>',
+  share:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 12v7a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-7M12 15V3M7 8l5-5 5 5"/></svg>',
+  search:'<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.8-3.8"/></svg>'
+};
+function esc(s){ return String(s == null ? "" : s).replace(/[&<>"']/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]; }); }
+function toast(text){ var old = document.querySelector(".toast"); if (old) old.remove(); var d = document.createElement("div"); d.className = "toast"; d.innerHTML = "<i></i>"; d.appendChild(document.createTextNode(text)); document.body.appendChild(d); setTimeout(function(){ d.remove(); }, 3200); }
+function fmtK(n, loc){ n = n || 0; return n >= 1000 ? (Math.round(n/100)/10).toLocaleString(loc || "it-IT") + "K" : String(n); }
+function burstHearts(container, n){
+  if (!container) return; n = Math.min(n || 3, 8);
+  for (var i = 0; i < n; i++){ (function(i){ setTimeout(function(){ var s = document.createElement("span"); s.innerHTML = ICON.heart; s.style.setProperty("--dx", (Math.random() * 40 - 20) + "px"); s.style.setProperty("--rot", (Math.random() * 40 - 20) + "deg"); container.appendChild(s); setTimeout(function(){ s.remove(); }, 1400); }, i * 110); })(i); }
+}
+function LkTiles(container, opts){
+  var self = this; opts = opts || {};
+  this.box = container; this.tiles = {}; this.audios = document.createElement("div"); this.audios.className = "audios"; container.appendChild(this.audios);
+  this.main = document.createElement("div"); this.main.className = "main"; container.appendChild(this.main);
+  this.pips = document.createElement("div"); this.pips.className = "pips"; container.appendChild(this.pips);
+  this.onChange = opts.onChange || function(){};
+  this.add = function(id, el, label, mirror){
+    if (self.tiles[id]) self.remove(id);
+    if (mirror) el.className = (el.className || "") + " mirror";
+    var wrap = document.createElement("div"); wrap.appendChild(el); wrap.title = label || "";
+    self.tiles[id] = wrap;
+    if (!self.main.firstChild){ wrap.className = ""; self.main.appendChild(wrap); } else { wrap.className = "pip"; self.pips.appendChild(wrap); }
+    wrap.addEventListener("click", function(){ self.promote(id); });
+    self.onChange(self.count());
+  };
+  this.promote = function(id){
+    var w = self.tiles[id]; if (!w || w.parentNode === self.main) return;
+    var cur = self.main.firstChild; self.main.appendChild(w); w.className = "";
+    if (cur){ cur.className = "pip"; self.pips.insertBefore(cur, self.pips.firstChild); }
+  };
+  this.remove = function(id){
+    var w = self.tiles[id]; if (!w) return; self.tiles[id] = null;
+    var wasMain = w.parentNode === self.main; w.remove();
+    if (wasMain && self.pips.firstChild){ var n = self.pips.firstChild; self.main.appendChild(n); n.className = ""; }
+    self.onChange(self.count());
+  };
+  this.addAudio = function(id, el){ el.setAttribute("data-id", id); self.audios.appendChild(el); };
+  this.removeAudio = function(id){ var a = self.audios.querySelector('[data-id="' + id + '"]'); if (a) a.remove(); };
+  this.count = function(){ return Object.keys(self.tiles).filter(function(k){ return !!self.tiles[k]; }).length; };
+  this.mainVideo = function(){ return self.main.querySelector("video"); };
+  this.clear = function(){ Object.keys(self.tiles).forEach(self.remove); self.audios.innerHTML = ""; };
+}
+function lkAttachRemote(room, tiles, LK){
+  function onTrack(track, pub, participant){
+    var id = participant.identity + ":" + (pub.trackSid || track.sid);
+    if (track.kind === "video"){ var el = track.attach(); el.muted = true; el.setAttribute("playsinline", ""); tiles.add(id, el, participant.name || participant.identity, false); }
+    else if (track.kind === "audio"){ tiles.addAudio(id, track.attach()); }
+  }
+  function offTrack(track, pub, participant){
+    var id = participant.identity + ":" + (pub.trackSid || track.sid);
+    track.detach().forEach(function(el){ el.remove(); });
+    if (track.kind === "video") tiles.remove(id); else tiles.removeAudio(id);
+  }
+  room.on(LK.RoomEvent.TrackSubscribed, onTrack);
+  room.on(LK.RoomEvent.TrackUnsubscribed, offTrack);
+  room.on(LK.RoomEvent.ParticipantDisconnected, function(p){ Object.keys(tiles.tiles).forEach(function(id){ if (id.indexOf(p.identity + ":") === 0) tiles.remove(id); }); });
+  room.on(LK.RoomEvent.Disconnected, function(){ tiles.clear(); });
+}
+
+(function(){
+  var Q = new URLSearchParams(location.search), SLUG = (location.pathname.match(/^\/([a-z0-9-]{2,40})(?:\/|$)/) || [])[1] || "";
+  var CFG = {"url":"https://itoxzepuukyvdxxtfetf.supabase.co","key":"sb_publishable_Y6m8EWUZt97nSTmYBsRwYg_Fnzidatk","slug":SLUG,"token":(Q.get("k")||"").replace(/[^a-f0-9]/g,"").slice(0,64),"base":"https://uniqaia.com","tokenUrl":"https://itoxzepuukyvdxxtfetf.supabase.co/functions/v1/live/"+SLUG+"/token","art":{"ring":"<svg viewBox=\"0 0 400 400\" role=\"img\" aria-label=\"Anello\"><ellipse cx=\"200\" cy=\"338\" rx=\"112\" ry=\"9\" fill=\"rgba(255,255,255,.08)\"/><ellipse cx=\"200\" cy=\"262\" rx=\"118\" ry=\"64\" fill=\"none\" stroke=\"#B4BAC3\" stroke-width=\"16\"/><ellipse cx=\"200\" cy=\"262\" rx=\"118\" ry=\"64\" fill=\"none\" stroke=\"#E6E9ED\" stroke-width=\"4\"/><polygon points=\"168,126 232,126 260,150 200,200 140,150\" fill=\"#F6F9FC\" stroke=\"#8E98A6\" stroke-width=\"2\" stroke-linejoin=\"round\"/><path d=\"M140 150 H260\" stroke=\"#8E98A6\" stroke-width=\"1.5\" fill=\"none\"/><path d=\"M168 126 L184 150 L200 126 L216 150 L232 126\" stroke=\"#AAB3BF\" stroke-width=\"1.2\" fill=\"none\"/><path d=\"M160 150 L200 200 L240 150 M184 150 L200 200 L216 150\" stroke=\"#C3CAD3\" stroke-width=\"1.2\" fill=\"none\"/><polygon points=\"178,198 222,198 232,172 168,172\" fill=\"#E3E6EA\" stroke=\"#A9AFB8\" stroke-width=\"2\" stroke-linejoin=\"round\"/><path d=\"M170 174 L146 147 M230 174 L254 147\" stroke=\"#9EA5AF\" stroke-width=\"5\" stroke-linecap=\"round\" fill=\"none\"/></svg>","sapphire":"<svg viewBox=\"0 0 400 400\" role=\"img\" aria-label=\"Anello con zaffiro\"><ellipse cx=\"200\" cy=\"338\" rx=\"112\" ry=\"9\" fill=\"rgba(255,255,255,.08)\"/><ellipse cx=\"200\" cy=\"262\" rx=\"118\" ry=\"64\" fill=\"none\" stroke=\"#B4BAC3\" stroke-width=\"16\"/><ellipse cx=\"200\" cy=\"262\" rx=\"118\" ry=\"64\" fill=\"none\" stroke=\"#E6E9ED\" stroke-width=\"4\"/><polygon points=\"168,126 232,126 260,150 200,200 140,150\" fill=\"#2F5BA8\" stroke=\"#1D3C74\" stroke-width=\"2\" stroke-linejoin=\"round\"/><path d=\"M140 150 H260\" stroke=\"#1D3C74\" stroke-width=\"1.5\" fill=\"none\"/><path d=\"M168 126 L184 150 L200 126 L216 150 L232 126\" stroke=\"#6F95D6\" stroke-width=\"1.2\" fill=\"none\"/><path d=\"M160 150 L200 200 L240 150 M184 150 L200 200 L216 150\" stroke=\"#6F95D6\" stroke-width=\"1.2\" fill=\"none\"/><polygon points=\"178,198 222,198 232,172 168,172\" fill=\"#E3E6EA\" stroke=\"#A9AFB8\" stroke-width=\"2\" stroke-linejoin=\"round\"/><path d=\"M170 174 L146 147 M230 174 L254 147\" stroke=\"#9EA5AF\" stroke-width=\"5\" stroke-linecap=\"round\" fill=\"none\"/></svg>","earrings":"<svg viewBox=\"0 0 400 400\" role=\"img\" aria-label=\"Orecchini\"><g stroke=\"#C9CFD6\" stroke-width=\"3\" fill=\"none\"><path d=\"M150 70 q-14 20 0 40\"/><path d=\"M250 70 q14 20 0 40\"/></g><g fill=\"#E3E6EA\" stroke=\"#A9AFB8\" stroke-width=\"2\"><circle cx=\"150\" cy=\"118\" r=\"9\"/><circle cx=\"250\" cy=\"118\" r=\"9\"/></g><g stroke=\"#B4BAC3\" stroke-width=\"4\" fill=\"none\"><path d=\"M150 127 v40\"/><path d=\"M250 127 v40\"/></g><g fill=\"#F6F9FC\" stroke=\"#8E98A6\" stroke-width=\"2\" stroke-linejoin=\"round\"><path d=\"M150 168 c-40 44 -40 96 0 130 c40 -34 40 -86 0 -130 z\"/><path d=\"M250 168 c-40 44 -40 96 0 130 c40 -34 40 -86 0 -130 z\"/></g><g stroke=\"#C3CAD3\" stroke-width=\"1.2\" fill=\"none\"><path d=\"M150 168 v130 M122 236 h56 M130 205 l20 31 l20 -31 M130 268 l20 -32 l20 32\"/><path d=\"M250 168 v130 M222 236 h56 M230 205 l20 31 l20 -31 M230 268 l20 -32 l20 32\"/></g></svg>","loose":"<svg viewBox=\"0 0 400 400\" role=\"img\" aria-label=\"Pietre sciolte\"><ellipse cx=\"200\" cy=\"320\" rx=\"130\" ry=\"10\" fill=\"rgba(255,255,255,.08)\"/><g transform=\"translate(120 230) rotate(-8)\"><polygon points=\"-40,0 -20,-34 20,-34 40,0 0,52\" fill=\"#2F5BA8\" stroke=\"#1D3C74\" stroke-width=\"2\" stroke-linejoin=\"round\"/><path d=\"M-40 0 H40 M-20 -34 L-10 0 L0 -34 L10 0 L20 -34 M-24 0 L0 52 L24 0\" stroke=\"#7FA6E6\" stroke-width=\"1.2\" fill=\"none\"/></g><g transform=\"translate(205 190) rotate(6)\"><polygon points=\"-44,0 -22,-38 22,-38 44,0 0,58\" fill=\"#E06A8F\" stroke=\"#9C3357\" stroke-width=\"2\" stroke-linejoin=\"round\"/><path d=\"M-44 0 H44 M-22 -38 L-11 0 L0 -38 L11 0 L22 -38 M-26 0 L0 58 L26 0\" stroke=\"#F6B5CA\" stroke-width=\"1.2\" fill=\"none\"/></g><g transform=\"translate(288 250) rotate(14)\"><polygon points=\"-34,0 -17,-30 17,-30 34,0 0,46\" fill=\"#E8C13B\" stroke=\"#9A7A12\" stroke-width=\"2\" stroke-linejoin=\"round\"/><path d=\"M-34 0 H34 M-17 -30 L-8 0 L0 -30 L8 0 L17 -30 M-20 0 L0 46 L20 0\" stroke=\"#F8E39A\" stroke-width=\"1.2\" fill=\"none\"/></g><g transform=\"translate(150 300) rotate(-20)\"><polygon points=\"-26,0 -13,-22 13,-22 26,0 0,34\" fill=\"#1F8A5B\" stroke=\"#0F5A3A\" stroke-width=\"2\" stroke-linejoin=\"round\"/><path d=\"M-26 0 H26 M-13 -22 L0 0 L13 -22 M-16 0 L0 34 L16 0\" stroke=\"#8FE0B7\" stroke-width=\"1.2\" fill=\"none\"/></g></svg>","none":"<svg viewBox=\"0 0 400 400\" role=\"img\" aria-label=\"\"><circle cx=\"200\" cy=\"200\" r=\"120\" fill=\"none\" stroke=\"#3A3F48\" stroke-width=\"2\"/></svg>"}};
+  var sb = window.supabase.createClient(CFG.url, CFG.key);
+  var $ = function(id){ return document.getElementById(id); };
+  var state = { jeweler:null, shows:[], show:null, pieces:[], role:"", name:"", seen:0, firstReq:true, pendingStop:false, timer:null };
+  var LANGS = { it:"Italiano", en:"Inglese", fr:"Francese" };
+  var ARTS = { ring:"Anello solitario", sapphire:"Anello con pietra colorata", earrings:"Orecchini", loose:"Pietre sciolte", none:"Nessuna immagine" };
+  var KINDS = { shop:"Gioielleria", gems:"Gem dealer" };
+  $("likesIc").innerHTML = ICON.heart; $("eyeIc2").innerHTML = ICON.eye;
+
+  function esc(s){ return String(s == null ? "" : s).replace(/[&<>"']/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]; }); }
+  function toast(text){ var old = document.querySelector(".toast"); if (old) old.remove(); var t = document.createElement("div"); t.className = "toast"; t.innerHTML = "<i></i>"; t.appendChild(document.createTextNode(text)); document.body.appendChild(t); setTimeout(function(){ t.remove(); }, 3200); }
+  function fmtDate(iso){ try { return new Intl.DateTimeFormat("it-IT", { weekday:"long", day:"numeric", month:"long", hour:"2-digit", minute:"2-digit" }).format(new Date(iso)); } catch(e){ return iso; } }
+  function fmtShort(iso){ try { return new Intl.DateTimeFormat("it-IT", { day:"2-digit", month:"2-digit", hour:"2-digit", minute:"2-digit" }).format(new Date(iso)); } catch(e){ return iso; } }
+  function fmtTime(iso){ try { return new Intl.DateTimeFormat("it-IT", { hour:"2-digit", minute:"2-digit" }).format(new Date(iso)); } catch(e){ return ""; } }
+  function toLocalInput(iso){ var d = iso ? new Date(iso) : new Date(Date.now() + 86400000); var p = function(n){ return (n < 10 ? "0" : "") + n; }; return d.getFullYear() + "-" + p(d.getMonth()+1) + "-" + p(d.getDate()) + "T" + p(d.getHours()) + ":" + p(d.getMinutes()); }
+  function statusLabel(s){ return s === "live" ? "In diretta" : (s === "ended" ? "Terminata" : "In programma"); }
+  function viewerUrl(){ return CFG.base + "/" + CFG.slug + "/"; }
+  function copy(text, btn){
+    var done = function(){ var o = btn.textContent; btn.textContent = "Copiato"; setTimeout(function(){ btn.textContent = o; }, 1500); };
+    if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text).then(done, function(){ toast("Copia manualmente il link"); });
+    else { var i = document.createElement("textarea"); i.value = text; document.body.appendChild(i); i.select(); try { document.execCommand("copy"); done(); } catch(e){ toast("Copia manualmente il link"); } i.remove(); }
+  }
+  function err(r){ if (r && r.error){ toast(r.error.message || "Errore"); return true; } return false; }
+
+  var modal = $("modal");
+  function openModal(html){ modal.innerHTML = '<div class="mcard">' + html + '<button class="x" type="button" aria-label="Chiudi">×</button></div>'; modal.hidden = false; modal.querySelector(".x").addEventListener("click", closeModal); }
+  function closeModal(){ modal.hidden = true; modal.innerHTML = ""; }
+  modal.addEventListener("click", function(e){ if (e.target === modal) closeModal(); });
+
+  function renderHeader(){
+    $("brand").textContent = state.jeweler.name;
+    $("who").textContent = state.name + " · " + (state.role === "gemologist" ? "gemmologa" : "gioielleria");
+    var s = state.show;
+    $("status").className = "status" + (s && s.status === "live" ? " live" : "");
+    $("statusTxt").textContent = s ? statusLabel(s.status) : "";
+  }
+  function renderShow(){
+    var s = state.show;
+    var sel = $("showSel"); sel.innerHTML = "";
+    state.shows.forEach(function(x){ var o = document.createElement("option"); o.value = x.id; o.textContent = x.title + " · " + fmtShort(x.scheduled_at) + " · " + statusLabel(x.status); if (s && x.id === s.id) o.selected = true; sel.appendChild(o); });
+    $("title").textContent = s.title; $("when").textContent = fmtDate(s.scheduled_at) + " · " + LANGS[s.lang] ;
+    var t = $("toggle"); state.pendingStop = false;
+    if (s.status === "scheduled"){ t.textContent = "Inizia la diretta"; t.className = "btn dark"; }
+    else if (s.status === "live"){ t.textContent = "Termina la diretta"; t.className = "btn"; }
+    else { t.textContent = "Riapri la diretta"; t.className = "btn"; }
+    $("shareUrl").value = viewerUrl();
+    Array.prototype.forEach.call(document.querySelectorAll("#visSeg button"), function(b){ b.classList.toggle("on", b.getAttribute("data-vis") === (s.visibility || "private")); });
+    $("visHint").textContent = s.visibility === "public" ? "Compare nella vetrina pubblica: chiunque può entrare." : "Entra solo chi ha il link o un invito personale.";
+    $("stats").hidden = false; $("likesN").textContent = s.likes || 0;
+    $("jinfo").textContent = state.jeweler.name + " · " + (state.jeweler.city || "città non indicata") + " · " + (KINDS[state.jeweler.kind] || "Gioielleria");
+    renderHeader(); renderPieces();
+    document.title = "Pannello · " + s.title;
+  }
+  function renderPieces(){
+    var box = $("pieces"); box.innerHTML = "";
+    if (!state.pieces.length){ box.innerHTML = '<p class="hint">Nessun pezzo ancora. Aggiungine uno: i clienti lo vedono in primo piano e possono dire «Mi interessa».</p>'; return; }
+    state.pieces.forEach(function(p){
+      var b = document.createElement("button"); b.type = "button"; b.className = "piece" + (state.show.current_piece_id === p.id ? " on" : "");
+      b.innerHTML = (CFG.art[p.art] || CFG.art.none) + '<span><b>' + esc(p.name) + '</b><small>' + esc(p.caption || "") + '</small></span>';
+      b.addEventListener("click", function(){ sb.rpc("set_current_piece", { p_show: state.show.id, p_token: CFG.token, p_piece: p.id }).then(function(r){ if (!err(r)){ state.show.current_piece_id = p.id; renderPieces(); toast("In primo piano: " + p.short); } }); });
+      box.appendChild(b);
+    });
+  }
+  // Video (LiveKit): lo staff trasmette camera e microfono e vede gli altri presentatori
+  var cam = { room:null, tiles:null, facing:"user", mic:true, busy:false };
+  function camUi(){
+    var on = !!cam.room;
+    $("cam").className = "cam" + (on ? " on" : "");
+    $("camBtn").textContent = on ? "Spegni la camera" : "Accendi la camera";
+    $("camBtn").className = on ? "btn sm" : "btn dark sm";
+    $("micBtn").hidden = !on; $("micBtn").textContent = cam.mic ? "Microfono: on" : "Microfono: off";
+    $("flipBtn").hidden = !on || !/Mobi|Android|iPhone|iPad/i.test(navigator.userAgent);
+  }
+  function camWho(){
+    var names = [];
+    if (cam.room) cam.room.remoteParticipants.forEach(function(p){ if (p.identity.indexOf("staff:") === 0) names.push(p.name || p.identity); });
+    $("camWho").textContent = cam.room ? (names.length ? "In collegamento con te: " + names.join(", ") : "Sei l’unico presentatore collegato.") : "";
+  }
+  function localVideoEl(){
+    var pub = cam.room && cam.room.localParticipant.getTrackPublication(window.LivekitClient.Track.Source.Camera);
+    return pub && pub.track ? pub.track : null;
+  }
+  function showLocal(){
+    var t = localVideoEl(); if (!t) return;
+    var el = t.attach(); el.muted = true;
+    cam.tiles.add("me", el, state.name, cam.facing === "user");
+    cam.tiles.promote("me");
+  }
+  function startCam(){
+    var LK = window.LivekitClient;
+    if (!LK){ toast("Libreria video non caricata: ricarica la pagina"); return; }
+    if (cam.busy) return; cam.busy = true; $("camBtn").disabled = true;
+    if (!cam.tiles) cam.tiles = new LkTiles($("camVideos"), { onChange: function(){ camWho(); } });
+    fetch(CFG.tokenUrl + "?show=" + encodeURIComponent(state.show.id) + "&k=" + encodeURIComponent(CFG.token), { cache:"no-store" }).then(function(r){ return r.json(); }).then(function(j){
+      if (!j || !j.token) throw new Error(j && j.error || "token");
+      var room = new LK.Room({ adaptiveStream:true, dynacast:true, videoCaptureDefaults: { facingMode: cam.facing, resolution: LK.VideoPresets.h720.resolution }, publishDefaults: { simulcast:true } });
+      lkAttachRemote(room, cam.tiles, LK);
+      room.on(LK.RoomEvent.ParticipantConnected, camWho);
+      room.on(LK.RoomEvent.ParticipantDisconnected, camWho);
+      room.on(LK.RoomEvent.Disconnected, function(){ cam.room = null; camUi(); camWho(); });
+      return room.connect(j.url, j.token).then(function(){
+        cam.room = room;
+        return room.localParticipant.enableCameraAndMicrophone();
+      }).then(function(){ showLocal(); camUi(); camWho(); toast("Camera accesa"); startCovers(); });
+    }).catch(function(e){
+      console.warn("cam", e);
+      toast(/NotAllowed|Permission/i.test(String(e)) ? "Consenti l’uso di camera e microfono nel browser" : "Impossibile avviare il video: " + (e && e.message ? e.message : e));
+      if (cam.room){ cam.room.disconnect(); cam.room = null; }
+      camUi();
+    }).then(function(){ cam.busy = false; $("camBtn").disabled = false; });
+  }
+  function stopCam(){ if (!cam.room) return; var r = cam.room; cam.room = null; r.disconnect(); if (cam.tiles) cam.tiles.clear(); camUi(); camWho(); stopCovers(); toast("Camera spenta"); }
+  // Copertina per la vetrina: un fotogramma della camera ogni 20 secondi
+  function captureCover(){
+    try {
+      if (!cam.room || !cam.tiles) return;
+      var v = cam.tiles.mainVideo(); if (!v || v.videoWidth < 10) return;
+      var W = 270, H = 480, c = document.createElement("canvas"); c.width = W; c.height = H; var g = c.getContext("2d");
+      var vw = v.videoWidth, vh = v.videoHeight, scale = Math.max(W / vw, H / vh), dw = vw * scale, dh = vh * scale;
+      if (cam.facing === "user"){ g.translate(W, 0); g.scale(-1, 1); }
+      g.drawImage(v, (W - dw) / 2, (H - dh) / 2, dw, dh);
+      var data = c.toDataURL("image/jpeg", 0.55);
+      if (data.length > 150000) data = c.toDataURL("image/jpeg", 0.35);
+      sb.rpc("set_cover", { p_show: state.show.id, p_token: CFG.token, p_data: data });
+    } catch(e){ console.warn("cover", e); }
+  }
+  function startCovers(){ stopCovers(); setTimeout(captureCover, 2500); cam.coverTimer = setInterval(captureCover, 20000); }
+  function stopCovers(){ if (cam.coverTimer){ clearInterval(cam.coverTimer); cam.coverTimer = null; } }
+  $("camBtn").addEventListener("click", function(){ if (cam.room) stopCam(); else startCam(); });
+  $("micBtn").addEventListener("click", function(){ if (!cam.room) return; cam.mic = !cam.mic; cam.room.localParticipant.setMicrophoneEnabled(cam.mic).then(camUi); });
+  $("flipBtn").addEventListener("click", function(){
+    if (!cam.room || cam.busy) return; cam.busy = true;
+    var LK = window.LivekitClient; cam.facing = cam.facing === "user" ? "environment" : "user";
+    var lp = cam.room.localParticipant;
+    lp.setCameraEnabled(false).then(function(){ return lp.setCameraEnabled(true, { facingMode: cam.facing, resolution: LK.VideoPresets.h720.resolution }); })
+      .then(function(){ cam.tiles.remove("me"); showLocal(); }).catch(function(e){ toast("Cambio camera non riuscito"); console.warn(e); }).then(function(){ cam.busy = false; });
+  });
+  window.addEventListener("beforeunload", function(){ if (cam.room) cam.room.disconnect(); });
+
+  var pending = [];
+  function myRole(){ return state.role === "gemologist" ? "gemologist" : "shop"; }
+  function track(body){ var e = { body: body, shown: false }; pending.push(e); setTimeout(function(){ var k = pending.indexOf(e); if (k >= 0) pending.splice(k, 1); }, 15000); return e; }
+  function echo(e){ if (pending.indexOf(e) < 0) return; e.shown = true; addMsg({ role: myRole(), author: state.name, body: e.body, created_at: new Date().toISOString() }, true); }
+  function addMsg(m, force){
+    var box = $("msgs");
+    var mine = m.role === myRole() && m.author === state.name;
+    if (!force && mine && m.id){ for (var i = 0; i < pending.length; i++) if (pending[i].body === m.body){ var e = pending.splice(i, 1)[0]; if (e.shown) return; break; } }
+    var d = document.createElement("div"); d.className = "msg " + m.role + (mine ? " me" : "");
+    var w = document.createElement("span"); w.className = "who"; w.textContent = (mine ? "Tu" : m.author) + " · " + fmtTime(m.created_at);
+    var x = document.createElement("span"); x.className = "txt"; x.textContent = m.body;
+    d.appendChild(w); d.appendChild(x); box.appendChild(d); box.scrollTop = box.scrollHeight;
+  }
+  function renderRequests(rows){
+    var box = $("reqs"); box.innerHTML = "";
+    $("reqCount").hidden = !rows.length; $("reqCount").textContent = rows.length;
+    if (!rows.length){ box.innerHTML = '<p class="hint">Nessuna richiesta per ora.</p>'; return; }
+    var maxId = 0, fresh = 0;
+    rows.forEach(function(r){
+      if (r.id > maxId) maxId = r.id;
+      var isNew = r.id > state.seen;
+      if (isNew) fresh++;
+      var d = document.createElement("div"); d.className = "item" + (isNew ? " new" : "");
+      var what = r.type === "appointment" ? "Appuntamento" + (r.slot ? ": " + r.slot : "") : "Mi interessa";
+      d.innerHTML = '<span class="pill ' + esc(r.type) + '">' + esc(what) + '</span><b style="font-weight:500">' + esc(r.guest_name) + '</b>' + (r.piece_name ? '<span>' + esc(r.piece_name) + '</span>' : '') + '<span class="meta">' + esc(fmtShort(r.created_at)) + '</span>';
+      box.appendChild(d);
+    });
+    if (!state.firstReq && fresh > 0) toast(fresh === 1 ? "Nuova richiesta da " + rows[0].guest_name : fresh + " nuove richieste");
+    state.firstReq = false;
+    if (maxId > state.seen){ state.seen = maxId; try { localStorage.setItem("seen-" + state.show.id, String(maxId)); } catch(e){} }
+  }
+  function renderInvites(rows){
+    var box = $("invs"); box.innerHTML = "";
+    rows.forEach(function(i){
+      var link = viewerUrl() + "?t=" + i.token;
+      var d = document.createElement("div"); d.className = "item";
+      d.innerHTML = '<b style="font-weight:500">' + esc(i.client_name) + '</b><span class="meta">' + (i.email ? esc(i.email) + " · " : "") + (i.joined_at ? "Entrato " + esc(fmtShort(i.joined_at)) : "Non ancora entrato") + '</span><div class="link"><input readonly value="' + esc(link) + '"><button class="btn sm" type="button">Copia</button></div>';
+      d.querySelector("button").addEventListener("click", function(){ copy(link, this); });
+      box.appendChild(d);
+    });
+  }
+  function loadRequests(){ sb.rpc("list_requests", { p_show: state.show.id, p_token: CFG.token }).then(function(r){ if (!r.error) renderRequests(r.data || []); }); }
+  function loadInvites(){ sb.rpc("list_invites", { p_show: state.show.id, p_token: CFG.token }).then(function(r){ if (!r.error) renderInvites((r.data || []).sort(function(a,b){ return a.client_name.localeCompare(b.client_name); })); }); }
+  function loadPieces(){ return sb.from("pieces").select("*").eq("show_id", state.show.id).order("position").then(function(r){ state.pieces = r.data || []; renderPieces(); }); }
+
+  Array.prototype.forEach.call(document.querySelectorAll("#visSeg button"), function(b){
+    b.addEventListener("click", function(){ var v = b.getAttribute("data-vis"); sb.rpc("set_visibility", { p_show: state.show.id, p_token: CFG.token, p_vis: v }).then(function(r){ if (!err(r)){ state.show.visibility = v; renderShow(); toast(v === "public" ? "La diretta è in vetrina" : "La diretta è privata"); } }); });
+  });
+  $("editJ").addEventListener("click", function(){
+    var j = state.jeweler;
+    openModal('<p class="eyebrow">La tua attività</p><form id="jf"><label>Nome<input id="jfName" type="text" maxlength="80" value="' + esc(j.name) + '"></label><label>Città<input id="jfCity" type="text" maxlength="60" value="' + esc(j.city || "") + '"></label><label>Tipo<select id="jfKind"><option value="shop">Gioielleria</option><option value="gems">Gem dealer</option></select></label><label>Una riga di presentazione (facoltativa)<input id="jfTag" type="text" maxlength="160" value="' + esc(j.tagline || "") + '"></label><button class="btn dark" type="submit">Salva</button></form>');
+    $("jfKind").value = j.kind || "shop";
+    $("jf").addEventListener("submit", function(e){ e.preventDefault(); sb.rpc("update_jeweler", { p_token: CFG.token, p_jeweler: j.id, p_name: $("jfName").value, p_city: $("jfCity").value, p_kind: $("jfKind").value, p_tagline: $("jfTag").value }).then(function(r){ if (!err(r)){ closeModal(); location.reload(); } }); });
+  });
+  $("showSel").addEventListener("change", function(){ var u = new URL(location.href); u.searchParams.set("show", this.value); location.href = u.toString(); });
+  $("copyShare").addEventListener("click", function(){ copy(viewerUrl(), this); });
+  $("toggle").addEventListener("click", function(){
+    var s = state.show, next;
+    if (s.status === "scheduled") next = "live";
+    else if (s.status === "live"){ if (!state.pendingStop){ state.pendingStop = true; this.textContent = "Confermi? Termina la diretta"; return; } next = "ended"; }
+    else next = "scheduled";
+    sb.rpc("set_show_status", { p_show: s.id, p_token: CFG.token, p_status: next }).then(function(r){ if (!err(r)){ s.status = next; renderShow(); if (next === "ended" && cam.room) stopCam(); toast(next === "live" ? "Sei in diretta" : (next === "ended" ? "Diretta terminata" : "Diretta riaperta: in programma")); } });
+  });
+  $("form").addEventListener("submit", function(e){
+    e.preventDefault(); var body = ($("msg").value || "").trim(); if (!body) return; $("msg").value = "";
+    var en = track(body);
+    sb.rpc("staff_message", { p_show: state.show.id, p_token: CFG.token, p_body: body }).then(function(r){ if (err(r)){ var k = pending.indexOf(en); if (k >= 0) pending.splice(k, 1); } else echo(en); });
+  });
+  $("invForm").addEventListener("submit", function(e){
+    e.preventDefault(); var n = ($("invName").value || "").trim(); if (!n) return;
+    sb.rpc("add_invite", { p_show: state.show.id, p_token: CFG.token, p_name: n, p_email: ($("invEmail").value || "").trim() }).then(function(r){ if (!err(r)){ $("invName").value = ""; $("invEmail").value = ""; toast("Invito creato per " + n); loadInvites(); } });
+  });
+  function showForm(existing){
+    var s = existing || {};
+    var slots = Array.isArray(s.slots) ? s.slots.join("\n") : "Giovedì 17:30\nVenerdì 11:00\nSabato 10:30";
+    openModal('<p class="eyebrow">' + (existing ? "Modifica diretta" : "Nuova diretta") + '</p><form id="sf">' +
+      '<label>Titolo<input id="sfTitle" type="text" maxlength="120" required value="' + esc(s.title || "") + '"></label>' +
+      '<label>Titolo in inglese (per la vetrina, facoltativo)<input id="sfEn" type="text" maxlength="120" value="' + esc((s.title_i18n || {}).en || "") + '"></label>' +
+      '<label>Titolo in francese (facoltativo)<input id="sfFr" type="text" maxlength="120" value="' + esc((s.title_i18n || {}).fr || "") + '"></label>' +
+      '<label>Visibilità<select id="sfVis"><option value="private">Privata su invito</option><option value="public">In vetrina pubblica</option></select></label>' +
+      '<label>Data e ora<input id="sfAt" type="datetime-local" required value="' + toLocalInput(s.scheduled_at) + '"></label>' +
+      '<label>Lingua della pagina clienti<select id="sfLang"><option value="it">Italiano</option><option value="en">Inglese</option><option value="fr">Francese</option></select></label>' +
+      '<label>Orari proposti per gli appuntamenti privati (uno per riga)<textarea id="sfSlots">' + esc(slots) + '</textarea></label>' +
+      '<button class="btn dark" type="submit">' + (existing ? "Salva" : "Crea la diretta") + '</button></form>');
+    $("sfLang").value = s.lang || "it"; $("sfVis").value = s.visibility || "private";
+    $("sf").addEventListener("submit", function(e){
+      e.preventDefault();
+      var at = new Date($("sfAt").value); if (isNaN(at.getTime())){ toast("Data non valida"); return; }
+      var slotsArr = $("sfSlots").value.split("\n").map(function(x){ return x.trim(); }).filter(Boolean);
+      var i18n = {}; if ($("sfEn").value.trim()) i18n.en = $("sfEn").value.trim(); if ($("sfFr").value.trim()) i18n.fr = $("sfFr").value.trim();
+      var vis = $("sfVis").value;
+      if (existing){
+        sb.rpc("update_show2", { p_show: s.id, p_token: CFG.token, p_title: $("sfTitle").value, p_at: at.toISOString(), p_lang: $("sfLang").value, p_slots: slotsArr, p_i18n: i18n, p_vis: vis }).then(function(r){ if (!err(r)){ closeModal(); location.reload(); } });
+      } else {
+        sb.rpc("create_show", { p_token: CFG.token, p_jeweler: state.jeweler.id, p_title: $("sfTitle").value, p_at: at.toISOString(), p_lang: $("sfLang").value, p_slots: slotsArr }).then(function(r){ if (err(r)) return; var id = r.data.id; sb.rpc("update_show2", { p_show: id, p_token: CFG.token, p_title: null, p_at: null, p_lang: null, p_slots: null, p_i18n: i18n, p_vis: vis }).then(function(){ var u = new URL(location.href); u.searchParams.set("show", id); location.href = u.toString(); }); });
+      }
+    });
+  }
+  $("newShow").addEventListener("click", function(){ showForm(null); });
+  $("edit").addEventListener("click", function(){ showForm(state.show); });
+  $("addPiece").addEventListener("click", function(){
+    var opts = ""; for (var k in ARTS) opts += '<option value="' + k + '">' + ARTS[k] + '</option>';
+    openModal('<p class="eyebrow">Nuovo pezzo</p><form id="pf">' +
+      '<label>Nome<input id="pfName" type="text" maxlength="120" required placeholder="Solitario 1,02 ct · oro bianco"></label>' +
+      '<label>Nome breve (nelle richieste)<input id="pfShort" type="text" maxlength="80" placeholder="Solitario 1,02 ct"></label>' +
+      '<label>Didascalia sotto il video<input id="pfCaption" type="text" maxlength="240" placeholder="Diamante 1,02 ct · colore F · purezza VS1"></label>' +
+      '<label>Immagine (finché non c’è il video)<select id="pfArt">' + opts + '</select></label>' +
+      '<button class="btn dark" type="submit">Aggiungi</button></form>');
+    $("pf").addEventListener("submit", function(e){
+      e.preventDefault();
+      sb.rpc("add_piece", { p_show: state.show.id, p_token: CFG.token, p_name: $("pfName").value, p_caption: $("pfCaption").value, p_short: $("pfShort").value, p_art: $("pfArt").value }).then(function(r){ if (!err(r)){ closeModal(); toast("Pezzo aggiunto"); if (!state.show.current_piece_id) state.show.current_piece_id = r.data.id; loadPieces(); } });
+    });
+  });
+
+  function subscribe(){
+    sb.channel("panel-" + state.show.id)
+      .on("postgres_changes", { event:"INSERT", schema:"public", table:"messages", filter:"show_id=eq." + state.show.id }, function(p){ addMsg(p.new); })
+      .on("postgres_changes", { event:"UPDATE", schema:"public", table:"shows", filter:"id=eq." + state.show.id }, function(p){ var prev = state.show; state.show = p.new; if (p.new.likes !== prev.likes){ $("likesN").textContent = p.new.likes || 0; } if (p.new.status !== prev.status || p.new.current_piece_id !== prev.current_piece_id || p.new.visibility !== prev.visibility || p.new.title !== prev.title) renderShow(); })
+      .on("postgres_changes", { event:"INSERT", schema:"public", table:"pieces", filter:"show_id=eq." + state.show.id }, function(){ loadPieces(); })
+      .subscribe();
+    var pres = sb.channel("show-" + state.show.id, { config: { presence: { key: "p" + Math.random().toString(36).slice(2, 10) } } });
+    pres.on("presence", { event:"sync" }, function(){ var n = 0; var st = pres.presenceState(); Object.keys(st).forEach(function(k){ if (k.charAt(0) === "v") n++; }); $("viewersN").textContent = n; }).subscribe();
+    state.timer = setInterval(loadRequests, 5000);
+    document.addEventListener("visibilitychange", function(){ if (!document.hidden) loadRequests(); });
+  }
+
+  function loadAdmin(){
+    $("admin").hidden = false;
+    sb.rpc("list_applications", { p_token: CFG.token }).then(function(r){
+      if (r.error) return; var rows = r.data || []; var box = $("apps"); box.innerHTML = "";
+      var fresh = rows.filter(function(a){ return a.status === "new"; }).length; $("appCount").hidden = !fresh; $("appCount").textContent = fresh;
+      if (!rows.length){ box.innerHTML = '<p class="hint">Nessuna candidatura.</p>'; return; }
+      rows.forEach(function(a){
+        var d = document.createElement("div"); d.className = "app" + (a.status === "new" ? " new" : "");
+        var slug = (a.name || "").toLowerCase().normalize("NFD").replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 30);
+        d.innerHTML = '<b style="font-weight:500">' + esc(a.name) + '</b><span class="meta2">' + esc(a.city) + ' · ' + esc(KINDS[a.kind] || a.kind) + ' · ' + esc(fmtShort(a.created_at)) + ' · ' + esc(a.lang.toUpperCase()) + (a.status !== "new" ? ' · <b>' + (a.status === "approved" ? "approvata" : "rifiutata") + '</b>' : '') + '</span>' +
+          (a.show_what ? '<span>' + esc(a.show_what) + '</span>' : '') + '<span class="meta2">' + esc(a.email) + (a.phone ? ' · ' + esc(a.phone) : '') + (a.site ? ' · ' + esc(a.site) : '') + '</span>' +
+          (a.status === "new" ? '<div class="acts"><input type="text" value="' + esc(slug) + '" placeholder="indirizzo (slug)" data-slug><button class="btn dark sm" type="button" data-ok>Approva e crea pagina</button><button class="btn sm" type="button" data-no>Rifiuta</button></div>' : '') + '<div data-out></div>';
+        if (a.status === "new"){
+          d.querySelector("[data-ok]").addEventListener("click", function(){
+            var sl = d.querySelector("[data-slug]").value.trim();
+            if (!/^[a-z0-9-]{2,40}$/.test(sl)){ toast("Indirizzo non valido: solo lettere minuscole, numeri e trattini"); return; }
+            sb.rpc("approve_application", { p_token: CFG.token, p_id: a.id, p_slug: sl }).then(function(r){ if (err(r)) return; var row = r.data && r.data[0]; if (!row) return; d.querySelector("[data-out]").innerHTML = '<div class="keybox">Pagina: ' + esc(CFG.base + "/" + sl + "/") + '<br>Pannello del venditore: ' + esc(CFG.base + "/" + sl + "/panel/?k=" + row.staff_token) + '</div>'; toast("Venditore creato: manda il link del pannello a " + a.email); loadSellers(); });
+          });
+          d.querySelector("[data-no]").addEventListener("click", function(){ sb.rpc("reject_application", { p_token: CFG.token, p_id: a.id, p_notes: "" }).then(function(r){ if (!err(r)) loadAdmin(); }); });
+        }
+        box.appendChild(d);
+      });
+    });
+    loadSellers();
+  }
+  function loadSellers(){
+    sb.rpc("list_sellers", { p_token: CFG.token }).then(function(r){
+      if (r.error) return; var box = $("sellers"); box.innerHTML = "";
+      (r.data || []).forEach(function(j){
+        var d = document.createElement("div"); d.className = "app";
+        d.innerHTML = '<b style="font-weight:500">' + esc(j.name) + '</b><span class="meta2">' + esc(j.city || "") + ' · ' + esc(KINDS[j.kind] || j.kind) + ' · /' + esc(j.slug) + '/' + '</span><div class="keybox">Pannello: ' + esc(CFG.base + "/" + j.slug + "/panel/?k=" + (j.staff_token || "")) + '</div><div class="acts"><a class="btn sm" href="' + esc(CFG.base + "/" + j.slug + "/panel/?k=" + CFG.token) + '">Apri come gemmologa</a></div>';
+        box.appendChild(d);
+      });
+    });
+  }
+  function boot(){
+    sb.from("jewelers").select("*").eq("slug", CFG.slug).maybeSingle().then(function(r){
+      if (!r.data){ $("denied").hidden = false; return; }
+      state.jeweler = r.data;
+      return sb.from("shows").select("*").eq("jeweler_id", state.jeweler.id).order("scheduled_at", { ascending:false }).then(function(r2){
+        state.shows = r2.data || [];
+        var want = new URLSearchParams(location.search).get("show");
+        var byId = state.shows.filter(function(s){ return s.id === want; })[0];
+        var live = state.shows.filter(function(s){ return s.status === "live"; })[0];
+        var sched = state.shows.filter(function(s){ return s.status === "scheduled"; }).sort(function(a,b){ return new Date(a.scheduled_at) - new Date(b.scheduled_at); })[0];
+        state.show = byId || live || sched || state.shows[0] || null;
+        if (!state.show){
+          return sb.rpc("staff_jeweler", { p_token: CFG.token, p_jeweler: state.jeweler.id }).then(function(r3){
+            var row = r3.data && r3.data[0]; if (!row){ $("denied").hidden = false; return; }
+            state.role = row.role; state.name = row.display_name; renderHeader();
+            $("app").hidden = false; $("brand").textContent = state.jeweler.name;
+            showForm(null);
+          });
+        }
+        return sb.rpc("staff_check", { p_token: CFG.token, p_show: state.show.id }).then(function(r3){
+          var row = r3.data && r3.data[0]; if (!row){ $("denied").hidden = false; return; }
+          state.role = row.role; state.name = row.display_name;
+          try { state.seen = parseInt(localStorage.getItem("seen-" + state.show.id) || "0", 10) || 0; } catch(e){}
+          $("app").hidden = false; renderShow();
+          return Promise.all([
+            loadPieces(),
+            sb.from("messages").select("*").eq("show_id", state.show.id).order("created_at").limit(300).then(function(m){ (m.data || []).forEach(addMsg); })
+          ]).then(function(){ loadRequests(); loadInvites(); subscribe(); if (state.role === "gemologist") loadAdmin(); });
+        });
+      });
+    });
+  }
+  boot();
+})();
+</script>
+</body></html>

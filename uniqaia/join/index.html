@@ -1,0 +1,357 @@
+<!doctype html><html lang="it"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@0,6..96,400..600;1,6..96,400..600&family=Cormorant+Garamond:wght@500&family=Jost:wght@300..600&display=swap">
+<link rel="icon" type="image/svg+xml" href="/img/uniqaia-icon.svg"><link rel="icon" type="image/png" sizes="512x512" href="/img/uniqaia-icon.png"><link rel="apple-touch-icon" href="/img/uniqaia-icon.png"><meta name="theme-color" content="#15121C">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.4/dist/umd/supabase.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/livekit-client@2.22.0/dist/livekit-client.umd.min.js" onerror="var s=document.createElement('script');s.src='https://unpkg.com/livekit-client@2.22.0/dist/livekit-client.umd.min.js';document.head.appendChild(s)"></script><title>Uniqaia</title><meta property="og:type" content="website"><meta property="og:site_name" content="Uniqaia"><meta property="og:title" content="Uniqaia · Trasmetti con noi · Go live with us"><meta property="og:description" content="La piattaforma di live show per gioiellerie e gem dealer. The live-show platform for jewellers and gem dealers."><meta property="og:url" content="https://uniqaia.com/join/"><meta property="og:image" content="https://uniqaia.com/img/uniqaia-og.jpg"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630"><meta name="twitter:card" content="summary_large_image"><meta name="description" content="La piattaforma di live show per gioiellerie e gem dealer. The live-show platform for jewellers and gem dealers."><style>
+:root{--paper:#FFFFFF;--ink:#16181D;--muted:#5B606A;--line:#E7E4DC;--soft:#F6F4EF;--soft-2:#F8F1DF;--gold-hi:#EDD596;--gold:#CBA44F;--gold-lo:#A9833A;--gold-edge:#8C6A2B;--gold-ink:#1C1406;--live:#1E7A4F;--heart:#C6364E;--video:#1E2128;--display:"Bodoni Moda","Bodoni 72",Didot,Georgia,serif;--body:"Jost","Futura","Century Gothic","Helvetica Neue",Arial,sans-serif;color-scheme:light}
+*,*::before,*::after{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{background:var(--paper);color:var(--ink);font-family:var(--body);font-size:16px;line-height:1.5;-webkit-font-smoothing:antialiased;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+h1,h2,h3{margin:0;font-weight:400}
+p{margin:0}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:2px solid var(--gold-edge);outline-offset:3px}
+.wrap{padding-left:max(14px,env(safe-area-inset-left,0px));padding-right:max(14px,env(safe-area-inset-right,0px))}
+.col{max-width:1120px;margin:0 auto}
+.gold{background:linear-gradient(140deg,var(--gold-hi) 0%,var(--gold) 55%,var(--gold-lo) 100%)}
+.eyebrow{font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:var(--gold-edge);font-weight:500}
+.muted{color:var(--muted)}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:46px;padding:0 20px;border-radius:999px;text-decoration:none;font-weight:500;font-size:15px;border:1px solid var(--ink);background:none;color:var(--ink)}
+.btn.primary{color:var(--gold-ink);border-color:var(--gold-edge)}
+.btn.dark{background:var(--gold-ink);color:var(--gold-hi);border-color:var(--gold-ink)}
+.btn.sm{min-height:38px;padding:0 14px;font-size:14px}
+.btn:disabled{opacity:.5;cursor:default}
+.top{border-bottom:1px solid var(--line);background:var(--paper)}
+.top .col{min-height:60px;display:flex;align-items:center;justify-content:space-between;gap:12px;padding-block:8px}
+.brand{display:flex;flex-direction:column;gap:3px;min-width:0}
+.brand .logo{display:block;height:28px;color:var(--ink);text-decoration:none}
+.brand .logo svg,.wm svg{height:100%;width:auto;display:block;overflow:visible}
+.brand small{display:block;font-family:var(--body);font-size:10px;letter-spacing:.16em;color:var(--gold-edge);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.welcome,body.dark{--logo-gold:#D4AF6A;--logo-gem:#F0606F}
+.wordmark{font-family:var(--display);font-size:clamp(17px,3vw,22px);letter-spacing:.2em;text-transform:uppercase;padding-left:.2em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.wordmark small{display:block;font-family:var(--body);font-size:10px;letter-spacing:.16em;color:var(--gold-edge);margin-top:-2px}
+.status{display:inline-flex;align-items:center;gap:8px;font-size:13px;color:var(--muted);white-space:nowrap}
+.status i{width:9px;height:9px;border-radius:50%;background:var(--muted);display:block}
+.status.live{color:var(--live)}.status.live i{background:var(--live);animation:pulse 1.6s ease-out infinite}
+@keyframes pulse{0%{box-shadow:0 0 0 0 rgba(30,122,79,.5)}70%{box-shadow:0 0 0 8px transparent}100%{box-shadow:0 0 0 0 transparent}}
+.row{display:flex;gap:8px}
+.row input{flex:1;min-width:0}
+input,select,textarea{border:1px solid var(--line);border-radius:999px;padding:10px 14px;background:var(--paper);min-height:44px}
+textarea{border-radius:12px;min-height:90px;resize:vertical}
+.hint{font-size:13px;color:var(--muted);text-align:center}
+.toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:#1C1406;color:#EDD596;padding:11px 18px;border-radius:999px;font-size:14px;z-index:70;display:flex;gap:9px;align-items:center;animation:rise .3s ease-out both;max-width:calc(100% - 28px)}
+.toast i{width:8px;height:8px;border-radius:50%;background:var(--live);display:block;flex:none}
+@keyframes rise{from{opacity:0;transform:translate(-50%,8px)}to{opacity:1;transform:translate(-50%,0)}}
+.modal{position:fixed;inset:0;background:rgba(14,16,20,.6);display:grid;place-items:center;padding:14px;z-index:60}
+.mcard{position:relative;max-width:440px;width:100%;background:var(--paper);color:var(--ink);border:1px solid var(--line);border-radius:18px;padding:22px;display:flex;flex-direction:column;gap:12px}
+.mcard h3{font-family:var(--display);font-size:24px}
+.mcard form{display:flex;flex-direction:column;gap:10px}
+.slots{display:flex;flex-direction:column;gap:8px}
+.slot{border:1px solid var(--line);background:var(--paper);padding:11px 14px;border-radius:999px;text-align:start}
+.slot:hover{border-color:var(--gold-edge);background:var(--soft-2)}
+.x{position:absolute;top:6px;right:6px;width:36px;height:36px;border:0;background:none;font-size:22px;color:var(--muted)}
+.ok{display:flex;align-items:center;gap:10px;color:var(--live);font-weight:500}
+label{font-size:13px;color:var(--muted);display:flex;flex-direction:column;gap:4px}
+label input,label select,label textarea{width:100%}
+footer{padding:22px 0 30px;font-size:12px;color:var(--muted);text-align:center;line-height:1.7}
+[hidden]{display:none!important}
+
+/* ---- pannello: chat e tiles ---- */
+.msgs{flex:1;min-height:220px;overflow-y:auto;padding:12px 14px;display:flex;flex-direction:column;gap:10px}
+.msg{display:flex;flex-direction:column;gap:2px;animation:risemsg .3s ease-out both}
+.msg .who{font-size:12px;color:var(--muted)}
+.msg .txt{font-size:15px;line-height:1.4;background:var(--soft);padding:8px 12px;border-radius:12px 12px 12px 3px;max-width:94%;overflow-wrap:anywhere}
+.msg.gemologist .who{color:var(--gold-edge);font-weight:500}
+.msg.gemologist .txt{background:var(--soft-2);border:1px solid var(--gold-hi)}
+.msg.shop .who{color:var(--ink);font-weight:500}
+.msg.shop .txt{border:1px solid var(--line);background:var(--paper)}
+.msg.me{align-items:flex-end}
+.msg.me .txt{background:var(--gold-ink);color:var(--gold-hi);border-radius:12px 12px 3px 12px}
+@keyframes risemsg{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.videos{position:absolute;inset:0;display:none}
+.videos.on{display:block}
+.videos .main{position:absolute;inset:0;background:#000}
+.videos .main video{width:100%;height:100%;object-fit:cover;display:block}
+.videos .pips{position:absolute;right:12px;top:48px;display:flex;flex-direction:column;gap:8px;width:26%;max-width:190px;min-width:84px;z-index:2}
+.videos .pip{aspect-ratio:3/4;border-radius:12px;overflow:hidden;border:2px solid rgba(255,255,255,.7);box-shadow:0 10px 30px rgba(0,0,0,.45);background:#000;cursor:pointer}
+.videos .pip video{width:100%;height:100%;object-fit:cover;display:block}
+.videos video.mirror{transform:scaleX(-1)}
+.audios{display:none}
+
+/* ---- pagina diretta (verticale) ---- */
+body.dark{background:#0E0B07;color:#F7EBCB;padding:0}
+.stagev{min-height:100dvh;display:grid;place-items:center}
+.phone{position:relative;width:100%;height:100dvh;background:#000;overflow:hidden;color:#fff}
+@media (min-width:760px){.stagev{padding:24px}.phone{width:400px;height:min(820px,calc(100dvh - 48px));border-radius:36px;box-shadow:0 30px 80px rgba(0,0,0,.6),0 0 0 8px #1B1B1F}}
+.vid{position:absolute;inset:0;display:grid;place-items:center;background:linear-gradient(180deg,#2A2A30,#0A0A0D)}
+.vid::before{content:"";position:absolute;inset:0;background:radial-gradient(55% 35% at 50% 28%,rgba(255,228,170,.3),transparent 70%)}
+.vid .artwrap{position:relative;width:62%;margin-top:-56%;filter:drop-shadow(0 24px 30px rgba(0,0,0,.55));animation:sway 6s ease-in-out infinite}
+.vid .artwrap svg{width:100%;height:auto;display:block}
+.vid .poster{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;filter:blur(2px) brightness(.7)}
+@keyframes sway{0%,100%{transform:rotate(-2deg) translateY(0)}50%{transform:rotate(2deg) translateY(-6px)}}
+.shade{position:absolute;inset:0;pointer-events:none;z-index:2;background:linear-gradient(to top,rgba(0,0,0,.8) 0%,rgba(0,0,0,.35) 35%,transparent 60%),linear-gradient(to bottom,rgba(0,0,0,.5),transparent 25%)}
+.videos.on ~ .shade{background:linear-gradient(to top,rgba(0,0,0,.7) 0%,rgba(0,0,0,.25) 30%,transparent 50%),linear-gradient(to bottom,rgba(0,0,0,.45),transparent 22%)}
+.ptop{position:absolute;top:calc(12px + env(safe-area-inset-top,0px));left:12px;right:12px;display:flex;align-items:center;gap:8px;z-index:4}
+.ptop .pill{display:inline-flex;align-items:center;gap:8px;background:rgba(0,0,0,.45);backdrop-filter:blur(8px);border-radius:999px;padding:5px 12px 5px 5px;font-size:13px;min-width:0;flex:0 1 auto;line-height:1.2;color:#fff;text-decoration:none}
+.ptop .pill .who{min-width:0;display:flex;flex-direction:column}
+.ptop .pill .who b,.ptop .pill .who span{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ptop .pill b{font-weight:500}
+.av{width:30px;height:30px;border-radius:50%;background:var(--soft-2);color:var(--gold-edge);display:grid;place-items:center;font-family:var(--display);font-size:13px;flex:none;border:1px solid var(--gold-hi)}
+.ptop .av{width:28px;height:28px;font-size:12px}
+.lbl{display:inline-flex;align-items:center;gap:6px;background:var(--live);color:#fff;font-size:11px;font-weight:500;letter-spacing:.14em;text-transform:uppercase;padding:5px 9px;border-radius:999px;flex:none}
+.lbl i{width:6px;height:6px;border-radius:50%;background:#fff;display:block;animation:pulsew 1.6s ease-out infinite}
+.lbl.off{background:rgba(0,0,0,.55);backdrop-filter:blur(6px)}.lbl.off i{animation:none;opacity:.6}
+@keyframes pulsew{0%{box-shadow:0 0 0 0 rgba(255,255,255,.6)}70%{box-shadow:0 0 0 6px transparent}100%{box-shadow:0 0 0 0 transparent}}
+.ptop .eye{display:inline-flex;align-items:center;gap:5px;background:rgba(0,0,0,.45);border-radius:999px;padding:5px 9px;font-size:12px;flex:none}
+.ptop .eye svg{width:12px;height:12px}
+.ptop .x{position:static;margin-left:auto;width:34px;height:34px;border-radius:50%;background:rgba(0,0,0,.45);display:grid;place-items:center;font-size:20px;color:#fff;flex:none;text-decoration:none}
+.pchip{position:absolute;left:12px;top:calc(68px + env(safe-area-inset-top,0px));z-index:4;display:inline-flex;align-items:center;gap:8px;background:rgba(0,0,0,.5);backdrop-filter:blur(8px);border-radius:12px;padding:7px 11px;font-size:12.5px;max-width:72%}
+.pchip i{width:8px;height:8px;border-radius:50%;background:var(--gold);display:block;flex:none}
+.waitv{position:absolute;inset:0;z-index:3;display:grid;place-items:center;text-align:center;padding:24px;background:rgba(10,10,12,.55);color:#fff;font-size:16px;line-height:1.5}
+.waitv b{display:block;font-family:var(--display);font-size:26px;font-weight:400;margin-bottom:6px}
+.rail{position:absolute;right:10px;bottom:calc(120px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;gap:14px;align-items:center;z-index:5}
+.rail button{display:flex;flex-direction:column;align-items:center;gap:3px;color:#fff;font-size:11px;letter-spacing:.02em;border:0;background:none;padding:0}
+.rail .ic{width:46px;height:46px;border-radius:50%;background:rgba(0,0,0,.45);backdrop-filter:blur(8px);display:grid;place-items:center}
+.rail .ic svg{width:22px;height:22px}
+.rail .ic.goldbg{background:linear-gradient(140deg,var(--gold-hi),var(--gold) 55%,var(--gold-lo));color:#1C1406}
+.rail .ic.heart.on{color:var(--heart)}
+.rail button:disabled{opacity:.45}
+.subs{position:absolute;left:12px;right:76px;bottom:calc(64px + 30% + 10px + env(safe-area-inset-bottom,0px));z-index:4;display:flex;flex-direction:column;align-items:flex-start;gap:6px}
+.subs .txt{width:100%;background:rgba(0,0,0,.62);border-radius:10px;padding:7px 11px;font-size:14.5px;line-height:1.3;color:#fff;min-height:40px}
+.pchat{position:absolute;left:12px;right:76px;bottom:calc(64px + env(safe-area-inset-bottom,0px));z-index:4;display:flex;flex-direction:column;justify-content:flex-end;gap:6px;max-height:30%;overflow:hidden;mask-image:linear-gradient(to bottom,transparent,#000 22%)}
+.pm{align-self:flex-start;max-width:100%;background:rgba(0,0,0,.42);backdrop-filter:blur(6px);border-radius:14px;padding:6px 11px;font-size:13.5px;line-height:1.3;animation:up .35s ease-out both;color:#fff;overflow-wrap:anywhere}
+.pm b{font-weight:500;color:#EDD596;margin-right:5px}
+.pm.gemologist b{color:#F2E6C8}.pm.gemologist{border:1px solid rgba(237,213,150,.5)}
+.pm.shop b{color:#fff}
+.pm.me{align-self:flex-end;background:rgba(237,213,150,.9);color:#1C1406}.pm.me b{color:#8C6A2B}
+@keyframes up{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.pin{position:absolute;left:12px;right:76px;bottom:calc(14px + env(safe-area-inset-bottom,0px));z-index:4;display:flex;gap:8px;margin:0}
+.pin input{flex:1;min-width:0;border:1px solid rgba(255,255,255,.35);background:rgba(0,0,0,.4);backdrop-filter:blur(8px);color:#fff;border-radius:999px;padding:10px 14px;outline:none;min-height:44px}
+.pin input::placeholder{color:rgba(255,255,255,.7)}
+.pin button{border-radius:999px;background:#fff;color:#111;padding:0 14px;font-weight:500;font-size:14px;border:0}
+.hearts{position:absolute;right:22px;bottom:calc(150px + env(safe-area-inset-bottom,0px));width:60px;height:260px;pointer-events:none;z-index:6}
+.hearts span{position:absolute;bottom:0;left:50%;width:22px;height:22px;animation:fly 1.3s ease-out forwards;color:var(--heart)}
+.hearts span svg{width:100%;height:100%}
+@keyframes fly{0%{opacity:0;transform:translate(-50%,0) scale(.6)}15%{opacity:1}100%{opacity:0;transform:translate(calc(-50% + var(--dx)),-240px) scale(1.25) rotate(var(--rot))}}
+.audio-btn{position:absolute;left:50%;bottom:calc(64px + 30% + 60px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);z-index:6;border-radius:999px;background:#fff;color:#111;border:0;padding:10px 18px;font-weight:500;font-size:14px;box-shadow:0 10px 30px rgba(0,0,0,.45)}
+.credit{text-align:center;font-size:12px;color:rgba(247,235,203,.6);padding:14px;letter-spacing:.06em}
+@media (max-width:759px){.credit{display:none}}
+
+/* ---- vetrina ---- */
+.topv{position:sticky;top:0;z-index:20;background:var(--paper);border-bottom:1px solid var(--line);padding-top:env(safe-area-inset-top,0px)}
+.topv .col{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:58px}
+.topright{display:flex;align-items:center;gap:8px}
+.langs{position:relative}
+.langs .cur{display:inline-flex;align-items:center;gap:7px;font-size:12px;letter-spacing:.08em;padding:8px 12px;border-radius:999px;border:1px solid var(--line);background:#1C1406;color:#EDD596}
+.langs .cur::after{content:"";width:0;height:0;border-left:4px solid transparent;border-right:4px solid transparent;border-top:5px solid currentColor;opacity:.8}
+.langs .menu{position:absolute;top:calc(100% + 6px);inset-inline-end:0;background:var(--paper);border:1px solid var(--line);border-radius:14px;padding:6px;display:flex;flex-direction:column;min-width:160px;box-shadow:0 12px 30px rgba(0,0,0,.14);z-index:30}
+.langs .menu[hidden]{display:none}
+.langs .menu button{text-align:start;font-size:14px;padding:9px 12px;border-radius:9px;border:0;background:none;color:var(--ink);display:flex;justify-content:space-between;gap:12px;align-items:center}
+.langs .menu button small{font-size:11px;letter-spacing:.08em;color:var(--muted)}
+.langs .menu button.on{background:var(--soft-2);color:var(--gold-edge);font-weight:500}
+.about-btn{width:34px;height:34px;border-radius:50%;border:1px solid var(--gold-hi);color:var(--gold-edge);font-family:var(--display);font-style:italic;font-size:17px;display:grid;place-items:center;padding:0;background:none;flex:none}
+.tabs{display:flex;gap:4px;overflow-x:auto;scrollbar-width:none;padding:0 0 2px;margin-top:10px}
+.tabs::-webkit-scrollbar{display:none}
+.tab{flex:none;padding:10px 14px;font-size:15px;color:var(--muted);border:0;border-bottom:2px solid transparent;white-space:nowrap;background:none}
+.tab.on{color:var(--ink);border-color:var(--ink);font-weight:500}
+.tab .n{display:inline-grid;place-items:center;min-width:18px;height:18px;border-radius:999px;background:var(--live);color:#fff;font-size:11px;margin-left:5px;padding:0 5px;vertical-align:1px}
+.trust{display:flex;flex-wrap:wrap;gap:6px 16px;margin-top:12px;font-size:11.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--gold-edge)}
+.trust span{display:inline-flex;align-items:flex-start;gap:6px;line-height:1.35}
+.trust i{width:5px;height:5px;border-radius:50%;background:var(--gold);display:block;flex:none;margin-top:5px}
+.vetrina section{margin-top:26px;scroll-margin-top:118px}
+.sh{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin-bottom:12px}
+.sh h2{font-family:var(--display);font-size:clamp(22px,4vw,28px);line-height:1.1}
+.sh a,.sh button{font-size:14px;color:var(--muted);text-decoration:none;white-space:nowrap;border:0;background:none;padding:0}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:14px 12px}
+@media (min-width:700px){.grid{grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:18px 16px}}
+.vcard{display:flex;flex-direction:column;gap:8px;text-align:start;width:100%;color:inherit;text-decoration:none;border:0;background:none;padding:0;font:inherit}
+.cover{position:relative;aspect-ratio:9/16;border-radius:16px;overflow:hidden;background:var(--video);display:grid;place-items:center;isolation:isolate}
+.cover::before{content:"";position:absolute;inset:0;background:radial-gradient(60% 40% at 50% 38%,rgba(255,228,170,.26),transparent 70%);z-index:1}
+.cover::after{content:"";position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,.72) 0%,rgba(0,0,0,.25) 30%,transparent 55%);z-index:2}
+.cover .art{width:66%;position:relative;z-index:1;filter:drop-shadow(0 18px 24px rgba(0,0,0,.5));transition:transform .5s ease}
+.cover .art svg{width:100%;height:auto;display:block}
+.vcard:hover .cover .art{transform:scale(1.04)}
+.cover .ph{position:absolute;inset:0;z-index:0;background:linear-gradient(180deg,var(--c1,#2A2A30),var(--c2,#0A0A0D))}
+.cover img.cv{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:1}
+.cover .lbl{position:absolute;top:10px;inset-inline-start:10px;z-index:3}
+.stat{position:absolute;top:10px;inset-inline-end:10px;z-index:3;display:flex;flex-direction:column;gap:5px;align-items:flex-end}
+.stat span{display:inline-flex;align-items:center;gap:5px;background:rgba(0,0,0,.45);backdrop-filter:blur(6px);color:#fff;font-size:12px;padding:4px 8px;border-radius:999px}
+.stat svg{width:12px;height:12px}
+.ctitle{position:absolute;left:12px;right:12px;bottom:12px;z-index:3;color:#fff;font-family:var(--display);font-size:17px;line-height:1.2;text-shadow:0 2px 8px rgba(0,0,0,.5)}
+.ctitle small{display:block;font-family:var(--body);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--gold-hi);margin-top:5px;text-shadow:none}
+.when{position:absolute;left:50%;top:46%;transform:translate(-50%,-50%);z-index:3;background:rgba(255,255,255,.92);color:#16181D;border-radius:12px;padding:8px 12px;text-align:center;line-height:1.15;box-shadow:0 10px 30px rgba(0,0,0,.35);white-space:nowrap}
+.when b{display:block;font-family:var(--display);font-size:22px;font-weight:400}
+.when small{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:#8C6A2B}
+.meta{display:flex;align-items:center;gap:9px}
+.meta b{display:block;font-weight:500;font-size:14px;line-height:1.2}
+.meta small{display:block;font-size:12px;color:var(--muted)}
+.chk{display:inline-block;width:12px;height:12px;border-radius:50%;background:var(--gold);color:#fff;font-size:9px;line-height:12px;text-align:center;vertical-align:1px;margin-left:3px}
+.shops{display:flex;gap:18px;overflow-x:auto;scrollbar-width:none;padding:4px 2px 8px}
+.shops::-webkit-scrollbar{display:none}
+.seller{flex:none;width:96px;display:flex;flex-direction:column;align-items:center;gap:7px;text-align:center;color:inherit;text-decoration:none}
+.seller .big{width:68px;height:68px;border-radius:50%;background:var(--soft-2);color:var(--gold-edge);display:grid;place-items:center;font-family:var(--display);font-size:24px;border:2px solid var(--gold);box-shadow:0 0 0 3px var(--paper),0 0 0 4px var(--gold-hi)}
+.seller.live .big{border-color:var(--live);box-shadow:0 0 0 3px var(--paper),0 0 0 4px var(--live)}
+.seller b{font-weight:500;font-size:13px;line-height:1.15}
+.seller small{font-size:11px;color:var(--muted);line-height:1.3}
+.seller .live-tag{font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:#fff;background:var(--live);padding:2px 6px;border-radius:999px;margin-top:-16px;position:relative}
+.empty{border:1px dashed var(--line);border-radius:16px;padding:26px 18px;text-align:center;color:var(--muted);font-size:14px;line-height:1.5}
+.empty b{display:block;font-family:var(--display);font-size:22px;font-weight:400;color:var(--ink);margin-bottom:4px}
+.cta{margin-top:26px;border:1px solid var(--line);border-radius:18px;padding:18px;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px;background:var(--soft)}
+.cta b{font-family:var(--display);font-size:20px;font-weight:400;display:block}
+.cta small{color:var(--muted);font-size:13px}
+.cta .go{border-radius:999px;background:#1C1406;color:#EDD596;padding:11px 18px;font-weight:500;font-size:14px;white-space:nowrap;text-decoration:none;border:0}
+.welcome{position:fixed;inset:0;z-index:50;background:#0E0B07;color:#F7EBCB;display:grid;place-items:center;padding:max(20px,env(safe-area-inset-top,0px)) 22px max(24px,env(safe-area-inset-bottom,0px));overflow:auto}
+.welcome::before{content:"";position:absolute;inset:0;background:radial-gradient(70% 45% at 50% 20%,rgba(203,164,79,.35),transparent 70%),radial-gradient(40% 30% at 85% 90%,rgba(203,164,79,.18),transparent 70%);pointer-events:none}
+.wcard{position:relative;max-width:520px;width:100%;display:flex;flex-direction:column;gap:18px;animation:wrise .7s ease-out both}
+@keyframes wrise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+.wcard .wm{display:flex;flex-direction:column;align-items:center;gap:8px}
+.wm .logo{display:block;height:40px;color:#F7EBCB}
+.wcard .wm small{display:block;font-family:var(--body);font-size:10px;letter-spacing:.16em;color:#CBA44F;margin-top:2px}
+.wcard h1{font-family:var(--display);font-size:clamp(32px,8vw,48px);line-height:1.05;font-weight:400}
+.wcard h1 em{font-style:italic;color:#EDD596}
+.wcard .lead{font-size:16px;line-height:1.5;color:rgba(247,235,203,.85);max-width:460px}
+.wcard ul{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:10px}
+.wcard li{display:flex;gap:12px;align-items:flex-start;font-size:15px;line-height:1.4}
+.wcard li i{flex:none;width:8px;height:8px;border-radius:50%;background:linear-gradient(140deg,#EDD596,#A9833A);margin-top:7px;display:block}
+.wcard .actions{display:flex;flex-direction:column;gap:10px;margin-top:4px}
+.wcard .go{border-radius:999px;background:linear-gradient(140deg,#EDD596,#CBA44F 55%,#A9833A);color:#1C1406;padding:14px 22px;font-weight:500;font-size:16px;text-align:center;border:0}
+.wcard .sellers{font-size:14px;color:#EDD596;text-align:center;text-decoration:underline;text-underline-offset:3px;border:0;background:none}
+.wcard .sig{font-size:12px;color:rgba(247,235,203,.6);text-align:center;letter-spacing:.06em}
+
+/* ---- join ---- */
+.jpage{max-width:640px;margin:0 auto;padding:22px 16px 60px;display:flex;flex-direction:column;gap:14px}
+.jpage h1{font-family:var(--display);font-size:clamp(28px,6vw,40px);line-height:1.05}
+.jpage .lead{font-size:15px;color:var(--muted);line-height:1.5}
+.jpage h3{font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--gold-edge);margin-top:6px}
+.jpage ul{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:7px}
+.jpage li{display:flex;gap:10px;align-items:flex-start;font-size:14.5px;line-height:1.4}
+.jpage li i{flex:none;width:7px;height:7px;border-radius:50%;background:var(--gold);margin-top:7px;display:block}
+.jpage .price{border:1px solid var(--gold-hi);background:var(--soft-2);border-radius:12px;padding:10px 14px;font-size:14px;line-height:1.5}
+.jpage .price b{font-family:var(--display);font-size:22px;font-weight:400;color:var(--gold-ink);margin-right:4px}
+.jform{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.jform label.full{grid-column:1/-1}
+.jform input,.jform select,.jform textarea{border-radius:12px;font-size:15px}
+.jform .submit{grid-column:1/-1;border-radius:999px;background:#1C1406;color:#EDD596;padding:14px 20px;font-weight:500;font-size:15px;border:0}
+.thanks{display:flex;flex-direction:column;gap:10px;align-items:center;text-align:center;padding:40px 0}
+.thanks .okc{width:54px;height:54px;border-radius:50%;background:var(--soft-2);color:var(--gold-edge);display:grid;place-items:center;font-size:26px;border:1px solid var(--gold-hi)}
+.thanks h2{font-family:var(--display);font-size:28px}
+.thanks p{color:var(--muted);max-width:380px}
+</style></head>
+<body class="vetrina">
+<header class="topv wrap"><div class="col">
+  <div class="brand"><a class="logo" href="https://uniqaia.com/" aria-label="Uniqaia"><svg class="ulogo" xmlns="http://www.w3.org/2000/svg" viewBox="88 32 830 190" role="img" aria-label="Uniqaia"><g font-family="'Cormorant Garamond',Garamond,'Times New Roman',serif" font-weight="500" font-size="150" fill="currentColor" text-anchor="middle"><text x="151" y="160">U</text><text x="283" y="160">N</text><text x="386" y="160">I</text><text x="659" y="160">A</text><text x="756" y="160">I</text><text x="853" y="160">A</text></g><path fill="var(--logo-gold,#A47F3A)" fill-rule="evenodd" d="M 435 112.5 A 75 75 0 1 0 585 112.5 A 75 75 0 1 0 435 112.5 Z M 453 112.5 A 57 67 0 1 0 567 112.5 A 57 67 0 1 0 453 112.5 Z"/><path fill="var(--logo-gold,#A47F3A)" d="M 521.7 186.6 C 545 196 575 203 610 202 C 575 214 540 212 512 196 Z"/><path d="M 470.1 90.5 A 44 52 0 0 1 495 63.6" fill="none" stroke="var(--logo-gold,#A47F3A)" stroke-width="5" stroke-linecap="round"/><circle cx="510" cy="112.5" r="14" fill="var(--logo-gem,#D43F52)"/></svg></a><small id="tag"></small></div>
+  <div class="langs" id="langs"><button type="button" class="cur" id="langCur" aria-haspopup="listbox">IT</button><div class="menu" id="langMenu" hidden><button type="button" data-lang="it">Italiano <small>IT</small></button><button type="button" data-lang="en">English <small>EN</small></button><button type="button" data-lang="fr">Français <small>FR</small></button><button type="button" data-lang="ar">العربية <small>AR</small></button><button type="button" data-lang="ru">Русский <small>RU</small></button></div></div>
+</div></header>
+<main class="wrap"><div class="jpage" id="page"></div></main>
+<footer class="wrap" id="foot"></footer>
+<script>
+
+var ICON = {
+  heart:'<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 21s-7.5-4.6-9.5-9.3C1 7.7 3.6 4 7.3 4c2 0 3.4 1.1 4.7 2.6C13.3 5.1 14.7 4 16.7 4 20.4 4 23 7.7 21.5 11.7 19.5 16.4 12 21 12 21z"/></svg>',
+  eye:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>',
+  gem:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M6 3h12l4 6-10 12L2 9z"/><path d="M2 9h20M9 3l3 6 3-6M6 9l6 12 6-12"/></svg>',
+  cal:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="5" width="18" height="16" rx="3"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>',
+  share:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 12v7a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-7M12 15V3M7 8l5-5 5 5"/></svg>',
+  search:'<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.8-3.8"/></svg>'
+};
+function esc(s){ return String(s == null ? "" : s).replace(/[&<>"']/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]; }); }
+function toast(text){ var old = document.querySelector(".toast"); if (old) old.remove(); var d = document.createElement("div"); d.className = "toast"; d.innerHTML = "<i></i>"; d.appendChild(document.createTextNode(text)); document.body.appendChild(d); setTimeout(function(){ d.remove(); }, 3200); }
+function fmtK(n, loc){ n = n || 0; return n >= 1000 ? (Math.round(n/100)/10).toLocaleString(loc || "it-IT") + "K" : String(n); }
+function burstHearts(container, n){
+  if (!container) return; n = Math.min(n || 3, 8);
+  for (var i = 0; i < n; i++){ (function(i){ setTimeout(function(){ var s = document.createElement("span"); s.innerHTML = ICON.heart; s.style.setProperty("--dx", (Math.random() * 40 - 20) + "px"); s.style.setProperty("--rot", (Math.random() * 40 - 20) + "deg"); container.appendChild(s); setTimeout(function(){ s.remove(); }, 1400); }, i * 110); })(i); }
+}
+function LkTiles(container, opts){
+  var self = this; opts = opts || {};
+  this.box = container; this.tiles = {}; this.audios = document.createElement("div"); this.audios.className = "audios"; container.appendChild(this.audios);
+  this.main = document.createElement("div"); this.main.className = "main"; container.appendChild(this.main);
+  this.pips = document.createElement("div"); this.pips.className = "pips"; container.appendChild(this.pips);
+  this.onChange = opts.onChange || function(){};
+  this.add = function(id, el, label, mirror){
+    if (self.tiles[id]) self.remove(id);
+    if (mirror) el.className = (el.className || "") + " mirror";
+    var wrap = document.createElement("div"); wrap.appendChild(el); wrap.title = label || "";
+    self.tiles[id] = wrap;
+    if (!self.main.firstChild){ wrap.className = ""; self.main.appendChild(wrap); } else { wrap.className = "pip"; self.pips.appendChild(wrap); }
+    wrap.addEventListener("click", function(){ self.promote(id); });
+    self.onChange(self.count());
+  };
+  this.promote = function(id){
+    var w = self.tiles[id]; if (!w || w.parentNode === self.main) return;
+    var cur = self.main.firstChild; self.main.appendChild(w); w.className = "";
+    if (cur){ cur.className = "pip"; self.pips.insertBefore(cur, self.pips.firstChild); }
+  };
+  this.remove = function(id){
+    var w = self.tiles[id]; if (!w) return; self.tiles[id] = null;
+    var wasMain = w.parentNode === self.main; w.remove();
+    if (wasMain && self.pips.firstChild){ var n = self.pips.firstChild; self.main.appendChild(n); n.className = ""; }
+    self.onChange(self.count());
+  };
+  this.addAudio = function(id, el){ el.setAttribute("data-id", id); self.audios.appendChild(el); };
+  this.removeAudio = function(id){ var a = self.audios.querySelector('[data-id="' + id + '"]'); if (a) a.remove(); };
+  this.count = function(){ return Object.keys(self.tiles).filter(function(k){ return !!self.tiles[k]; }).length; };
+  this.mainVideo = function(){ return self.main.querySelector("video"); };
+  this.clear = function(){ Object.keys(self.tiles).forEach(self.remove); self.audios.innerHTML = ""; };
+}
+function lkAttachRemote(room, tiles, LK){
+  function onTrack(track, pub, participant){
+    var id = participant.identity + ":" + (pub.trackSid || track.sid);
+    if (track.kind === "video"){ var el = track.attach(); el.muted = true; el.setAttribute("playsinline", ""); tiles.add(id, el, participant.name || participant.identity, false); }
+    else if (track.kind === "audio"){ tiles.addAudio(id, track.attach()); }
+  }
+  function offTrack(track, pub, participant){
+    var id = participant.identity + ":" + (pub.trackSid || track.sid);
+    track.detach().forEach(function(el){ el.remove(); });
+    if (track.kind === "video") tiles.remove(id); else tiles.removeAudio(id);
+  }
+  room.on(LK.RoomEvent.TrackSubscribed, onTrack);
+  room.on(LK.RoomEvent.TrackUnsubscribed, offTrack);
+  room.on(LK.RoomEvent.ParticipantDisconnected, function(p){ Object.keys(tiles.tiles).forEach(function(id){ if (id.indexOf(p.identity + ":") === 0) tiles.remove(id); }); });
+  room.on(LK.RoomEvent.Disconnected, function(){ tiles.clear(); });
+}
+
+(function(){
+  var Q = new URLSearchParams(location.search), SLUG = (location.pathname.match(/^\/([a-z0-9-]{2,40})(?:\/|$)/) || [])[1] || "";
+  var CFG = {"url":"https://itoxzepuukyvdxxtfetf.supabase.co","key":"sb_publishable_Y6m8EWUZt97nSTmYBsRwYg_Fnzidatk","base":"https://uniqaia.com","name":"Uniqaia","lang":(Q.get("lang")||"").toLowerCase()};
+  var TT = {"it":{"tag":"Fine jewelry & gemstones · Live","search":"Cerca gioiellerie, gemme, pezzi","tabLive":"In diretta","tabSoon":"In programma","tabShops":"Chi trasmette","trust":["Fine jewelry & gemstones","Gioiellerie e gem dealer selezionati","Gemmologa GIA in diretta"],"hLive":"In diretta ora","hSoon":"Prossime dirette","hShops":"Gioiellerie e gem dealer","join":"Come entrare","withGem":"con la gemmologa GIA","live":"Live","soon":"In programma","ended":"Terminata","gems":"Gem dealer","shop":"Gioielleria","emptyLiveT":"Nessuna diretta in questo momento","emptyLive":"Le prossime sono qui sotto: tocca «Ricordamelo» e ti avvisiamo.","emptySoonT":"Programma in arrivo","emptySoon":"Le gioiellerie stanno fissando le prossime date.","remind":"Ricordamelo","reminded":"✓ Ti avviseremo","remindToast":"Promemoria salvato su questo telefono: ","about":"Che cos’è","wTitle":"Gioielli e gemme <em>dal vivo</em>, con una gemmologa accanto.","wLead":"Dirette private di gioiellerie e gem dealer selezionati. Fai domande, chiedi di vedere un pezzo da vicino, prenota un incontro: senza aste e senza fretta.","wPoints":["Solo fine jewelry e gemme naturali, da chi le vende davvero","Una gemmologa GIA in collegamento che risponde a tutti","Sottotitoli in più lingue"],"wGo":"Entra","wSellers":"Hai una gioielleria o sei un gem dealer? Trasmetti con noi →","wSig":"Un progetto di Elena Goglio · Gemmologa GIA","ctaTitle":"Hai una gioielleria o sei un gem dealer?","ctaText":"Porta i tuoi clienti in diretta. Entrano solo venditori selezionati.","ctaBtn":"Candidati","foot":"Uniqaia · Gems & Jewelry Live","footJoin":"Gioiellerie e gem dealer entrano su invito, dopo verifica.","eyebrow":"Diretta privata su invito","interest":"Mi interessa","book":"Prenota","invite":"Invita","ask":"Scrivi una domanda…","send":"Invia","me":"Tu","guest":"Ospite","yourName":"Il tuo nome","nameLead":"Per scrivere e fare richieste serve il tuo nome: lo vede solo la gioielleria.","cont":"Continua","waitSoon":"La diretta inizia","waitEnded":"La diretta è terminata","waitEndedSub":"Grazie per aver partecipato. Le richieste inviate sono arrivate alla gioielleria.","sentInterest":"Richiesta inviata a ","when":"Quando preferisci?","book2":"Trenta minuti in video con ","confirmed":"Appuntamento richiesto","back":"Torna alla diretta","booked":"Ho prenotato l’incontro privato: ","interestMsg":"Mi interessa: ","audio":"Attiva l’audio","copied":"Link copiato: mandalo a chi vuoi invitare","backTo":"Vetrina","askName":"Scrivi prima il tuo nome","jEyebrow":"Per gioiellerie e gem dealer","jTitle":"Trasmetti con noi","jLead":"La piattaforma per fare dirette private con i tuoi clienti, con la gemmologa in collegamento se vuoi. Tu porti il pubblico, noi la tecnologia e la competenza.","jWhatH":"Cosa ricevi","jWhat":["La pagina della diretta con il tuo marchio, privata su invito o in vetrina","Chat, «Mi interessa» e prenotazioni: ogni richiesta arriva a te con il nome del cliente","Video in alta definizione dal telefono, senza app da installare","Gemmologa GIA in collegamento quando vuoi, replay e sottotitoli in più lingue"],"jWhoH":"Chi può candidarsi","jWho":["Gioiellerie e gem dealer con sede e partita IVA","Solo fine jewelry e gemme naturali","Disponibili a mostrare i pezzi dal vivo, con i certificati quando ci sono"],"jPrice":"al mese per la piattaforma · attivazione 290 € · opzioni con la gemmologa su preventivo","jFormH":"Candidatura","fName":"Nome dell’attività","fCity":"Città","fKind":"Tipo","kShop":"Gioielleria","kGems":"Gem dealer","fSite":"Sito o profilo","fShow":"Cosa vorresti mostrare in diretta","fEmail":"Email","fPhone":"Telefono","jSend":"Invia la candidatura","jFine":"Ti risponde Elena personalmente. Nessun impegno fino al primo contratto.","thTitle":"Candidatura ricevuta","thText":"Grazie. Elena guarda ogni candidatura di persona e ti ricontatta per una videochiamata di conoscenza.","thBtn":"Torna alla vetrina","need":"Compila nome, città ed email","sending":"Invio…"},"en":{"tag":"Fine jewelry & gemstones · Live","search":"Search jewellers, gems, pieces","tabLive":"Live","tabSoon":"Upcoming","tabShops":"Sellers","trust":["Fine jewelry & gemstones","Selected jewellers and gem dealers","GIA gemologist live"],"hLive":"Live now","hSoon":"Upcoming shows","hShops":"Jewellers and gem dealers","join":"How to join","withGem":"with the GIA gemologist","live":"Live","soon":"Scheduled","ended":"Ended","gems":"Gem dealer","shop":"Jeweller","emptyLiveT":"No live show right now","emptyLive":"The next ones are below: tap “Remind me” and we'll let you know.","emptySoonT":"Programme coming soon","emptySoon":"The jewellers are setting their next dates.","remind":"Remind me","reminded":"✓ We'll remind you","remindToast":"Reminder saved on this phone: ","about":"What is this","wTitle":"Jewellery and gems <em>live</em>, with a gemologist at your side.","wLead":"Private live shows from selected jewellers and gem dealers. Ask questions, see a piece up close, book a private appointment: no auctions, no rush.","wPoints":["Only fine jewellery and natural gems, from the people who actually sell them","A GIA gemologist joining in and answering everyone","Subtitles in several languages"],"wGo":"Enter","wSellers":"Jeweller or gem dealer? Go live with us →","wSig":"A project by Elena Goglio · GIA gemologist","ctaTitle":"Jeweller or gem dealer?","ctaText":"Bring your clients live. Selected sellers only.","ctaBtn":"Apply","foot":"Uniqaia · Gems & Jewelry Live","footJoin":"Jewellers and gem dealers join by invitation, after vetting.","eyebrow":"Private live show, by invitation","interest":"I'm interested","book":"Book","invite":"Invite","ask":"Ask a question…","send":"Send","me":"You","guest":"Guest","yourName":"Your name","nameLead":"We need your name to chat and send requests: only the jeweller sees it.","cont":"Continue","waitSoon":"The live show starts","waitEnded":"The live show has ended","waitEndedSub":"Thank you for joining. Your requests have reached the jeweller.","sentInterest":"Request sent to ","when":"When suits you?","book2":"Thirty minutes on video with ","confirmed":"Appointment requested","back":"Back to the live show","booked":"I've booked a private appointment: ","interestMsg":"I'm interested: ","audio":"Turn on sound","copied":"Link copied: send it to whoever you'd like to invite","backTo":"Showcase","askName":"Please enter your name first","jEyebrow":"For jewellers and gem dealers","jTitle":"Go live with us","jLead":"The platform for private live shows with your own clients, with the gemologist joining in if you wish. You bring the audience, we bring the technology and the expertise.","jWhatH":"What you get","jWhat":["Your branded live page, private by invitation or in the showcase","Chat, “I'm interested” and bookings: every request reaches you with the client's name","HD video from a phone, no app to install","GIA gemologist on call, replays and subtitles in several languages"],"jWhoH":"Who can apply","jWho":["Jewellers and gem dealers with premises and a VAT number","Fine jewellery and natural gems only","Willing to show pieces live, with certificates where available"],"jPrice":"per month for the platform · €290 setup · gemologist options on quotation","jFormH":"Application","fName":"Business name","fCity":"City","fKind":"Type","kShop":"Jeweller","kGems":"Gem dealer","fSite":"Website or profile","fShow":"What you'd like to show live","fEmail":"Email","fPhone":"Phone","jSend":"Send application","jFine":"Elena replies personally. No commitment before the first contract.","thTitle":"Application received","thText":"Thank you. Elena reviews every application herself and will get back to you for an introductory video call.","thBtn":"Back to the showcase","need":"Please fill in name, city and email","sending":"Sending…"},"fr":{"tag":"Fine jewelry & gemstones · Live","search":"Chercher bijouteries, gemmes, pièces","tabLive":"En direct","tabSoon":"À venir","tabShops":"Vendeurs","trust":["Fine jewelry & gemstones","Bijouteries et négociants sélectionnés","Gemmologue GIA en direct"],"hLive":"En direct maintenant","hSoon":"Prochains directs","hShops":"Bijouteries et négociants en gemmes","join":"Comment rejoindre","withGem":"avec la gemmologue GIA","live":"Live","soon":"Programmé","ended":"Terminé","gems":"Négociant en gemmes","shop":"Bijouterie","emptyLiveT":"Aucun direct en ce moment","emptyLive":"Les prochains sont ci-dessous : touchez « Me le rappeler » et nous vous préviendrons.","emptySoonT":"Programme à venir","emptySoon":"Les bijouteries fixent leurs prochaines dates.","remind":"Me le rappeler","reminded":"✓ Nous vous préviendrons","remindToast":"Rappel enregistré sur ce téléphone : ","about":"Qu’est-ce que c’est","wTitle":"Bijoux et gemmes <em>en direct</em>, avec une gemmologue à vos côtés.","wLead":"Directs privés de bijouteries et négociants sélectionnés. Posez vos questions, voyez une pièce de près, réservez un rendez-vous : sans enchères, sans précipitation.","wPoints":["Uniquement de la haute joaillerie et des gemmes naturelles, par ceux qui les vendent vraiment","Une gemmologue GIA en liaison qui répond à tous","Sous-titres en plusieurs langues"],"wGo":"Entrer","wSellers":"Bijoutier ou négociant en gemmes ? Diffusez avec nous →","wSig":"Un projet d’Elena Goglio · Gemmologue GIA","ctaTitle":"Bijoutier ou négociant en gemmes ?","ctaText":"Faites venir vos clients en direct. Vendeurs sélectionnés uniquement.","ctaBtn":"Candidater","foot":"Uniqaia · Gems & Jewelry Live","footJoin":"Bijouteries et négociants entrent sur invitation, après vérification.","eyebrow":"Direct privé, sur invitation","interest":"Ça m’intéresse","book":"Réserver","invite":"Inviter","ask":"Posez une question…","send":"Envoyer","me":"Vous","guest":"Invité","yourName":"Votre nom","nameLead":"Votre nom est nécessaire pour écrire et faire des demandes : seule la bijouterie le voit.","cont":"Continuer","waitSoon":"Le direct commence","waitEnded":"Le direct est terminé","waitEndedSub":"Merci d’avoir participé. Vos demandes sont bien arrivées à la bijouterie.","sentInterest":"Demande envoyée à ","when":"Quand préférez-vous ?","book2":"Trente minutes en vidéo avec ","confirmed":"Rendez-vous demandé","back":"Retour au direct","booked":"J’ai réservé le rendez-vous privé : ","interestMsg":"Ça m’intéresse : ","audio":"Activer le son","copied":"Lien copié : envoyez-le à qui vous voulez inviter","backTo":"Vitrine","askName":"Indiquez d’abord votre nom","jEyebrow":"Pour bijouteries et négociants","jTitle":"Diffusez avec nous","jLead":"La plateforme pour des directs privés avec vos propres clients, avec la gemmologue en liaison si vous le souhaitez. Vous apportez le public, nous la technologie et l’expertise.","jWhatH":"Ce que vous recevez","jWhat":["Votre page de direct à votre marque, privée sur invitation ou en vitrine","Chat, « Ça m’intéresse » et réservations : chaque demande vous arrive avec le nom du client","Vidéo HD depuis un téléphone, sans application à installer","Gemmologue GIA à la demande, replays et sous-titres en plusieurs langues"],"jWhoH":"Qui peut candidater","jWho":["Bijouteries et négociants avec un local et un numéro de TVA","Uniquement haute joaillerie et gemmes naturelles","Prêts à montrer les pièces en direct, avec les certificats quand ils existent"],"jPrice":"par mois pour la plateforme · activation 290 € · options avec la gemmologue sur devis","jFormH":"Candidature","fName":"Nom de l’entreprise","fCity":"Ville","fKind":"Type","kShop":"Bijouterie","kGems":"Négociant en gemmes","fSite":"Site ou profil","fShow":"Ce que vous aimeriez montrer en direct","fEmail":"E-mail","fPhone":"Téléphone","jSend":"Envoyer la candidature","jFine":"Elena vous répond personnellement. Aucun engagement avant le premier contrat.","thTitle":"Candidature reçue","thText":"Merci. Elena examine chaque candidature elle-même et vous recontacte pour un appel vidéo de présentation.","thBtn":"Retour à la vitrine","need":"Merci d’indiquer le nom, la ville et l’e-mail","sending":"Envoi…"},"ar":{"tag":"مجوهرات راقية وأحجار كريمة · بث مباشر","search":"ابحث عن صاغة وأحجار وقطع","tabLive":"مباشر","tabSoon":"القادمة","tabShops":"البائعون","trust":["مجوهرات راقية وأحجار كريمة","صاغة وتجّار أحجار مختارون","خبيرة أحجار كريمة GIA على الهواء"],"hLive":"مباشر الآن","hSoon":"البثوث القادمة","hShops":"الصاغة وتجّار الأحجار","join":"كيف تنضم","withGem":"مع خبيرة الأحجار الكريمة GIA","live":"مباشر","soon":"مجدول","ended":"انتهى","gems":"تاجر أحجار كريمة","shop":"صائغ","emptyLiveT":"لا يوجد بث مباشر الآن","emptyLive":"البثوث القادمة في الأسفل: اضغط «ذكّرني» وسنخبرك.","emptySoonT":"البرنامج قريبًا","emptySoon":"الصاغة يحددون مواعيدهم القادمة.","remind":"ذكّرني","reminded":"✓ سنذكّرك","remindToast":"تم حفظ التذكير على هذا الهاتف: ","about":"ما هذا؟","wTitle":"مجوهرات وأحجار كريمة <em>على الهواء</em>، مع خبيرة أحجار إلى جانبك.","wLead":"بثوث مباشرة خاصة من صاغة وتجّار أحجار مختارين. اطرح أسئلتك، اطلب رؤية القطعة عن قرب، واحجز موعدًا خاصًا: بلا مزادات وبلا عجلة.","wPoints":["مجوهرات راقية وأحجار طبيعية فقط، من بائعيها الحقيقيين","خبيرة أحجار كريمة GIA تنضم وتجيب عن أسئلة الجميع","ترجمة بعدة لغات"],"wGo":"ادخل","wSellers":"هل أنت صائغ أو تاجر أحجار كريمة؟ ابثّ معنا ←","wSig":"مشروع من إيلينا غوليو · خبيرة أحجار كريمة GIA","ctaTitle":"هل أنت صائغ أو تاجر أحجار كريمة؟","ctaText":"اصطحب عملاءك إلى البث المباشر. للبائعين المختارين فقط.","ctaBtn":"قدّم طلبك","foot":"Uniqaia · Gems & Jewelry Live","footJoin":"ينضم الصاغة وتجّار الأحجار بدعوة، بعد التحقق.","eyebrow":"بث مباشر خاص بدعوة","interest":"يهمّني","book":"احجز","invite":"ادعُ","ask":"اكتب سؤالك…","send":"إرسال","me":"أنت","guest":"ضيف","yourName":"اسمك","nameLead":"نحتاج اسمك للمحادثة وإرسال الطلبات: يراه الصائغ فقط.","cont":"متابعة","waitSoon":"يبدأ البث المباشر","waitEnded":"انتهى البث المباشر","waitEndedSub":"شكرًا لمشاركتك. وصلت طلباتك إلى الصائغ.","sentInterest":"أُرسل الطلب إلى ","when":"متى يناسبك؟","book2":"ثلاثون دقيقة بالفيديو مع ","confirmed":"تم طلب الموعد","back":"العودة إلى البث","booked":"حجزت موعدًا خاصًا: ","interestMsg":"يهمّني: ","audio":"تشغيل الصوت","copied":"تم نسخ الرابط: أرسله لمن تريد دعوته","backTo":"الواجهة","askName":"اكتب اسمك أولًا","jEyebrow":"للصاغة وتجّار الأحجار الكريمة","jTitle":"ابثّ معنا","jLead":"المنصة لإقامة بثوث مباشرة خاصة مع عملائك، مع انضمام خبيرة الأحجار إن أردت. أنت تجلب الجمهور، ونحن نجلب التقنية والخبرة.","jWhatH":"ماذا تحصل عليه","jWhat":["صفحة بث مباشر بعلامتك التجارية، خاصة بدعوة أو في الواجهة","محادثة و«يهمّني» وحجوزات: يصلك كل طلب مع اسم العميل","فيديو عالي الدقة من الهاتف، دون تطبيق","خبيرة أحجار GIA عند الطلب، إعادة المشاهدة وترجمة بعدة لغات"],"jWhoH":"من يمكنه التقديم","jWho":["صاغة وتجّار أحجار لديهم مقر ورقم ضريبي","مجوهرات راقية وأحجار طبيعية فقط","مستعدون لعرض القطع على الهواء، مع الشهادات عند توفرها"],"jPrice":"شهريًا للمنصة · تفعيل 290 € · خيارات خبيرة الأحجار بعرض سعر","jFormH":"طلب الانضمام","fName":"اسم النشاط","fCity":"المدينة","fKind":"النوع","kShop":"صائغ","kGems":"تاجر أحجار كريمة","fSite":"الموقع أو الحساب","fShow":"ماذا تودّ أن تعرض على الهواء","fEmail":"البريد الإلكتروني","fPhone":"الهاتف","jSend":"إرسال الطلب","jFine":"تردّ عليك إيلينا شخصيًا. لا التزام قبل العقد الأول.","thTitle":"تم استلام طلبك","thText":"شكرًا. تراجع إيلينا كل طلب بنفسها وستتواصل معك لمكالمة فيديو تعريفية.","thBtn":"العودة إلى الواجهة","need":"يرجى إدخال الاسم والمدينة والبريد الإلكتروني","sending":"جارٍ الإرسال…"},"ru":{"tag":"Ювелирные украшения и камни · Live","search":"Поиск ювелиров, камней, изделий","tabLive":"В эфире","tabSoon":"Скоро","tabShops":"Продавцы","trust":["Fine jewelry & gemstones","Отобранные ювелиры и дилеры камней","Геммолог GIA в прямом эфире"],"hLive":"Сейчас в эфире","hSoon":"Ближайшие эфиры","hShops":"Ювелиры и дилеры камней","join":"Как присоединиться","withGem":"с геммологом GIA","live":"Live","soon":"Запланирован","ended":"Завершён","gems":"Дилер камней","shop":"Ювелир","emptyLiveT":"Сейчас нет прямых эфиров","emptyLive":"Ближайшие — ниже: нажмите «Напомнить», и мы вас предупредим.","emptySoonT":"Расписание скоро появится","emptySoon":"Ювелиры назначают ближайшие даты.","remind":"Напомнить","reminded":"✓ Мы напомним","remindToast":"Напоминание сохранено на этом телефоне: ","about":"Что это","wTitle":"Украшения и камни <em>вживую</em>, рядом с геммологом.","wLead":"Закрытые прямые эфиры отобранных ювелиров и дилеров камней. Задавайте вопросы, попросите показать изделие ближе, запишитесь на личную встречу: без аукционов и без спешки.","wPoints":["Только fine jewelry и природные камни — от тех, кто их действительно продаёт","Геммолог GIA на связи и отвечает всем","Субтитры на нескольких языках"],"wGo":"Войти","wSellers":"Вы ювелир или дилер камней? Выходите в эфир с нами →","wSig":"Проект Элены Гольо · геммолог GIA","ctaTitle":"Вы ювелир или дилер камней?","ctaText":"Приведите своих клиентов в прямой эфир. Только отобранные продавцы.","ctaBtn":"Подать заявку","foot":"Uniqaia · Gems & Jewelry Live","footJoin":"Ювелиры и дилеры камней входят по приглашению, после проверки.","eyebrow":"Закрытый эфир по приглашению","interest":"Интересует","book":"Записаться","invite":"Пригласить","ask":"Задайте вопрос…","send":"Отправить","me":"Вы","guest":"Гость","yourName":"Ваше имя","nameLead":"Чтобы писать в чат и отправлять запросы, нужно ваше имя: его видит только ювелир.","cont":"Продолжить","waitSoon":"Эфир начнётся","waitEnded":"Эфир завершён","waitEndedSub":"Спасибо за участие. Ваши запросы переданы ювелиру.","sentInterest":"Запрос отправлен: ","when":"Когда вам удобно?","book2":"Тридцать минут по видео с ","confirmed":"Запрос на встречу отправлен","back":"Вернуться к эфиру","booked":"Я записался(ась) на личную встречу: ","interestMsg":"Меня интересует: ","audio":"Включить звук","copied":"Ссылка скопирована: отправьте её тому, кого хотите пригласить","backTo":"Витрина","askName":"Сначала укажите ваше имя","jEyebrow":"Для ювелиров и дилеров камней","jTitle":"Выходите в эфир с нами","jLead":"Платформа для закрытых прямых эфиров с вашими клиентами — при желании с подключением геммолога. Вы приводите аудиторию, мы даём технологию и экспертизу.","jWhatH":"Что вы получаете","jWhat":["Страница эфира с вашим брендом — закрытая по приглашению или в витрине","Чат, «Интересует» и записи на встречу: каждый запрос приходит к вам с именем клиента","HD-видео с телефона, без установки приложений","Геммолог GIA по запросу, записи эфиров и субтитры на нескольких языках"],"jWhoH":"Кто может подать заявку","jWho":["Ювелиры и дилеры камней с офисом и регистрацией НДС","Только fine jewelry и природные камни","Готовность показывать изделия вживую, с сертификатами, где они есть"],"jPrice":"в месяц за платформу · подключение 290 € · опции с геммологом по запросу","jFormH":"Заявка","fName":"Название компании","fCity":"Город","fKind":"Тип","kShop":"Ювелир","kGems":"Дилер камней","fSite":"Сайт или профиль","fShow":"Что вы хотели бы показать в эфире","fEmail":"Email","fPhone":"Телефон","jSend":"Отправить заявку","jFine":"Элена отвечает лично. Никаких обязательств до первого договора.","thTitle":"Заявка получена","thText":"Спасибо. Элена лично рассматривает каждую заявку и свяжется с вами для ознакомительного видеозвонка.","thBtn":"Вернуться в витрину","need":"Заполните название, город и email","sending":"Отправка…"}};
+  var sb = window.supabase.createClient(CFG.url, CFG.key);
+  var $ = function(id){ return document.getElementById(id); };
+  var lang = CFG.lang;
+  if (!TT[lang]) { try { lang = localStorage.getItem("vetrina-lang") || ""; } catch(e){} }
+  if (!TT[lang]) { var nav = (navigator.language || "it").slice(0,2).toLowerCase(); lang = TT[nav] ? nav : "it"; }
+  var t = TT[lang];
+  function li(arr){ return '<ul>' + arr.map(function(x){ return '<li><i></i>' + esc(x) + '</li>'; }).join("") + '</ul>'; }
+  function render(){
+    t = TT[lang]; document.documentElement.lang = lang; document.documentElement.dir = lang === "ar" ? "rtl" : "ltr"; $("langCur").textContent = lang.toUpperCase();
+    $("tag").textContent = t.tag; $("foot").textContent = t.foot;
+    Array.prototype.forEach.call(document.querySelectorAll("#langMenu button"), function(b){ b.classList.toggle("on", b.getAttribute("data-lang") === lang); });
+    $("page").innerHTML = '<span class="eyebrow">' + esc(t.jEyebrow) + '</span><h1>' + esc(t.jTitle) + '</h1><p class="lead">' + esc(t.jLead) + '</p>' +
+      '<h3>' + esc(t.jWhatH) + '</h3>' + li(t.jWhat) + '<h3>' + esc(t.jWhoH) + '</h3>' + li(t.jWho) +
+      '<div class="price"><b>149 €</b> ' + esc(t.jPrice) + '</div>' +
+      '<h3>' + esc(t.jFormH) + '</h3><form class="jform" id="jForm">' +
+        '<label>' + esc(t.fName) + '<input id="jName" type="text" maxlength="80" required></label><label>' + esc(t.fCity) + '<input id="jCity" type="text" maxlength="60" required></label>' +
+        '<label>' + esc(t.fKind) + '<select id="jKind"><option value="shop">' + esc(t.kShop) + '</option><option value="gems">' + esc(t.kGems) + '</option></select></label><label>' + esc(t.fSite) + '<input id="jSite" type="text" maxlength="160" placeholder="www…"></label>' +
+        '<label class="full">' + esc(t.fShow) + '<textarea id="jShow" maxlength="600"></textarea></label>' +
+        '<label>' + esc(t.fEmail) + '<input id="jEmail" type="email" maxlength="120" required></label><label>' + esc(t.fPhone) + '<input id="jPhone" type="tel" maxlength="40"></label>' +
+        '<button class="submit" type="submit" id="jSend">' + esc(t.jSend) + '</button></form><p class="hint">' + esc(t.jFine) + '</p>';
+    $("jForm").addEventListener("submit", function(e){
+      e.preventDefault();
+      var name = $("jName").value.trim(), city = $("jCity").value.trim(), email = $("jEmail").value.trim();
+      if (!name || !city || !email){ toast(t.need); return; }
+      $("jSend").disabled = true; $("jSend").textContent = t.sending;
+      sb.rpc("apply_seller", { p_name: name, p_city: city, p_kind: $("jKind").value, p_site: $("jSite").value.trim(), p_show_what: $("jShow").value.trim(), p_email: email, p_phone: $("jPhone").value.trim(), p_lang: lang }).then(function(r){
+        if (r.error){ toast(r.error.message); $("jSend").disabled = false; $("jSend").textContent = t.jSend; return; }
+        $("page").innerHTML = '<div class="thanks"><span class="okc">✓</span><h2>' + esc(t.thTitle) + '</h2><p>' + esc(t.thText) + '</p><a class="btn dark" style="margin-top:8px" href="' + CFG.base + '/">' + esc(t.thBtn) + '</a></div>';
+        window.scrollTo(0, 0);
+      });
+    });
+  }
+  $("langCur").addEventListener("click", function(e){ e.stopPropagation(); $("langMenu").hidden = !$("langMenu").hidden; });
+  document.addEventListener("click", function(){ $("langMenu").hidden = true; });
+  Array.prototype.forEach.call(document.querySelectorAll("#langMenu button"), function(b){ b.addEventListener("click", function(){ lang = b.getAttribute("data-lang"); $("langMenu").hidden = true; try { localStorage.setItem("vetrina-lang", lang); } catch(e){} render(); }); });
+  render();
+})();
+</script>
+</body></html>

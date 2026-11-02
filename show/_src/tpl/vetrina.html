@@ -71,7 +71,7 @@
       box.appendChild(b);
     });
   }
-  function showUrl(s, j){ return CFG.base + "/live/" + j.slug + "?s=" + s.id + "&lang=" + lang; }
+  function showUrl(s, j){ return (s.status === "live" || !s.slug) ? CFG.base + "/live/" + j.slug + "?s=" + s.id + "&lang=" + lang : CFG.base + "/live/" + j.slug + "/" + s.slug + "?lang=" + lang; }
 
   function cover(s, j, extra){
     var p = pal(j.slug), cv = state.covers[s.id];
@@ -168,7 +168,7 @@
 
   function loadShows(){
     var since = new Date(Date.now() - 12 * 3600 * 1000).toISOString();
-    return sb.from("shows").select("id,jeweler_id,title,title_i18n,scheduled_at,status,lang,likes,current_piece_id,categories,price_range").eq("visibility", "public").in("status", ["live","scheduled"]).gte("scheduled_at", since).order("scheduled_at").then(function(r){
+    return sb.from("shows").select("id,jeweler_id,slug,title,title_i18n,scheduled_at,status,lang,likes,current_piece_id,categories,price_range").eq("visibility", "public").in("status", ["live","scheduled"]).gte("scheduled_at", since).order("scheduled_at").then(function(r){
       state.shows = r.data || [];
       var ids = state.shows.map(function(s){ return s.id; });
       if (!ids.length) return;

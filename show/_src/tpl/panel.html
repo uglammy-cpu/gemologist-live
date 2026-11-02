@@ -69,6 +69,7 @@ label input,label select,label textarea{width:100%}
       <div class="seg" id="visSeg"><button type="button" data-vis="private">Privata su invito</button><button type="button" data-vis="public">In vetrina</button></div>
       <p class="hint" id="visHint"></p>
       <div class="share"><span>Link per i clienti</span><input id="shareUrl" readonly><button class="btn sm" type="button" id="copyShare">Copia</button></div>
+      <div class="share"><span>Pagina di questa diretta (da condividere)</span><input id="landingUrl" readonly><button class="btn sm" type="button" id="copyLanding">Copia</button></div>
       <div class="share"><span>La tua scheda</span><input id="profileUrl" readonly><button class="btn sm" type="button" id="copyProfile">Copia</button></div>
       <p class="eyebrow" style="margin-top:6px">La tua camera</p>
       <div class="cam" id="cam"><span class="hintv" id="camHint">Camera spenta. Accendila per trasmettere: i clienti vedono il video quando la diretta è «In diretta».</span><div class="videos" id="camVideos"></div></div>
@@ -108,7 +109,7 @@ label input,label select,label textarea{width:100%}
   var CFG = {"url":"{{URL}}","key":"{{KEY}}","slug":"{{SLUG}}","token":"{{TOKEN}}","base":"{{BASE}}","tokenUrl":"{{TOKENURL}}","art":{{ART}}};
   var sb = window.supabase.createClient(CFG.url, CFG.key);
   var $ = function(id){ return document.getElementById(id); };
-  var state = { jeweler:null, shows:[], show:null, pieces:[], role:"", name:"", seen:0, firstReq:true, pendingStop:false, timer:null };
+  var state = { jeweler:null, shows:[], show:null, pieces:[], photos:{}, role:"", name:"", seen:0, firstReq:true, pendingStop:false, timer:null };
   var LANGS = { it:"Italiano", en:"Inglese", fr:"Francese" };
   var ARTS = { ring:"Anello solitario", sapphire:"Anello con pietra colorata", earrings:"Orecchini", necklace:"Collana / pendente", bracelet:"Bracciale", diamond:"Diamante sciolto", loose:"Pietre sciolte", pearls:"Perle", bands:"Fedi", brooch:"Spilla / vintage", tiara:"Alta gioielleria", bespoke:"Su misura", none:"Nessuna immagine" };
   var CATS = [];
@@ -155,7 +156,7 @@ label input,label select,label textarea{width:100%}
     if (s.status === "scheduled"){ t.textContent = "Inizia la diretta"; t.className = "btn dark"; }
     else if (s.status === "live"){ t.textContent = "Termina la diretta"; t.className = "btn"; }
     else { t.textContent = "Riapri la diretta"; t.className = "btn"; }
-    $("shareUrl").value = viewerUrl(); $("profileUrl").value = CFG.base + "/live/" + CFG.slug + "/profile";
+    $("shareUrl").value = viewerUrl(); $("profileUrl").value = CFG.base + "/live/" + CFG.slug + "/profile"; $("landingUrl").value = s.slug ? CFG.base + "/live/" + CFG.slug + "/" + s.slug : viewerUrl();
     Array.prototype.forEach.call(document.querySelectorAll("#visSeg button"), function(b){ b.classList.toggle("on", b.getAttribute("data-vis") === (s.visibility || "private")); });
     $("visHint").textContent = s.visibility === "public" ? "Compare nella vetrina pubblica: chiunque può entrare." : "Entra solo chi ha il link o un invito personale.";
     $("stats").hidden = false; $("likesN").textContent = s.likes || 0;
@@ -167,10 +168,13 @@ label input,label select,label textarea{width:100%}
     var box = $("pieces"); box.innerHTML = "";
     if (!state.pieces.length){ box.innerHTML = '<p class="hint">Nessun pezzo ancora. Aggiungine uno: i clienti lo vedono in primo piano e possono dire «Mi interessa».</p>'; return; }
     state.pieces.forEach(function(p){
-      var b = document.createElement("button"); b.type = "button"; b.className = "piece" + (state.show.current_piece_id === p.id ? " on" : "");
-      b.innerHTML = (CFG.art[p.art] || CFG.art.none) + '<span><b>' + esc(p.name) + '</b><small>' + esc(p.caption || "") + '</small></span>';
+      var row = document.createElement("div"); row.style.cssText = "display:flex;gap:6px;align-items:stretch";
+      var b = document.createElement("button"); b.type = "button"; b.className = "piece" + (state.show.current_piece_id === p.id ? " on" : ""); b.style.flex = "1";
+      b.innerHTML = (state.photos[p.id] ? '<img src="' + state.photos[p.id] + '" alt="" style="width:40px;height:40px;object-fit:cover;border-radius:8px;flex:none">' : (CFG.art[p.art] || CFG.art.none)) + '<span><b>' + esc(p.name) + '</b><small>' + esc(p.caption || "") + '</small></span>';
       b.addEventListener("click", function(){ sb.rpc("set_current_piece", { p_show: state.show.id, p_token: CFG.token, p_piece: p.id }).then(function(r){ if (!err(r)){ state.show.current_piece_id = p.id; renderPieces(); toast("In primo piano: " + p.short); } }); });
-      box.appendChild(b);
+      var lab = document.createElement("label"); lab.className = "btn sm"; lab.style.cssText = "min-height:0;padding:0 10px;cursor:pointer;flex:none"; lab.title = state.photos[p.id] ? "Cambia foto" : "Aggiungi una foto"; lab.textContent = "📷";
+      var inp = document.createElement("input"); inp.type = "file"; inp.accept = "image/*"; inp.hidden = true; inp.addEventListener("change", function(){ savePhoto(p.id, inp.files && inp.files[0]); }); lab.appendChild(inp);
+      row.appendChild(b); row.appendChild(lab); box.appendChild(row);
     });
   }
   // Video (LiveKit): lo staff trasmette camera e microfono e vede gli altri presentatori
@@ -292,7 +296,7 @@ label input,label select,label textarea{width:100%}
   }
   function loadRequests(){ sb.rpc("list_requests", { p_show: state.show.id, p_token: CFG.token }).then(function(r){ if (!r.error) renderRequests(r.data || []); }); }
   function loadInvites(){ sb.rpc("list_invites", { p_show: state.show.id, p_token: CFG.token }).then(function(r){ if (!r.error) renderInvites((r.data || []).sort(function(a,b){ return a.client_name.localeCompare(b.client_name); })); }); }
-  function loadPieces(){ return sb.from("pieces").select("*").eq("show_id", state.show.id).order("position").then(function(r){ state.pieces = r.data || []; renderPieces(); }); }
+  function loadPieces(){ return sb.from("pieces").select("*").eq("show_id", state.show.id).order("position").then(function(r){ state.pieces = r.data || []; renderPieces(); var ids = state.pieces.map(function(p){ return p.id; }); if (ids.length) return sb.from("piece_photos").select("piece_id,data").in("piece_id", ids).then(function(ph){ (ph.data || []).forEach(function(x){ state.photos[x.piece_id] = x.data; }); renderPieces(); }); }); }
 
   Array.prototype.forEach.call(document.querySelectorAll("#visSeg button"), function(b){
     b.addEventListener("click", function(){ var v = b.getAttribute("data-vis"); sb.rpc("set_visibility", { p_show: state.show.id, p_token: CFG.token, p_vis: v }).then(function(r){ if (!err(r)){ state.show.visibility = v; renderShow(); toast(v === "public" ? "La diretta è in vetrina" : "La diretta è privata"); } }); });
@@ -306,6 +310,28 @@ label input,label select,label textarea{width:100%}
   $("showSel").addEventListener("change", function(){ var u = new URL(location.href); u.searchParams.set("show", this.value); location.href = u.toString(); });
   $("copyShare").addEventListener("click", function(){ copy(viewerUrl(), this); });
   $("copyProfile").addEventListener("click", function(){ copy($("profileUrl").value, this); });
+  $("copyLanding").addEventListener("click", function(){ copy($("landingUrl").value, this); });
+  // Foto dei pezzi: ridotte nel browser (max 900 px, JPEG) e salvate nel database
+  function shrink(file, cb){
+    var img = new Image(), url = URL.createObjectURL(file);
+    img.onload = function(){
+      var W = img.naturalWidth, H = img.naturalHeight, sc = Math.min(1, 900 / Math.max(W, H));
+      var c = document.createElement("canvas"); c.width = Math.round(W * sc); c.height = Math.round(H * sc);
+      c.getContext("2d").drawImage(img, 0, 0, c.width, c.height);
+      var q = 0.82, out = c.toDataURL("image/jpeg", q);
+      while (out.length > 260000 && q > 0.35){ q -= 0.1; out = c.toDataURL("image/jpeg", q); }
+      URL.revokeObjectURL(url); cb(out.length > 260000 ? null : out);
+    };
+    img.onerror = function(){ URL.revokeObjectURL(url); cb(null); };
+    img.src = url;
+  }
+  function savePhoto(pieceId, file){
+    if (!file) return;
+    shrink(file, function(data){
+      if (!data){ toast("Foto non leggibile o troppo grande"); return; }
+      sb.rpc("set_piece_photo", { p_piece: pieceId, p_token: CFG.token, p_data: data }).then(function(r){ if (!err(r)){ state.photos[pieceId] = data; renderPieces(); toast("Foto salvata"); } });
+    });
+  }
   $("toggle").addEventListener("click", function(){
     var s = state.show, next;
     if (s.status === "scheduled") next = "live";
@@ -334,6 +360,7 @@ label input,label select,label textarea{width:100%}
       '<label>Lingua della pagina clienti<select id="sfLang"><option value="it">Italiano</option><option value="en">Inglese</option><option value="fr">Francese</option></select></label>' +
       catChecks("sfCats", s.categories, 3) +
       '<label>Fascia di prezzo dei pezzi (facoltativa, es. 500–5.000 €)<input id="sfPrice" type="text" maxlength="40" value="' + esc(s.price_range || "") + '"></label>' +
+      '<label>Descrizione per la pagina pubblica della diretta (cosa mostri, perché vale la pena esserci; max 1200 caratteri)<textarea id="sfDesc" maxlength="1200" rows="5">' + esc(s.description || "") + '</textarea></label>' +
       '<label>Orari proposti per gli appuntamenti privati (uno per riga)<textarea id="sfSlots">' + esc(slots) + '</textarea></label>' +
       '<button class="btn dark" type="submit">' + (existing ? "Salva" : "Crea la diretta") + '</button></form>');
     $("sfLang").value = s.lang || "it"; $("sfVis").value = s.visibility || "private";
@@ -345,9 +372,9 @@ label input,label select,label textarea{width:100%}
       var vis = $("sfVis").value;
       var cats = catPicked("sfCats", 3); if (!cats) return;
       if (existing){
-        sb.rpc("update_show2", { p_show: s.id, p_token: CFG.token, p_title: $("sfTitle").value, p_at: at.toISOString(), p_lang: $("sfLang").value, p_slots: slotsArr, p_i18n: i18n, p_vis: vis }).then(function(r){ if (err(r)) return; return sb.rpc("set_show_categories", { p_show: s.id, p_token: CFG.token, p_cats: cats }); }).then(function(r){ if (r && err(r)) return; return sb.rpc("set_show_price", { p_show: s.id, p_token: CFG.token, p_price: $("sfPrice").value }); }).then(function(r){ if (r && err(r)) return; closeModal(); location.reload(); });
+        sb.rpc("update_show2", { p_show: s.id, p_token: CFG.token, p_title: $("sfTitle").value, p_at: at.toISOString(), p_lang: $("sfLang").value, p_slots: slotsArr, p_i18n: i18n, p_vis: vis }).then(function(r){ if (err(r)) return; return sb.rpc("set_show_categories", { p_show: s.id, p_token: CFG.token, p_cats: cats }); }).then(function(r){ if (r && err(r)) return; return sb.rpc("set_show_price", { p_show: s.id, p_token: CFG.token, p_price: $("sfPrice").value }); }).then(function(r){ if (r && err(r)) return; return sb.rpc("set_show_text", { p_show: s.id, p_token: CFG.token, p_desc: $("sfDesc").value }); }).then(function(r){ if (r && err(r)) return; closeModal(); location.reload(); });
       } else {
-        sb.rpc("create_show", { p_token: CFG.token, p_jeweler: state.jeweler.id, p_title: $("sfTitle").value, p_at: at.toISOString(), p_lang: $("sfLang").value, p_slots: slotsArr }).then(function(r){ if (err(r)) return; var id = r.data.id; sb.rpc("update_show2", { p_show: id, p_token: CFG.token, p_title: null, p_at: null, p_lang: null, p_slots: null, p_i18n: i18n, p_vis: vis }).then(function(){ return sb.rpc("set_show_categories", { p_show: id, p_token: CFG.token, p_cats: cats }); }).then(function(){ return sb.rpc("set_show_price", { p_show: id, p_token: CFG.token, p_price: $("sfPrice").value }); }).then(function(){ var u = new URL(location.href); u.searchParams.set("show", id); location.href = u.toString(); }); });
+        sb.rpc("create_show", { p_token: CFG.token, p_jeweler: state.jeweler.id, p_title: $("sfTitle").value, p_at: at.toISOString(), p_lang: $("sfLang").value, p_slots: slotsArr }).then(function(r){ if (err(r)) return; var id = r.data.id; sb.rpc("update_show2", { p_show: id, p_token: CFG.token, p_title: null, p_at: null, p_lang: null, p_slots: null, p_i18n: i18n, p_vis: vis }).then(function(){ return sb.rpc("set_show_categories", { p_show: id, p_token: CFG.token, p_cats: cats }); }).then(function(){ return sb.rpc("set_show_price", { p_show: id, p_token: CFG.token, p_price: $("sfPrice").value }); }).then(function(){ return sb.rpc("set_show_text", { p_show: id, p_token: CFG.token, p_desc: $("sfDesc").value }); }).then(function(){ var u = new URL(location.href); u.searchParams.set("show", id); location.href = u.toString(); }); });
       }
     });
   }
@@ -359,11 +386,12 @@ label input,label select,label textarea{width:100%}
       '<label>Nome<input id="pfName" type="text" maxlength="120" required placeholder="Solitario 1,02 ct · oro bianco"></label>' +
       '<label>Nome breve (nelle richieste)<input id="pfShort" type="text" maxlength="80" placeholder="Solitario 1,02 ct"></label>' +
       '<label>Didascalia sotto il video<input id="pfCaption" type="text" maxlength="240" placeholder="Diamante 1,02 ct · colore F · purezza VS1"></label>' +
-      '<label>Immagine (finché non c’è il video)<select id="pfArt">' + opts + '</select></label>' +
+      '<label>Immagine stilizzata (se non c’è la foto)<select id="pfArt">' + opts + '</select></label>' +
+      '<label>Foto del pezzo (facoltativa, dal telefono)<input id="pfPhoto" type="file" accept="image/*"></label>' +
       '<button class="btn dark" type="submit">Aggiungi</button></form>');
     $("pf").addEventListener("submit", function(e){
       e.preventDefault();
-      sb.rpc("add_piece", { p_show: state.show.id, p_token: CFG.token, p_name: $("pfName").value, p_caption: $("pfCaption").value, p_short: $("pfShort").value, p_art: $("pfArt").value }).then(function(r){ if (!err(r)){ closeModal(); toast("Pezzo aggiunto"); if (!state.show.current_piece_id) state.show.current_piece_id = r.data.id; loadPieces(); } });
+      sb.rpc("add_piece", { p_show: state.show.id, p_token: CFG.token, p_name: $("pfName").value, p_caption: $("pfCaption").value, p_short: $("pfShort").value, p_art: $("pfArt").value }).then(function(r){ if (!err(r)){ var f = $("pfPhoto").files && $("pfPhoto").files[0]; closeModal(); toast("Pezzo aggiunto"); if (!state.show.current_piece_id) state.show.current_piece_id = r.data.id; if (f) savePhoto(r.data.id, f); loadPieces(); } });
     });
   });
 

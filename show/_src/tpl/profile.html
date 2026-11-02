@@ -30,7 +30,7 @@
   function pal(key){ var h = 0; for (var i = 0; i < key.length; i++) h = (h * 31 + key.charCodeAt(i)) >>> 0; return PAL[h % PAL.length].split(","); }
   function title(s){ var i = s.title_i18n || {}; return i[lang] || (lang !== "it" && i.en) || s.title; }
   function catName(slug){ for (var i = 0; i < state.cats.length; i++) if (state.cats[i].slug === slug){ var n = state.cats[i].name_i18n || {}; return n[lang] || n.en || n.it || slug; } return slug; }
-  function showUrl(s){ return CFG.base + "/live/" + CFG.slug + "?s=" + s.id + "&lang=" + lang; }
+  function showUrl(s){ return (s.status === "live" || !s.slug) ? CFG.base + "/live/" + CFG.slug + "?s=" + s.id + "&lang=" + lang : CFG.base + "/live/" + CFG.slug + "/" + s.slug + "?lang=" + lang; }
   function liveUrl(){ return CFG.base + "/live/" + CFG.slug + "?lang=" + lang; }
   function kindLabel(j){ return j.kind === "gems" ? t.gems : t.shop; }
   function siteHref(u){ return /^https?:/i.test(u) ? u : "https://" + u; }
@@ -109,7 +109,7 @@
     ]).then(function(r){
       state.j = r[0].data; state.cats = r[1].data || [];
       if (!state.j){ render(); return; }
-      return sb.from("shows").select("id,title,title_i18n,scheduled_at,status,lang,likes,categories,price_range,visibility").eq("jeweler_id", state.j.id).order("scheduled_at", { ascending:false }).limit(40).then(function(r2){
+      return sb.from("shows").select("id,slug,title,title_i18n,scheduled_at,status,lang,likes,categories,price_range,visibility").eq("jeweler_id", state.j.id).order("scheduled_at", { ascending:false }).limit(40).then(function(r2){
         state.shows = (r2.data || []).filter(function(s){ return s.visibility === "public"; });
         var ids = state.shows.map(function(s){ return s.id; });
         if (!ids.length){ render(); return; }

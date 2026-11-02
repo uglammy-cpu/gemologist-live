@@ -1,0 +1,31 @@
+# Rigenera le pagine pubbliche di Uniqaia (vetrina, schede, pagine delle dirette) con i dati aggiornati da Supabase.
+# Parte ogni 15 minuti, a ogni modifica dei sorgenti in show/_src, o a mano (Actions → Run workflow).
+name: Uniqaia · rigenera le pagine
+on:
+  schedule:
+    - cron: "*/15 * * * *"
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths: ["show/_src/**"]
+permissions:
+  contents: write
+concurrency:
+  group: uniqaia-build
+  cancel-in-progress: false
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Scarica i dati e genera le pagine
+        run: node show/_src/build.mjs --fetch
+      - name: Pubblica se qualcosa è cambiato
+        run: |
+          git config user.name "uniqaia-pages"
+          git config user.email "pages@uniqaia.com"
+          git add -A show uniqaia 404.html
+          if git diff --cached --quiet; then echo "Nessuna modifica"; else git commit -m "Pagine rigenerate automaticamente" && git push; fi

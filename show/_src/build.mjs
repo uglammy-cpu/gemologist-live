@@ -1,10 +1,13 @@
 // Genera le pagine statiche della piattaforma Uniqaia dai modelli in _src/tpl, in due versioni:
 //   1. /show/…   sul sito live.gemsandjewelrytechlab.com (GitHub Pages di questo repository)
 //   2. /uniqaia/ pronta per il dominio uniqaia.com (Cloudflare Pages con cartella di output "uniqaia", oppure un repository a sé)
-// Uso: node show/_src/build.mjs   (dalla radice del repository)
-// Le pagine leggono slug e parametri dall'indirizzo; i token video arrivano dalla edge function Supabase.
+// Uso:  node show/_src/build.mjs            usa i dati salvati in _src/data.json
+//       node show/_src/build.mjs --fetch    prima scarica i dati pubblici da Supabase (venditori, dirette, pezzi, foto) e li salva
+// Le pagine di ogni diretta e la vetrina vengono generate con il contenuto già nell'HTML (condivisione social, motori di ricerca);
+// il JavaScript poi le tiene aggiornate in tempo reale.
 import fs from "node:fs";
 import path from "node:path";
+import { createRequire } from "node:module";
 
 const HERE = path.dirname(new URL(import.meta.url).pathname);
 const ROOT = path.resolve(HERE, "..", "..");         // radice del repository
@@ -18,11 +21,57 @@ const TARGETS = [
   { out: path.join(ROOT, "show"), notFound: path.join(ROOT, "404.html"), site: "https://live.gemsandjewelrytechlab.com", prefix: "/show" },
   { out: path.join(ROOT, "uniqaia"), notFound: path.join(ROOT, "uniqaia", "404.html"), site: "https://uniqaia.com", prefix: "" },
 ];
+const LOC = { it: "it-IT", en: "en-GB", fr: "fr-FR", ar: "ar-AE-u-nu-latn", ru: "ru-RU" };
 
 const tpl = (n) => fs.readFileSync(path.join(HERE, "tpl", n), "utf8");
 const parts = { HEAD: tpl("head.txt"), CSS: tpl("css.txt"), LKJS: tpl("lkjs.txt"), ART: tpl("art.txt"), T: tpl("t.txt") };
-const sellers = fs.readFileSync(path.join(HERE, "sellers.txt"), "utf8").split("\n").map((s) => s.trim()).filter((s) => /^[a-z0-9-]{2,40}$/.test(s));
+const ART = JSON.parse(parts.ART), T = JSON.parse(parts.T);
+const { landingBody } = createRequire(import.meta.url)("./landing-body.js");
+const LANDING_JS = fs.readFileSync(path.join(HERE, "landing-body.js"), "utf8").replace(/if \(typeof module[^\n]*\n?/, "");
 const esc = (s) => s.replace(/[/.]/g, "\\$&"); // per le espressioni regolari nel JS generato
+const H = (s) => String(s == null ? "" : s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+
+// ---------- dati pubblici (snapshot in _src/data.json)
+const DATA_FILE = path.join(HERE, "data.json");
+async function fetchData() {
+  const get = async (q) => {
+    const r = await fetch(common.SUPABASE_URL + "/rest/v1/" + q, { headers: { apikey: common.SUPABASE_KEY, Authorization: "Bearer " + common.SUPABASE_KEY } });
+    if (!r.ok) throw new Error(q + ": " + r.status + " " + (await r.text()));
+    return r.json();
+  };
+  const since = new Date(Date.now() - 90 * 86400000).toISOString();
+  const data = {
+    fetched_at: new Date().toISOString(),
+    jewelers: await get("jewelers?select=id,slug,name,city,country,kind,tagline,categories,website,shop_url&is_public=eq.true&order=created_at"),
+    categories: await get("categories?select=slug,position,name_i18n,art&active=eq.true&order=position"),
+    shows: await get("shows?select=id,jeweler_id,slug,title,title_i18n,description,scheduled_at,status,lang,likes,categories,price_range,current_piece_id&visibility=eq.public&scheduled_at=gte." + since + "&order=scheduled_at.desc&limit=400"),
+    pieces: await get("pieces?select=id,show_id,position,name,caption,short,art&order=position"),
+    covers: await get("show_covers?select=show_id,data"),
+    photos: await get("piece_photos?select=piece_id,data"),
+  };
+  fs.writeFileSync(DATA_FILE, JSON.stringify(data));
+  console.log("dati scaricati:", data.jewelers.length, "venditori,", data.shows.length, "dirette,", data.pieces.length, "pezzi,", data.photos.length, "foto");
+  return data;
+}
+let DATA = { fetched_at: null, jewelers: [], categories: [], shows: [], pieces: [], covers: [], photos: [] };
+if (process.argv.includes("--fetch")) DATA = await fetchData();
+else if (fs.existsSync(DATA_FILE)) DATA = JSON.parse(fs.readFileSync(DATA_FILE, "utf8"));
+const sellers = DATA.jewelers.map((j) => j.slug).filter((s) => /^[a-z0-9-]{2,40}$/.test(s));
+const jById = Object.fromEntries(DATA.jewelers.map((j) => [j.id, j]));
+const piecesByShow = {}; for (const p of DATA.pieces) (piecesByShow[p.show_id] = piecesByShow[p.show_id] || []).push(p);
+const coverByShow = Object.fromEntries(DATA.covers.map((c) => [c.show_id, c.data]));
+const photoByPiece = Object.fromEntries(DATA.photos.map((p) => [p.piece_id, p.data]));
+
+// Immagini da base64 a file (copertine delle dirette e foto dei pezzi), nella cartella img condivisa
+const IMG = path.join(ROOT, "show", "img");
+function writeImage(sub, id, dataUrl) {
+  const m = /^data:image\/jpeg;base64,(.+)$/.exec(dataUrl || ""); if (!m) return null;
+  fs.mkdirSync(path.join(IMG, sub), { recursive: true });
+  const rel = sub + "/" + id + ".jpg"; fs.writeFileSync(path.join(IMG, rel), Buffer.from(m[1], "base64"));
+  return rel;
+}
+const coverFile = {}; for (const [id, d] of Object.entries(coverByShow)) { const f = writeImage("shows", id, d); if (f) coverFile[id] = f; }
+const photoFile = {}; for (const [id, d] of Object.entries(photoByPiece)) { const f = writeImage("pieces", id, d); if (f) photoFile[id] = f; }
 
 function render(t, name, runtime) {
   const cfg = { ...common, SITE: t.site };
@@ -48,9 +97,13 @@ function render(t, name, runtime) {
     ['"/live/" + CFG.slug + "/profile?lang="', '"' + P + '/" + CFG.slug + "/profile/?lang="'],
     ["'/live/' + CFG.slug + '/profile?lang='", "'" + P + "/' + CFG.slug + '/profile/?lang='"],
     ['"/live/" + CFG.slug + "/profile"', '"' + P + '/" + CFG.slug + "/profile/"'],
+    ['"/live/" + CFG.slug + "/" + s.slug + "?lang="', '"' + P + '/" + CFG.slug + "/" + s.slug + "/?lang="'],
+    ['"/live/" + CFG.slug + "/" + state.show.slug', '"' + P + '/" + CFG.slug + "/" + state.show.slug + "/"'],
+    ['"/live/" + CFG.slug + "/" + s.slug', '"' + P + '/" + CFG.slug + "/" + s.slug + "/"'],
     ['"/live/" + CFG.slug + "?s="', '"' + P + '/" + CFG.slug + "/?s="'],
     ['"/live/" + CFG.slug + "?lang="', '"' + P + '/" + CFG.slug + "/?lang="'],
     ['"/live/" + j.slug + "/profile?lang="', '"' + P + '/" + j.slug + "/profile/?lang="'],
+    ['"/live/" + j.slug + "/" + s.slug + "?lang="', '"' + P + '/" + j.slug + "/" + s.slug + "/?lang="'],
     ['"/live?c="', '"' + P + '/?c="'],
     ["'/live?c='", "'" + P + "/?c='"],
     ['"/live?lang="', '"' + P + '/?lang="'],
@@ -86,9 +139,102 @@ function render(t, name, runtime) {
   return b;
 }
 
+// ---------- pagina pubblica di una diretta (prerender) e sua versione "dinamica" per le dirette non ancora generate
+function landingDoc(t, body, lang, extraHead, bodyAttrs) {
+  const P = t.prefix;
+  const head = parts.HEAD.split('href="/show/img/').join('href="' + P + '/img/');
+  return `<!doctype html><html lang="${lang}" dir="${lang === "ar" ? "rtl" : "ltr"}"><head>${head}<title>${H(body.title)} · ${common.NAME}</title>${extraHead}<style>${parts.CSS}</style></head>
+<body class="vetrina"${bodyAttrs || ""}>
+<header class="topv wrap"><div class="col"><div class="brand"><a class="logo" href="${t.site}${P}/?lang=${lang}" aria-label="${common.NAME}">${tpl("vetrina.html").match(/<a class="logo"[^>]*>([\s\S]*?)<\/a>/)[1]}</a><small>${H(T[lang].tag)}</small></div></div></header>
+<main class="wrap"><div class="col" id="page">${body.html}</div></main>
+<footer class="wrap">${H(T[lang].foot)}<br>${H(T[lang].footJoin)}</footer>
+<script>
+(function(){
+  // ora locale del visitatore e stato aggiornato (in diretta / terminata)
+  Array.prototype.forEach.call(document.querySelectorAll("time[datetime]"), function(el){ try { el.textContent = new Intl.DateTimeFormat(navigator.language, { weekday:"long", day:"numeric", month:"long", hour:"2-digit", minute:"2-digit" }).format(new Date(el.getAttribute("datetime"))); } catch(e){} });
+  var id = document.body.getAttribute("data-show"); if (!id) return;
+  fetch(${JSON.stringify(common.SUPABASE_URL + "/rest/v1/shows?select=status,likes&id=eq.")} + id, { headers: { apikey: ${JSON.stringify(common.SUPABASE_KEY)} } }).then(function(r){ return r.json(); }).then(function(rows){
+    var s = rows && rows[0]; if (!s) return; var L = document.getElementById("lStatus"), J = document.getElementById("lJoin"), t = ${JSON.stringify({ live: T[lang].live, ended: T[lang].ended, soon: T[lang].soon, liveNow: T[lang].liveNow, join2: T[lang].join2, interest: T[lang].interest })};
+    if (L){ L.className = "lbl" + (s.status === "live" ? "" : " off"); L.innerHTML = "<i></i>" + (s.status === "live" ? t.live : (s.status === "ended" ? t.ended : t.soon)); }
+    if (J) J.textContent = s.status === "live" ? t.liveNow : (s.status === "ended" ? t.interest : t.join2);
+  }).catch(function(){});
+})();
+</script>
+</body></html>`;
+}
+function landingFor(t, s) {
+  const j = jById[s.jeweler_id]; if (!j || !s.slug) return null;
+  const lang = T[s.lang] ? s.lang : "it";
+  const P = t.prefix;
+  const photoUrls = {}; for (const p of piecesByShow[s.id] || []) if (photoFile[p.id]) photoUrls[p.id] = t.site + P + "/img/" + photoFile[p.id];
+  const body = landingBody({ site: t.site, prefix: P, lang, show: s, jeweler: j, pieces: piecesByShow[s.id] || [], cats: DATA.categories, coverUrl: coverFile[s.id] ? t.site + P + "/img/" + coverFile[s.id] : "", photoUrls, art: ART, t: T[lang], loc: LOC[lang] });
+  const image = body.image || t.site + P + "/img/uniqaia-og.jpg";
+  const ld = { "@context": "https://schema.org", "@type": "Event", name: body.title, description: body.desc, startDate: body.start, endDate: new Date(new Date(body.start).getTime() + 3600000).toISOString(), eventAttendanceMode: "https://schema.org/OnlineEventAttendanceMode", eventStatus: body.ended ? "https://schema.org/EventScheduled" : "https://schema.org/EventScheduled", location: { "@type": "VirtualLocation", url: body.viewerUrl }, organizer: { "@type": "Organization", name: j.name, url: t.site + P + "/" + j.slug + "/profile/" }, image: [image], inLanguage: lang, isAccessibleForFree: true, url: body.url };
+  const extra = '<meta name="description" content="' + H(body.desc) + '"><link rel="canonical" href="' + H(body.url) + '"><meta property="og:type" content="website"><meta property="og:site_name" content="' + common.NAME + '"><meta property="og:title" content="' + H(body.title) + '"><meta property="og:description" content="' + H(body.desc) + '"><meta property="og:url" content="' + H(body.url) + '"><meta property="og:image" content="' + H(image) + '"><meta name="twitter:card" content="summary_large_image"><script type="application/ld+json">' + JSON.stringify(ld).replace(/</g, "\\u003c") + '</script>';
+  return landingDoc(t, body, lang, extra, ' data-show="' + s.id + '"');
+}
+function landingFallback(t) {
+  // Pagina generica: legge venditore e diretta dall'indirizzo e costruisce la pagina nel browser (per le dirette create dopo l'ultima generazione)
+  const P = t.prefix;
+  const body = { title: common.NAME, html: '<p class="hint" style="padding:40px 0">…</p>' };
+  let doc = landingDoc(t, body, "it", "", "");
+  const js = `<script>
+${LANDING_JS}
+(function(){
+  var m = location.pathname.match(/^${esc(P)}\\/([a-z0-9-]{2,40})\\/([a-z0-9-]{2,60})\\/?$/); if (!m) return;
+  var U = ${JSON.stringify(common.SUPABASE_URL + "/rest/v1/")}, K = ${JSON.stringify(common.SUPABASE_KEY)}, TT = ${parts.T}, ART = ${parts.ART}, LOC = ${JSON.stringify(LOC)};
+  function get(q){ return fetch(U + q, { headers: { apikey: K } }).then(function(r){ return r.json(); }); }
+  get("jewelers?select=id,slug,name,city,country,kind,tagline,categories,website,shop_url&slug=eq." + m[1]).then(function(js){
+    var j = js[0]; if (!j) return;
+    return Promise.all([ get("shows?select=id,jeweler_id,slug,title,title_i18n,description,scheduled_at,status,lang,likes,categories,price_range&jeweler_id=eq." + j.id + "&slug=eq." + m[2]), get("categories?select=slug,position,name_i18n,art&active=eq.true&order=position") ]).then(function(r){
+      var s = r[0][0]; if (!s) return;
+      return Promise.all([ get("pieces?select=id,show_id,position,name,caption,short,art&show_id=eq." + s.id + "&order=position"), get("show_covers?select=show_id,data&show_id=eq." + s.id) ]).then(function(r2){
+        var pieces = r2[0], ids = pieces.map(function(p){ return p.id; });
+        return (ids.length ? get("piece_photos?select=piece_id,data&piece_id=in.(" + ids.join(",") + ")") : Promise.resolve([])).then(function(ph){
+          var photoUrls = {}; ph.forEach(function(x){ photoUrls[x.piece_id] = x.data; });
+          var q = (new URLSearchParams(location.search).get("lang") || "").toLowerCase(), st = ""; try { st = localStorage.getItem("vetrina-lang") || ""; } catch(e){}
+          var lang = TT[q] ? q : (TT[st] ? st : (TT[s.lang] ? s.lang : "it"));
+          var out = landingBody({ site: ${JSON.stringify(t.site)}, prefix: ${JSON.stringify(P)}, lang: lang, show: s, jeweler: j, pieces: pieces, cats: r[1], coverUrl: (r2[1][0] || {}).data || "", photoUrls: photoUrls, art: ART, t: TT[lang], loc: LOC[lang] });
+          document.getElementById("page").innerHTML = out.html; document.title = out.title + " · " + ${JSON.stringify(common.NAME)}; document.documentElement.lang = lang; document.documentElement.dir = lang === "ar" ? "rtl" : "ltr";
+          Array.prototype.forEach.call(document.querySelectorAll("time[datetime]"), function(el){ try { el.textContent = new Intl.DateTimeFormat(navigator.language, { weekday:"long", day:"numeric", month:"long", hour:"2-digit", minute:"2-digit" }).format(new Date(el.getAttribute("datetime"))); } catch(e){} });
+        });
+      });
+    });
+  });
+})();
+</script>`;
+  return doc.replace("</body></html>", js + "\n</body></html>");
+}
+
+// ---------- prerender della vetrina (contenuto nell'HTML per i motori di ricerca; il JS poi lo rigenera e lo tiene aggiornato)
+function prerenderVetrina(t, html) {
+  const P = t.prefix, lang = "it", tt = T[lang];
+  const catName = (slug) => { const c = DATA.categories.find((x) => x.slug === slug); return c ? (c.name_i18n[lang] || slug) : slug; };
+  const now = Date.now() - 12 * 3600000;
+  const rows = DATA.shows.filter((s) => jById[s.jeweler_id] && (s.status === "live" || (s.status === "scheduled" && new Date(s.scheduled_at).getTime() > now)));
+  const card = (s) => {
+    const j = jById[s.jeweler_id];
+    const url = s.status === "live" ? `${t.site}${P}/${j.slug}/?s=${s.id}` : `${t.site}${P}/${j.slug}/${s.slug}/`;
+    const when = new Intl.DateTimeFormat(LOC[lang], { weekday: "short", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit", timeZone: "Europe/Rome" }).format(new Date(s.scheduled_at));
+    const img = coverFile[s.id] ? `<img class="cv" alt="" src="${t.site}${P}/img/${coverFile[s.id]}">` : `<div class="art">${(piecesByShow[s.id] && piecesByShow[s.id][0] && ART[piecesByShow[s.id][0].art]) || ART.ring}</div>`;
+    const label = [(s.lang || "").toUpperCase(), ...(s.categories || []).slice(0, 2).map(catName), s.price_range].filter(Boolean).join(" · ");
+    return `<a class="vcard" href="${url}"><div class="cover"><div class="ph"></div>${img}<span class="lbl${s.status === "live" ? "" : " off"}"><i></i>${H(s.status === "live" ? tt.live : tt.soon)}</span>${s.status === "live" ? "" : `<div class="when"><small>${H(when)}</small></div>`}<div class="ctitle"><small>${H(label)}</small>${H(s.title)}</div></div><div class="meta"><span class="av">${H(j.name.charAt(0).toUpperCase())}</span><span><b>${H(j.name)}<span class="chk">✓</span></b><small>${H(j.city || "")} · ${H(j.kind === "gems" ? tt.gems : tt.shop)}</small></span></div></a>`;
+  };
+  const live = rows.filter((s) => s.status === "live").map(card).join("");
+  const soon = rows.filter((s) => s.status !== "live").sort((a, b) => new Date(a.scheduled_at) - new Date(b.scheduled_at)).map(card).join("");
+  const tiles = DATA.categories.map((c) => { const n = rows.filter((s) => (s.categories || []).includes(c.slug)).length; return `<a class="tile" href="${t.site}${P}/?c=${c.slug}">${ART[c.art] || ART.ring}<b>${H(catName(c.slug))}</b><small>${H(n === 0 ? tt.catSoon : n === 1 ? tt.catOne : tt.catMany.replace("{n}", n))}</small></a>`; }).join("");
+  const shops = DATA.jewelers.map((j) => `<a class="seller" href="${t.site}${P}/${j.slug}/profile/"><span class="big">${H(j.name.charAt(0).toUpperCase())}</span><b>${H(j.name)}</b><small>${H(j.city || "")}<br>${H(j.kind === "gems" ? tt.gems : tt.shop)}</small></a>`).join("");
+  return html.replace('<div class="grid" id="gridLive"></div>', `<div class="grid" id="gridLive">${live}</div>`)
+    .replace('<div class="grid" id="gridSoon"></div>', `<div class="grid" id="gridSoon">${soon}</div>`)
+    .replace('<div class="tiles" id="tiles"></div>', `<div class="tiles" id="tiles">${tiles}</div>`)
+    .replace('<div class="shops" id="shopsRow"></div>', `<div class="shops" id="shopsRow">${shops}</div>`)
+    .replace('<div class="empty" id="emptyLive" hidden></div>', live ? '<div class="empty" id="emptyLive" hidden></div>' : `<div class="empty" id="emptyLive"><b>${H(tt.emptyLiveT)}</b>${H(tt.emptyLive)}</div>`);
+}
+
 for (const t of TARGETS) {
-  const write = (rel, body) => { const p = path.join(t.out, rel); fs.mkdirSync(path.dirname(p), { recursive: true }); fs.writeFileSync(p, body); console.log("scritto", path.relative(ROOT, p), body.length); };
-  write("index.html", render(t, "vetrina", {}));
+  const P = t.prefix;
+  const write = (rel, body) => { const p = path.join(t.out, rel); fs.mkdirSync(path.dirname(p), { recursive: true }); fs.writeFileSync(p, body); };
+  write("index.html", prerenderVetrina(t, render(t, "vetrina", {})));
   write("join/index.html", render(t, "join", {}));
   const viewer = render(t, "viewer", { tokenParam: "t" });
   const panel = render(t, "panel", { tokenParam: "k" });
@@ -96,21 +242,29 @@ for (const t of TARGETS) {
   write("_viewer.html", viewer);
   write("_panel.html", panel);
   write("_profile.html", profile);
+  write("_landing.html", landingFallback(t));
   // Una cartella per ogni venditore noto (indirizzi "veri" con risposta 200); gli altri passano dal 404.html
   for (const s of sellers) { write(`${s}/index.html`, viewer); write(`${s}/panel/index.html`, panel); write(`${s}/profile/index.html`, profile); }
-  // Immagini (logo, icona, anteprima) condivise tra le due versioni
-  if (t.prefix === "") { fs.mkdirSync(path.join(t.out, "img"), { recursive: true }); for (const f of fs.readdirSync(path.join(ROOT, "show", "img"))) fs.copyFileSync(path.join(ROOT, "show", "img", f), path.join(t.out, "img", f)); }
-  // 404.html: instrada <prefix>/<slug> e <prefix>/<slug>/panel verso le pagine giuste
-  const P = t.prefix;
+  // Una pagina per ogni diretta pubblica
+  const urls = [`${t.site}${P}/`, `${t.site}${P}/join/`, ...sellers.map((s) => `${t.site}${P}/${s}/profile/`)];
+  let nLanding = 0;
+  for (const s of DATA.shows) { const doc = landingFor(t, s); if (!doc) continue; write(`${jById[s.jeweler_id].slug}/${s.slug}/index.html`, doc); urls.push(`${t.site}${P}/${jById[s.jeweler_id].slug}/${s.slug}/`); nLanding++; }
+  write("sitemap.xml", `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls.map((u) => `  <url><loc>${H(u)}</loc></url>`).join("\n")}\n</urlset>\n`);
+  if (P === "") write("robots.txt", `User-agent: *\nAllow: /\nDisallow: /*/panel/\nSitemap: ${t.site}/sitemap.xml\n`);
+  // Immagini (logo, icona, anteprima, copertine, foto) condivise tra le due versioni
+  if (P === "") { fs.cpSync(IMG, path.join(t.out, "img"), { recursive: true }); }
+  // 404.html: instrada <prefix>/<slug>, /panel, /profile e <prefix>/<slug>/<diretta> verso le pagine giuste
   const notFound = `<!doctype html><html lang="it"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Pagina non trovata</title>
 <style>body{margin:0;font-family:system-ui,sans-serif;background:#FBF8F2;color:#2B2520;display:grid;place-items:center;min-height:100vh}p{text-align:center;padding:24px;line-height:1.6}a{color:inherit}</style></head>
 <body><script>
 (function(){
-  var m = location.pathname.match(/^${esc(P)}\\/([a-z0-9-]{2,40})(\\/panel|\\/profile)?\\/?$/);
+  var m = location.pathname.match(/^${esc(P)}\\/([a-z0-9-]{2,40})(?:\\/([a-z0-9-]{2,60}))?\\/?$/);
   if (!m || m[1] === "join" || m[1] === "img") return;
-  fetch(m[2] === "/panel" ? "${P}/_panel.html" : (m[2] === "/profile" ? "${P}/_profile.html" : "${P}/_viewer.html"), { cache: "no-store" }).then(function(r){ return r.text(); }).then(function(h){ document.open(); document.write(h); document.close(); });
+  var f = !m[2] ? "${P}/_viewer.html" : (m[2] === "panel" ? "${P}/_panel.html" : (m[2] === "profile" ? "${P}/_profile.html" : "${P}/_landing.html"));
+  fetch(f, { cache: "no-store" }).then(function(r){ return r.text(); }).then(function(h){ document.open(); document.write(h); document.close(); });
 })();
 </script><p><b>Pagina non trovata · Page not found</b><br><a href="${P}/">Vai alla vetrina · Go to the showcase</a></p></body></html>
 `;
-  fs.writeFileSync(t.notFound, notFound); console.log("scritto", path.relative(ROOT, t.notFound));
+  fs.writeFileSync(t.notFound, notFound);
+  console.log(`${path.relative(ROOT, t.out) || "."}: vetrina, join, ${sellers.length} venditori, ${nLanding} pagine di diretta, sitemap`);
 }

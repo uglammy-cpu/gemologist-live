@@ -142,17 +142,24 @@
   function i18n(obj){ obj = obj || {}; return obj[lang] || obj.en || obj.it || ""; }
   function linkOf(h){ var l = h.link || ""; if (l.indexOf("cat:") === 0) return CFG.base + "/live?c=" + encodeURIComponent(l.slice(4)) + "&lang=" + lang; if (l.indexOf("seller:") === 0) return CFG.base + "/live/" + l.slice(7) + "/profile?lang=" + lang; if (l.indexOf("show:") === 0){ var s = state.shows.filter(function(x){ return x.id === l.slice(5); })[0]; return s ? showUrl(s, state.jewelers[s.jeweler_id]) : CFG.base + "/live"; } return l || (CFG.base + "/live"); }
   function slides(){
-    var out = [];
+    var hl = [], sh = [];
     state.highlights.forEach(function(h){
       var l = h.link || "", art = l.indexOf("cat:") === 0 ? catArt(l.slice(4)) : CFG.art.sparkle;
-      out.push({ key: "h" + h.id, img: h.image || "", video: h.video_url || "", art: art, eyebrow: "", title: i18n(h.title_i18n), sub: i18n(h.subtitle_i18n), cta: t.discover, href: linkOf(h), live: false });
+      hl.push({ key: "h" + h.id, img: h.image || "", video: h.video_url || "", art: art, eyebrow: "", title: i18n(h.title_i18n), sub: i18n(h.subtitle_i18n), cta: t.discover, href: linkOf(h), live: false });
     });
     weekShows().forEach(function(s){
       var j = state.jewelers[s.jeweler_id], live = s.status === "live";
       var firstCat = (s.categories || [])[0];
-      out.push({ key: "s" + s.id, img: state.covers[s.id] || state.photos[s.id] || "", art: s.pieces && s.pieces[0] ? (CFG.art[s.pieces[0].art] || CFG.art.ring) : catArt(firstCat), eyebrow: (firstCat ? catName(firstCat) + " · " : "") + j.name, title: title(s), sub: live ? t.heroLive : t.liveOn.replace("{day}", fweek(s.scheduled_at)).replace("{time}", ftime(s.scheduled_at)), cta: live ? t.enter : t.discover, href: showUrl(s, j), live: live });
+      sh.push({ key: "s" + s.id, img: state.covers[s.id] || state.photos[s.id] || "", art: s.pieces && s.pieces[0] ? (CFG.art[s.pieces[0].art] || CFG.art.ring) : catArt(firstCat), eyebrow: (firstCat ? catName(firstCat) + " · " : "") + j.name, title: title(s), sub: live ? t.heroLive : t.liveOn.replace("{day}", fweek(s.scheduled_at)).replace("{time}", ftime(s.scheduled_at)), cta: live ? t.enter : t.discover, href: showUrl(s, j), live: live });
     });
-    return out.slice(0, 8);
+    // una slide editoriale, una diretta: così le dirette della settimana restano in vista
+    var out = [], i = 0, j = 0;
+    while (j < sh.length && sh[j].live) out.push(sh[j++]);
+    while (i < hl.length || j < sh.length){
+      if (i < hl.length) out.push(hl[i++]);
+      if (j < sh.length) out.push(sh[j++]);
+    }
+    return out.slice(0, 12);
   }
   var MOTION = '<span class="grain"></span><span class="sheen"></span><span class="dust"><i style="inset-inline-start:8%;animation-duration:16s;animation-delay:0s"></i><i style="inset-inline-start:18%;animation-duration:21s;animation-delay:3s"></i><i style="inset-inline-start:27%;animation-duration:13s;animation-delay:6s"></i><i style="inset-inline-start:38%;animation-duration:19s;animation-delay:1.5s"></i><i style="inset-inline-start:46%;animation-duration:24s;animation-delay:8s"></i><i style="inset-inline-start:55%;animation-duration:15s;animation-delay:11s"></i><i style="inset-inline-start:64%;animation-duration:22s;animation-delay:4.5s"></i><i style="inset-inline-start:73%;animation-duration:18s;animation-delay:9.5s"></i><i style="inset-inline-start:84%;animation-duration:25s;animation-delay:13s"></i><i style="inset-inline-start:92%;animation-duration:17s;animation-delay:6.5s"></i></span><span class="sparks"><i style="top:21%;inset-inline-start:14%;animation-delay:0.2s"></i><i style="top:33%;inset-inline-start:72%;animation-delay:1.1s"></i><i style="top:15%;inset-inline-start:52%;animation-delay:2.0s"></i><i style="top:47%;inset-inline-start:30%;animation-delay:1.6s"></i><i style="top:26%;inset-inline-start:86%;animation-delay:0.7s"></i><i style="top:55%;inset-inline-start:62%;animation-delay:2.6s"></i></span>', MOTION_ART = '<span class="lights"><i></i><i></i></span><span class="halo"></span>';
   function slideMedia(sl){

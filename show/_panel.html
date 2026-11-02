@@ -1,6 +1,7 @@
 <!doctype html><html lang="it"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@0,6..96,400..600;1,6..96,400..600&family=Jost:wght@300..600&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@0,6..96,400..600;1,6..96,400..600&family=Cormorant+Garamond:wght@500&family=Jost:wght@300..600&display=swap">
+<link rel="icon" type="image/svg+xml" href="/show/img/uniqaia-icon.svg"><link rel="icon" type="image/png" sizes="512x512" href="/show/img/uniqaia-icon.png"><link rel="apple-touch-icon" href="/show/img/uniqaia-icon.png"><meta name="theme-color" content="#15121C">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.4/dist/umd/supabase.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/livekit-client@2.22.0/dist/livekit-client.umd.min.js" onerror="var s=document.createElement('script');s.src='https://unpkg.com/livekit-client@2.22.0/dist/livekit-client.umd.min.js';document.head.appendChild(s)"></script><title>Pannello diretta</title><style>
 :root{--paper:#FFFFFF;--ink:#16181D;--muted:#5B606A;--line:#E7E4DC;--soft:#F6F4EF;--soft-2:#F8F1DF;--gold-hi:#EDD596;--gold:#CBA44F;--gold-lo:#A9833A;--gold-edge:#8C6A2B;--gold-ink:#1C1406;--live:#1E7A4F;--heart:#C6364E;--video:#1E2128;--display:"Bodoni Moda","Bodoni 72",Didot,Georgia,serif;--body:"Jost","Futura","Century Gothic","Helvetica Neue",Arial,sans-serif;color-scheme:light}
@@ -24,6 +25,11 @@ button{cursor:pointer}
 .btn:disabled{opacity:.5;cursor:default}
 .top{border-bottom:1px solid var(--line);background:var(--paper)}
 .top .col{min-height:60px;display:flex;align-items:center;justify-content:space-between;gap:12px;padding-block:8px}
+.brand{display:flex;flex-direction:column;gap:3px;min-width:0}
+.brand .logo{display:block;height:28px;color:var(--ink);text-decoration:none}
+.brand .logo svg,.wm svg{height:100%;width:auto;display:block;overflow:visible}
+.brand small{display:block;font-family:var(--body);font-size:10px;letter-spacing:.16em;color:var(--gold-edge);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.welcome,body.dark{--logo-gold:#D4AF6A;--logo-gem:#F0606F}
 .wordmark{font-family:var(--display);font-size:clamp(17px,3vw,22px);letter-spacing:.2em;text-transform:uppercase;padding-left:.2em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .wordmark small{display:block;font-family:var(--body);font-size:10px;letter-spacing:.16em;color:var(--gold-edge);margin-top:-2px}
 .status{display:inline-flex;align-items:center;gap:8px;font-size:13px;color:var(--muted);white-space:nowrap}
@@ -200,7 +206,8 @@ body.dark{background:#0E0B07;color:#F7EBCB;padding:0}
 .welcome::before{content:"";position:absolute;inset:0;background:radial-gradient(70% 45% at 50% 20%,rgba(203,164,79,.35),transparent 70%),radial-gradient(40% 30% at 85% 90%,rgba(203,164,79,.18),transparent 70%);pointer-events:none}
 .wcard{position:relative;max-width:520px;width:100%;display:flex;flex-direction:column;gap:18px;animation:wrise .7s ease-out both}
 @keyframes wrise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
-.wcard .wm{font-family:var(--display);font-size:20px;letter-spacing:.24em;text-transform:uppercase}
+.wcard .wm{display:flex;flex-direction:column;align-items:center;gap:8px}
+.wm .logo{display:block;height:40px;color:#F7EBCB}
 .wcard .wm small{display:block;font-family:var(--body);font-size:10px;letter-spacing:.16em;color:#CBA44F;margin-top:2px}
 .wcard h1{font-family:var(--display);font-size:clamp(32px,8vw,48px);line-height:1.05;font-weight:400}
 .wcard h1 em{font-style:italic;color:#EDD596}
@@ -328,7 +335,7 @@ label input,label select,label textarea{width:100%}
     </section>
   </div>
 </div></main>
-<footer class="wrap">Pannello riservato · Live show · Gems &amp; Jewelry Tech Lab</footer>
+<footer class="wrap">Uniqaia · Pannello riservato</footer>
 <div class="modal" id="modal" hidden></div>
 <script>
 

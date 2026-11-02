@@ -224,6 +224,11 @@ body.dark{background:#0E0B07;color:#F7EBCB;padding:0}
 .slide.on .cv{animation:kenburns 17s ease-out both}
 .slide .art svg{width:56%;max-width:360px;filter:drop-shadow(0 20px 46px rgba(0,0,0,.5));-webkit-box-reflect:below 2px linear-gradient(transparent 58%,rgba(255,255,255,.16))}
 .slide.on .art svg{animation:floaty 7.5s ease-in-out infinite}
+@keyframes facet{0%,100%{opacity:.1}50%{opacity:.62}}
+.slide.on .art svg .f1,.lhero .art svg .f1{animation:facet 3.4s ease-in-out infinite}
+.slide.on .art svg .f2,.lhero .art svg .f2{animation:facet 3.4s .85s ease-in-out infinite}
+.slide.on .art svg .f3,.lhero .art svg .f3{animation:facet 3.4s 1.7s ease-in-out infinite}
+.slide.on .art svg .f4,.lhero .art svg .f4{animation:facet 3.4s 2.55s ease-in-out infinite}
 .slide .halo{position:absolute;inset:0;z-index:0;pointer-events:none;background:radial-gradient(42% 32% at 50% 34%,rgba(255,226,160,.42),transparent 70%);opacity:.5}
 .slide.on .halo{animation:glow 6s ease-in-out infinite}
 .slide .lights{position:absolute;inset:0;z-index:0;pointer-events:none;overflow:hidden}
@@ -255,7 +260,7 @@ body.dark{background:#0E0B07;color:#F7EBCB;padding:0}
 .ag .agi img,.card .ph img,.tile img{transition:transform .6s cubic-bezier(.2,.7,.2,1)}
 .ag:hover .agi img,.card:hover .ph img,.tile:hover img{transform:scale(1.08)}
 @media (prefers-reduced-motion:reduce){
-.slide.on .cv,.slide.on .art svg,.slide.on .sheen,.slide.on .halo,.slide.on .sparks i,.slide.on .lights i,.slide.on .dust i,.slide.on .eyebrow,.slide.on h2,.slide.on p,.slide.on .go,.hero .dots button.on::after{animation:none}
+.slide.on .cv,.slide.on .art svg,.slide.on .sheen,.slide.on .halo,.slide.on .sparks i,.slide.on .lights i,.slide.on .dust i,.slide.on .art svg .f1,.slide.on .art svg .f2,.slide.on .art svg .f3,.slide.on .art svg .f4,.lhero .art svg .f1,.lhero .art svg .f2,.lhero .art svg .f3,.lhero .art svg .f4,.slide.on .eyebrow,.slide.on h2,.slide.on p,.slide.on .go,.hero .dots button.on::after{animation:none}
 .slide .sheen,.slide .dust{display:none}.slide .cv{transform:none}
 .reveal{opacity:1;transform:none}
 .tile:hover,.ag:hover,.card:hover,.shop:hover{transform:none}

@@ -47,12 +47,13 @@ async function fetchData() {
     pieces: await get("pieces?select=id,show_id,position,name,caption,short,art&order=position"),
     covers: await get("show_covers?select=show_id,data"),
     photos: await get("piece_photos?select=piece_id,data"),
+    highlights: await get("highlights?select=id,position,title_i18n,subtitle_i18n,link,image&order=position"),
   };
   fs.writeFileSync(DATA_FILE, JSON.stringify(data));
   console.log("dati scaricati:", data.jewelers.length, "venditori,", data.shows.length, "dirette,", data.pieces.length, "pezzi,", data.photos.length, "foto");
   return data;
 }
-let DATA = { jewelers: [], categories: [], shows: [], pieces: [], covers: [], photos: [] };
+let DATA = { jewelers: [], categories: [], shows: [], pieces: [], covers: [], photos: [], highlights: [] };
 if (process.argv.includes("--fetch")) DATA = await fetchData();
 else if (fs.existsSync(DATA_FILE)) DATA = JSON.parse(fs.readFileSync(DATA_FILE, "utf8"));
 const sellers = DATA.jewelers.map((j) => j.slug).filter((s) => /^[a-z0-9-]{2,40}$/.test(s));
@@ -71,6 +72,7 @@ function writeImage(sub, id, dataUrl) {
 }
 const coverFile = {}; for (const [id, d] of Object.entries(coverByShow)) { const f = writeImage("shows", id, d); if (f) coverFile[id] = f; }
 const photoFile = {}; for (const [id, d] of Object.entries(photoByPiece)) { const f = writeImage("pieces", id, d); if (f) photoFile[id] = f; }
+const hlFile = {}; for (const h of (DATA.highlights || [])) { if (h.image) { const f = writeImage("slides", h.id, h.image); if (f) hlFile[h.id] = f; } }
 
 function render(t, name, runtime) {
   const cfg = { ...common, SITE: t.site };
@@ -103,6 +105,9 @@ function render(t, name, runtime) {
     ['"/live/" + CFG.slug + "?lang="', '"' + P + '/" + CFG.slug + "/?lang="'],
     ['"/live/" + j.slug + "/profile?lang="', '"' + P + '/" + j.slug + "/profile/?lang="'],
     ['"/live/" + j.slug + "/" + s.slug + "?lang="', '"' + P + '/" + j.slug + "/" + s.slug + "/?lang="'],
+    ['"/live/" + l.slice(7) + "/profile?lang="', '"' + P + '/" + l.slice(7) + "/profile/?lang="'],
+    ['"/live")', '"' + P + '/")'],
+    ['"/live";', '"' + P + '/";'],
     ['"/live?c="', '"' + P + '/?c="'],
     ["'/live?c='", "'" + P + "/?c='"],
     ['"/live?lang="', '"' + P + '/?lang="'],
@@ -220,14 +225,29 @@ function prerenderVetrina(t, html) {
     return `<a class="vcard" href="${url}"><div class="cover"><div class="ph"></div>${img}<span class="lbl${s.status === "live" ? "" : " off"}"><i></i>${H(s.status === "live" ? tt.live : tt.soon)}</span>${s.status === "live" ? "" : `<div class="when"><small>${H(when)}</small></div>`}<div class="ctitle"><small>${H(label)}</small>${H(s.title)}</div></div><div class="meta"><span class="av">${H(j.name.charAt(0).toUpperCase())}</span><span><b>${H(j.name)}<span class="chk">✓</span></b><small>${H(j.city || "")} · ${H(j.kind === "gems" ? tt.gems : tt.shop)}</small></span></div></a>`;
   };
   const live = rows.filter((s) => s.status === "live").map(card).join("");
-  const soon = rows.filter((s) => s.status !== "live").sort((a, b) => new Date(a.scheduled_at) - new Date(b.scheduled_at)).map(card).join("");
+  // carosello: slide in evidenza + dirette della settimana
+  const i18n = (o) => (o || {})[lang] || (o || {}).en || (o || {}).it || "";
+  const catArt = (slug) => { const c = DATA.categories.find((x) => x.slug === slug); return (c && ART[c.art]) || ART.ring; };
+  const week = rows.filter((s) => s.status === "live" || new Date(s.scheduled_at).getTime() <= Date.now() + 7 * 86400000).sort((a, b) => (b.status === "live") - (a.status === "live") || new Date(a.scheduled_at) - new Date(b.scheduled_at));
+  const slideHtml = (sl) => `<a class="slide" href="${sl.href}" style="--c1:${sl.p[0]};--c2:${sl.p[1]}">${sl.img ? `<img class="cv" alt="" src="${sl.img}">` : `<div class="art">${sl.art}</div>`}${sl.live ? `<span class="lbl"><i></i>${H(tt.live)}</span>` : ""}${sl.eyebrow ? `<span class="eyebrow">${H(sl.eyebrow)}</span>` : ""}<h2>${H(sl.title)}</h2>${sl.sub ? `<p>${H(sl.sub)}</p>` : ""}<span class="go">${H(sl.cta)}</span></a>`;
+  const palOf = (key) => { let h = 0; for (let i = 0; i < key.length; i++) h = (h * 31 + key.charCodeAt(i)) >>> 0; return ["#3A2A17,#0F0A05","#122B45,#070D15","#2A2A30,#0A0A0D","#3A1F2C,#120810","#1C3328,#06100B","#2E2140,#0C0814","#22303A,#070B0E"][h % 7].split(","); };
+  const linkOf = (l) => { l = l || ""; if (l.startsWith("cat:")) return `${t.site}${P}/?c=${l.slice(4)}`; if (l.startsWith("seller:")) return `${t.site}${P}/${l.slice(7)}/profile/`; if (l.startsWith("show:")) { const s = DATA.shows.find((x) => x.id === l.slice(5)); const j = s && jById[s.jeweler_id]; return j ? `${t.site}${P}/${j.slug}/${s.slug}/` : `${t.site}${P}/`; } return l || `${t.site}${P}/`; };
+  const slides = [];
+  for (const h of (DATA.highlights || [])) slides.push({ p: palOf("h" + h.id), img: hlFile[h.id] ? `${t.site}${P}/img/${hlFile[h.id]}` : "", art: (h.link || "").startsWith("cat:") ? catArt(h.link.slice(4)) : ART.sparkle, eyebrow: "", title: i18n(h.title_i18n), sub: i18n(h.subtitle_i18n), cta: tt.discover, href: linkOf(h.link), live: false });
+  for (const s of week) { const j = jById[s.jeweler_id]; const isLive = s.status === "live"; const firstCat = (s.categories || [])[0]; const pc = (piecesByShow[s.id] || [])[0]; const img = coverFile[s.id] ? `${t.site}${P}/img/${coverFile[s.id]}` : (pc && photoFile[pc.id] ? `${t.site}${P}/img/${photoFile[pc.id]}` : ""); slides.push({ p: palOf(j.slug), img, art: pc ? (ART[pc.art] || ART.ring) : catArt(firstCat), eyebrow: (firstCat ? catName(firstCat) + " · " : "") + j.name, title: s.title, sub: isLive ? tt.heroLive : tt.liveOn.replace("{day}", new Intl.DateTimeFormat(LOC[lang], { weekday: "long", day: "numeric", month: "long", timeZone: "Europe/Rome" }).format(new Date(s.scheduled_at))).replace("{time}", new Intl.DateTimeFormat(LOC[lang], { hour: "2-digit", minute: "2-digit", hour12: false, timeZone: "Europe/Rome" }).format(new Date(s.scheduled_at))), cta: isLive ? tt.enter : tt.discover, href: isLive ? `${t.site}${P}/${j.slug}/?s=${s.id}` : `${t.site}${P}/${j.slug}/${s.slug}/`, live: isLive }); }
+  const hero = slides.slice(0, 8).map(slideHtml).join("");
+  const dots = slides.slice(0, 8).map((_, i) => `<button type="button" class="${i === 0 ? "on" : ""}" aria-label="${i + 1}"></button>`).join("");
+  const agenda = week.length ? `<div class="agenda">${week.map((s) => { const j = jById[s.jeweler_id]; const p = palOf(j.slug); const pc = (piecesByShow[s.id] || [])[0]; const img = coverFile[s.id] ? `${t.site}${P}/img/${coverFile[s.id]}` : (pc && photoFile[pc.id] ? `${t.site}${P}/img/${photoFile[pc.id]}` : ""); const d = new Date(s.scheduled_at); const wd = new Intl.DateTimeFormat(LOC[lang], { weekday: "short", timeZone: "Europe/Rome" }).format(d), dn = new Intl.DateTimeFormat(LOC[lang], { day: "numeric", timeZone: "Europe/Rome" }).format(d), tm = new Intl.DateTimeFormat(LOC[lang], { hour: "2-digit", minute: "2-digit", hour12: false, timeZone: "Europe/Rome" }).format(d); const bits = [(s.lang || "").toUpperCase(), ...(s.categories || []).slice(0, 2).map(catName), s.price_range].filter(Boolean).join(" · "); return `<a class="ag${s.status === "live" ? " live" : ""}" href="${s.status === "live" ? `${t.site}${P}/${j.slug}/?s=${s.id}` : `${t.site}${P}/${j.slug}/${s.slug}/`}"><div class="agd"><small>${H(s.status === "live" ? tt.live : wd)}</small><b>${H(dn)}</b><span>${H(tm)}</span></div><div class="agi" style="--c1:${p[0]};--c2:${p[1]}">${img ? `<img alt="" src="${img}">` : (pc ? (ART[pc.art] || ART.ring) : ART.ring)}</div><div class="agt"><small>${H(bits)}</small><b>${H(s.title)}</b><span>${H(j.name)}${j.city ? " · " + H(j.city) : ""}</span></div></a>`; }).join("")}</div>` : `<div class="empty">${H(tt.noWeek)}</div>`;
+  const soon = rows.filter((s) => s.status !== "live" && new Date(s.scheduled_at).getTime() > Date.now() + 7 * 86400000).sort((a, b) => new Date(a.scheduled_at) - new Date(b.scheduled_at)).map(card).join("");
   const tiles = DATA.categories.map((c) => { const n = rows.filter((s) => (s.categories || []).includes(c.slug)).length; return `<a class="tile" href="${t.site}${P}/?c=${c.slug}">${ART[c.art] || ART.ring}<b>${H(catName(c.slug))}</b><small>${H(n === 0 ? tt.catSoon : n === 1 ? tt.catOne : tt.catMany.replace("{n}", n))}</small></a>`; }).join("");
   const shops = DATA.jewelers.map((j) => `<a class="seller" href="${t.site}${P}/${j.slug}/profile/"><span class="big">${H(j.name.charAt(0).toUpperCase())}</span><b>${H(j.name)}</b><small>${H(j.city || "")}<br>${H(j.kind === "gems" ? tt.gems : tt.shop)}</small></a>`).join("");
-  return html.replace('<div class="grid" id="gridLive"></div>', `<div class="grid" id="gridLive">${live}</div>`)
+  html = html.replace(/<(\w+)([^>]*) data-t="(\w+)"([^>]*)><\/\1>/g, (m, tag, a, key, b) => `<${tag}${a} data-t="${key}"${b}>${H(tt[key] || "")}</${tag}>`).replace('<small id="tag"></small>', `<small id="tag">${H(tt.tag)}</small>`);
+  return html.replace('<div class="track" id="track"></div>', `<div class="track" id="track">${hero}</div>`).replace('<div class="dots" id="dots"></div>', `<div class="dots" id="dots">${dots}</div>`).replace('<div id="weekBody"></div>', `<div id="weekBody">${agenda}</div>`)
+    .replace('<div class="grid" id="gridLive"></div>', `<div class="grid" id="gridLive">${live}</div>`)
     .replace('<div class="grid" id="gridSoon"></div>', `<div class="grid" id="gridSoon">${soon}</div>`)
     .replace('<div class="tiles" id="tiles"></div>', `<div class="tiles" id="tiles">${tiles}</div>`)
     .replace('<div class="shops" id="shopsRow"></div>', `<div class="shops" id="shopsRow">${shops}</div>`)
-    .replace('<div class="empty" id="emptyLive" hidden></div>', live ? '<div class="empty" id="emptyLive" hidden></div>' : `<div class="empty" id="emptyLive"><b>${H(tt.emptyLiveT)}</b>${H(tt.emptyLive)}</div>`);
+    .replace('<section id="live">', live ? '<section id="live">' : '<section id="live" hidden>');
 }
 
 for (const t of TARGETS) {

@@ -98,6 +98,10 @@ label input,label select,label textarea{width:100%}
     <section class="card admin" id="admin" hidden>
       <p class="eyebrow">Amministrazione · solo gemmologa</p>
       <div class="grid2"><div><h2 style="font-size:20px">Candidature <span class="count" id="appCount" hidden>0</span></h2><div class="list" id="apps" style="margin-top:8px"><p class="hint">Nessuna candidatura.</p></div></div><div><h2 style="font-size:20px">Venditori attivi</h2><div class="list" id="sellers" style="margin-top:8px"></div></div></div>
+      <h2 style="font-size:20px;margin-top:18px">Home page · slide in evidenza</h2>
+      <p class="hint">Le slide scorrono in cima alla home, prima delle dirette della settimana. Titolo e sottotitolo in italiano e inglese (le altre lingue usano l'inglese); il link può essere una categoria, un venditore, una diretta o un indirizzo qualsiasi.</p>
+      <div class="list" id="hl" style="margin-top:8px"></div>
+      <button class="btn sm" type="button" id="newHl" style="margin-top:8px">Nuova slide</button>
     </section>
   </div>
 </div></main>
@@ -430,8 +434,73 @@ label input,label select,label textarea{width:100%}
         box.appendChild(d);
       });
     });
-    loadSellers();
+    loadSellers(); loadHighlights();
   }
+  // ---- Home page: slide in evidenza (solo gemmologa)
+  var HL = [];
+  function linkLabel(l){ l = l || ""; if (l.indexOf("cat:") === 0) return "Categoria: " + catName(l.slice(4)); if (l.indexOf("seller:") === 0) return "Venditore: " + l.slice(7); if (l.indexOf("show:") === 0) return "Diretta"; return l || "Home"; }
+  function loadHighlights(){
+    sb.rpc("list_highlights", { p_token: CFG.token }).then(function(r){
+      if (r.error) return; HL = r.data || []; var box = $("hl"); box.innerHTML = "";
+      if (!HL.length){ box.innerHTML = '<p class="hint">Nessuna slide: in home scorrono solo le dirette della settimana.</p>'; return; }
+      HL.forEach(function(h){
+        var d = document.createElement("div"); d.className = "app";
+        d.innerHTML = (h.image ? '<img src="' + h.image + '" alt="" style="width:100%;max-width:220px;aspect-ratio:16/9;object-fit:cover;border-radius:8px">' : '') + '<b style="font-weight:500">' + esc((h.title_i18n || {}).it || (h.title_i18n || {}).en || "(senza titolo)") + '</b><span class="meta2">' + esc((h.subtitle_i18n || {}).it || "") + '</span><span class="meta2">' + esc(linkLabel(h.link)) + ' · posizione ' + h.position + (h.active ? '' : ' · <b>nascosta</b>') + '</span><div class="acts"><button class="btn sm" type="button" data-edit>Modifica</button><button class="btn sm" type="button" data-toggle>' + (h.active ? "Nascondi" : "Mostra") + '</button></div>';
+        d.querySelector("[data-edit]").addEventListener("click", function(){ hlForm(h); });
+        d.querySelector("[data-toggle]").addEventListener("click", function(){ sb.rpc("save_highlight", { p_token: CFG.token, p_id: h.id, p_position: null, p_title: null, p_subtitle: null, p_link: h.link, p_image: null, p_active: !h.active, p_starts: h.starts_at, p_ends: h.ends_at }).then(function(r){ if (!err(r)) loadHighlights(); }); });
+        box.appendChild(d);
+      });
+    });
+  }
+  function hlForm(h){
+    h = h || {}; var ti = h.title_i18n || {}, si = h.subtitle_i18n || {};
+    var catOpts = CATS.map(function(c){ return '<option value="cat:' + esc(c.slug) + '">' + esc(catName(c.slug)) + '</option>'; }).join("");
+    var showOpts = state.shows.map(function(s){ return '<option value="show:' + esc(s.id) + '">' + esc(s.title) + ' · ' + esc(fmtShort(s.scheduled_at)) + '</option>'; }).join("");
+    var kind = (h.link || "").indexOf("cat:") === 0 ? "cat" : (h.link || "").indexOf("show:") === 0 ? "show" : (h.link || "").indexOf("seller:") === 0 ? "seller" : (h.link ? "url" : "home");
+    openModal('<p class="eyebrow">' + (h.id ? "Modifica slide" : "Nuova slide") + '</p><form id="hf">' +
+      '<label>Titolo (italiano)<input id="hT" type="text" maxlength="80" required value="' + esc(ti.it || "") + '"></label>' +
+      '<label>Title (English)<input id="hTe" type="text" maxlength="80" value="' + esc(ti.en || "") + '"></label>' +
+      '<label>Sottotitolo (italiano)<input id="hS" type="text" maxlength="140" value="' + esc(si.it || "") + '"></label>' +
+      '<label>Subtitle (English)<input id="hSe" type="text" maxlength="140" value="' + esc(si.en || "") + '"></label>' +
+      '<label>Dove porta<select id="hK"><option value="home">Home</option><option value="cat">Una categoria</option><option value="show">Una diretta</option><option value="seller">Un venditore (slug)</option><option value="url">Un indirizzo web</option></select></label>' +
+      '<label id="hCatL" hidden>Categoria<select id="hCat">' + catOpts + '</select></label>' +
+      '<label id="hShowL" hidden>Diretta<select id="hShow">' + showOpts + '</select></label>' +
+      '<label id="hTxtL" hidden>Valore<input id="hTxt" type="text" maxlength="300" placeholder="es. rossi oppure https://…"></label>' +
+      '<label>Immagine (facoltativa, orizzontale; senza immagine si usa l’illustrazione della categoria)<input id="hImg" type="file" accept="image/*"></label>' +
+      '<label>Posizione (le più basse prima)<input id="hPos" type="number" value="' + (h.position != null ? h.position : 10) + '"></label>' +
+      '<label>Visibile dal (facoltativo)<input id="hFrom" type="datetime-local" value="' + (h.starts_at ? toLocalInput(h.starts_at) : "") + '"></label>' +
+      '<label>Fino al (facoltativo)<input id="hTo" type="datetime-local" value="' + (h.ends_at ? toLocalInput(h.ends_at) : "") + '"></label>' +
+      '<button class="btn dark" type="submit">Salva</button></form>');
+    var kSel = $("hK"); kSel.value = kind;
+    function showKind(){ var k = kSel.value; $("hCatL").hidden = k !== "cat"; $("hShowL").hidden = k !== "show"; $("hTxtL").hidden = !(k === "seller" || k === "url"); }
+    kSel.addEventListener("change", showKind); showKind();
+    if (kind === "cat") $("hCat").value = h.link; if (kind === "show") $("hShow").value = h.link; if (kind === "seller") $("hTxt").value = h.link.slice(7); if (kind === "url") $("hTxt").value = h.link;
+    $("hf").addEventListener("submit", function(e){
+      e.preventDefault();
+      var k = kSel.value, link = k === "cat" ? $("hCat").value : k === "show" ? $("hShow").value : k === "seller" ? "seller:" + $("hTxt").value.trim() : k === "url" ? $("hTxt").value.trim() : "";
+      var title = { it: $("hT").value.trim(), en: $("hTe").value.trim() || $("hT").value.trim() }, sub = { it: $("hS").value.trim(), en: $("hSe").value.trim() || $("hS").value.trim() };
+      var f = $("hImg").files && $("hImg").files[0];
+      var save = function(img){
+        var from = $("hFrom").value ? new Date($("hFrom").value).toISOString() : null, to = $("hTo").value ? new Date($("hTo").value).toISOString() : null;
+        sb.rpc("save_highlight", { p_token: CFG.token, p_id: h.id || null, p_position: parseInt($("hPos").value, 10) || 0, p_title: title, p_subtitle: sub, p_link: link, p_image: img, p_active: h.id ? null : true, p_starts: from, p_ends: to }).then(function(r){ if (!err(r)){ closeModal(); toast("Slide salvata"); loadHighlights(); } });
+      };
+      if (f) shrinkWide(f, function(data){ if (!data){ toast("Immagine non leggibile"); return; } save(data); }); else save(null);
+    });
+  }
+  function shrinkWide(file, cb){
+    var img = new Image(), url = URL.createObjectURL(file);
+    img.onload = function(){
+      var W = img.naturalWidth, H = img.naturalHeight, sc = Math.min(1, 1400 / W);
+      var c = document.createElement("canvas"); c.width = Math.round(W * sc); c.height = Math.round(H * sc);
+      c.getContext("2d").drawImage(img, 0, 0, c.width, c.height);
+      var q = 0.8, out = c.toDataURL("image/jpeg", q);
+      while (out.length > 300000 && q > 0.3){ q -= 0.1; out = c.toDataURL("image/jpeg", q); }
+      URL.revokeObjectURL(url); cb(out.length > 300000 ? null : out);
+    };
+    img.onerror = function(){ URL.revokeObjectURL(url); cb(null); };
+    img.src = url;
+  }
+  $("newHl").addEventListener("click", function(){ hlForm(null); });
   function loadSellers(){
     sb.rpc("list_sellers", { p_token: CFG.token }).then(function(r){
       if (r.error) return; var box = $("sellers"); box.innerHTML = "";

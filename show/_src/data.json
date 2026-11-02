@@ -1,1 +1,622 @@
-{"jewelers":[{"id":"0d20f5d1-2270-4d7e-8b50-d97391c1821d","slug":"rossi","name":"Gioielleria Rossi","city":"Bergamo","country":"IT","kind":"shop","tagline":"Dal 1962 in centro a Bergamo. Diamanti certificati, pietre colorate, creazioni su misura.","categories":["oro-18kt","diamanti-naturali","gemme-di-colore","su-misura"],"website":"www.gioielleriarossi.it","shop_url":"https://www.gioielleriarossi.it/shop"},{"id":"4c98306f-f3f4-49d4-965d-36e3d58e8a16","slug":"ferri","name":"Atelier Ferri","city":"Torino","country":"IT","kind":"shop","tagline":"Alta gioielleria torinese. Solitari, tennis, pezzi unici realizzati nel nostro laboratorio.","categories":["diamanti-naturali","platino","sposi","alta-gioielleria","fatto-a-mano","made-in-italy"],"website":null,"shop_url":null},{"id":"8f57cc48-8cf1-48be-a705-962e01f71b8e","slug":"marchetti","name":"Marchetti Preziosi","city":"Firenze","country":"IT","kind":"shop","tagline":"Gioielleria di famiglia sul Lungarno. Perle, diamanti e gioielli d'epoca.","categories":["perle","oro-18kt","vintage","made-in-italy"],"website":null,"shop_url":null},{"id":"b4d3cf12-a1dd-4606-9278-a14210127fe9","slug":"lombardi","name":"Gemme Lombardi","city":"Valenza","country":"IT","kind":"gems","tagline":"Pietre sciolte selezionate per gioiellieri e collezionisti. Zaffiri, spinelli, tormaline.","categories":["pietre-sciolte","gemme-di-colore","blister"],"website":"www.gemmelombardi.it","shop_url":null},{"id":"0a8a8f6c-8511-449c-8492-238c4830fcd8","slug":"pietrerare","name":"Pietre Rare Milano","city":"Milano","country":"IT","kind":"gems","tagline":"Smeraldi, rubini e zaffiri con certificato internazionale. Consulenza gemmologica in diretta.","categories":["pietre-sciolte","gemme-di-colore","diamanti-naturali","blister"],"website":null,"shop_url":null}],"categories":[{"slug":"nuovi-talenti","position":10,"name_i18n":{"ar":"مواهب جديدة","en":"New talents","fr":"Nouveaux talents","it":"Nuovi talenti","ru":"Новые таланты"},"art":"sparkle"},{"slug":"fatto-a-mano","position":20,"name_i18n":{"ar":"صناعة يدوية","en":"Handmade","fr":"Fait main","it":"Fatto a mano","ru":"Ручная работа"},"art":"hammer"},{"slug":"made-in-italy","position":25,"name_i18n":{"ar":"صنع في إيطاليا","en":"Made in Italy","fr":"Made in Italy","it":"Made in Italy","ru":"Сделано в Италии"},"art":"italy"},{"slug":"su-misura","position":30,"name_i18n":{"ar":"حسب الطلب","en":"Bespoke","fr":"Sur mesure","it":"Su misura","ru":"На заказ"},"art":"bespoke"},{"slug":"oro-18kt","position":40,"name_i18n":{"ar":"ذهب عيار 18","en":"18k gold","fr":"Or 18 carats","it":"Oro 18 kt","ru":"Золото 750 (18 карат)"},"art":"gold18"},{"slug":"oro-14kt","position":50,"name_i18n":{"ar":"ذهب عيار 14","en":"14k gold","fr":"Or 14 carats","it":"Oro 14 kt","ru":"Золото 585 (14 карат)"},"art":"gold14"},{"slug":"oro-9kt","position":60,"name_i18n":{"ar":"ذهب عيار 9","en":"9k gold","fr":"Or 9 carats","it":"Oro 9 kt","ru":"Золото 375 (9 карат)"},"art":"gold9"},{"slug":"platino","position":70,"name_i18n":{"ar":"بلاتين","en":"Platinum","fr":"Platine","it":"Platino","ru":"Платина"},"art":"platinum"},{"slug":"argento-925","position":80,"name_i18n":{"ar":"فضة 925","en":"Sterling silver 925","fr":"Argent 925","it":"Argento 925","ru":"Серебро 925"},"art":"silver"},{"slug":"diamanti-naturali","position":90,"name_i18n":{"ar":"ألماس طبيعي","en":"Natural diamonds","fr":"Diamants naturels","it":"Diamanti naturali","ru":"Природные бриллианты"},"art":"diamond"},{"slug":"lab-grown","position":100,"name_i18n":{"ar":"ألماس مصنّع مخبريًا","en":"Lab-grown diamonds","fr":"Diamants de laboratoire","it":"Lab grown diamonds","ru":"Выращенные бриллианты"},"art":"labgrown"},{"slug":"gemme-di-colore","position":110,"name_i18n":{"ar":"أحجار كريمة ملونة","en":"Coloured gemstones","fr":"Pierres de couleur","it":"Gemme di colore","ru":"Цветные камни"},"art":"sapphire"},{"slug":"pietre-sciolte","position":120,"name_i18n":{"ar":"أحجار غير مركّبة","en":"Loose stones","fr":"Pierres sur papier","it":"Pietre sciolte","ru":"Камни без оправы"},"art":"loose"},{"slug":"blister","position":130,"name_i18n":{"ar":"أحجار مختومة (بليستر)","en":"Sealed stones (blister)","fr":"Blisters","it":"Blister","ru":"Камни в блистере"},"art":"blister"},{"slug":"montature","position":140,"name_i18n":{"ar":"أطقم تركيب","en":"Mountings & settings","fr":"Montures","it":"Montature","ru":"Оправы"},"art":"mounting"},{"slug":"perle","position":150,"name_i18n":{"ar":"لؤلؤ","en":"Pearls","fr":"Perles","it":"Perle","ru":"Жемчуг"},"art":"pearls"},{"slug":"sposi","position":160,"name_i18n":{"ar":"خطوبة وزفاف","en":"Engagement & wedding","fr":"Fiançailles et mariage","it":"Fedi e fidanzamento","ru":"Помолвка и свадьба"},"art":"bands"},{"slug":"vintage","position":170,"name_i18n":{"ar":"قطع قديمة وعتيقة","en":"Vintage & antique","fr":"Vintage et ancien","it":"Vintage e d'epoca","ru":"Винтаж и антиквариат"},"art":"brooch"},{"slug":"alta-gioielleria","position":180,"name_i18n":{"ar":"المجوهرات الراقية","en":"High jewellery","fr":"Haute joaillerie","it":"Alta gioielleria","ru":"Высокое ювелирное искусство"},"art":"tiara"}],"shows":[{"id":"1de93cf4-1489-46bb-8eec-4e83d822c02a","jeweler_id":"8f57cc48-8cf1-48be-a705-962e01f71b8e","slug":"orecchini-perle-e-diamanti-1de9","title":"Orecchini: perle e diamanti","title_i18n":{"en":"Earrings: pearls and diamonds","fr":"Boucles d'oreilles : perles et diamants"},"description":"Orecchini con perle Akoya e South Sea e diamanti a goccia, dalla collezione della nostra gioielleria di famiglia sul Lungarno. Perfetti per un regalo importante: in diretta rispondiamo a tutte le domande sulla qualità delle perle.","scheduled_at":"2026-11-07T15:00:00+00:00","status":"scheduled","lang":"it","likes":0,"categories":["perle","diamanti-naturali","oro-18kt"],"price_range":"600–9.000 €","current_piece_id":"fe3b1390-cb0a-4451-82b5-e58992c01e74"},{"id":"fbeecbf4-77a5-4456-bbf0-c6688684e63b","jeweler_id":"0a8a8f6c-8511-449c-8492-238c4830fcd8","slug":"smeraldi-colombiani-con-la-gemmologa-fbee","title":"Smeraldi colombiani, con la gemmologa","title_i18n":{"en":"Colombian emeralds, with the gemologist","fr":"Émeraudes de Colombie, avec la gemmologue"},"description":"Smeraldi colombiani di Muzo, dalla pietra sciolta all'anello finito, raccontati con la gemmologa GIA: origine, trattamenti, certificati. Fascia di prezzo da 2.000 a 15.000 euro.","scheduled_at":"2026-11-05T16:00:00+00:00","status":"scheduled","lang":"it","likes":0,"categories":["gemme-di-colore","pietre-sciolte","blister"],"price_range":"2.000–15.000 €","current_piece_id":"42928e10-8f4a-403e-bebd-b20f7dec5afd"},{"id":"d574a5a9-e5ad-4c94-ac40-a60ed7c4bd9e","jeweler_id":"4c98306f-f3f4-49d4-965d-36e3d58e8a16","slug":"solitari-da-0-50-a-2-carati-d574","title":"Solitari da 0,50 a 2 carati","title_i18n":{"en":"Solitaires from 0.50 to 2 carats","fr":"Solitaires de 0,50 à 2 carats"},"description":"Solitari da 0,50 a 2 carati, in oro bianco, oro rosa e platino, tutti con certificato GIA o IGI. Spieghiamo come leggere colore e purezza e come scegliere la misura giusta: ideale per chi sta pensando a una proposta.","scheduled_at":"2026-11-04T17:00:00+00:00","status":"scheduled","lang":"it","likes":0,"categories":["diamanti-naturali","platino","sposi"],"price_range":"1.500–25.000 €","current_piece_id":"4d94dbb1-809c-423f-8187-76c9d3a01a35"},{"id":"2be7eadf-c4f9-48a9-9ba9-dcc368c58472","jeweler_id":"b4d3cf12-a1dd-4606-9278-a14210127fe9","slug":"pietre-sciolte-spinelli-e-zaffiri-2be7","title":"Pietre sciolte: spinelli e zaffiri","title_i18n":{"en":"Loose stones: spinels and sapphires","fr":"Pierres sur papier : spinelles et saphirs"},"description":"Una selezione di pietre sciolte per gioiellieri e collezionisti: spinelli rosa di Mahenge, zaffiri Ceylon e un lotto di tormaline Paraíba. Ogni pietra viene pesata e osservata in diretta; chi è interessato può chiedere il certificato e prenotare una visione privata.","scheduled_at":"2026-11-03T10:00:00+00:00","status":"scheduled","lang":"it","likes":0,"categories":["pietre-sciolte","gemme-di-colore"],"price_range":"300–4.500 €","current_piece_id":"02931182-00d3-4345-974f-69d0189d4078"},{"id":"c6e3a376-5333-4ff7-a334-09727bf5c59b","jeweler_id":"0d20f5d1-2270-4d7e-8b50-d97391c1821d","slug":"nuovi-arrivi-di-novembre-c6e3","title":"Nuovi arrivi di novembre","title_i18n":{"en":"November new arrivals","fr":"Nouveautés de novembre"},"description":"Tre pezzi nuovi appena arrivati in boutique: un solitario da 1,02 carati con certificato GIA, un anello con zaffiro Ceylon non riscaldato e orecchini pendenti con diamanti taglio goccia. Li mostriamo da vicino, sotto la luce, con la gemmologa in collegamento per leggere insieme i certificati.","scheduled_at":"2026-11-02T16:30:00+00:00","status":"scheduled","lang":"it","likes":0,"categories":["oro-18kt","diamanti-naturali","gemme-di-colore"],"price_range":"800–6.000 €","current_piece_id":"58a51e99-3a4d-44a4-a502-88996e65b1c2"}],"pieces":[{"id":"58a51e99-3a4d-44a4-a502-88996e65b1c2","show_id":"c6e3a376-5333-4ff7-a334-09727bf5c59b","position":1,"name":"Anello solitario","caption":"Anello solitario · Oro bianco 18 kt · Diamante 1,02 ct · G VS1 · Certificato GIA","short":"Solitario 1,02 ct","art":"ring"},{"id":"02931182-00d3-4345-974f-69d0189d4078","show_id":"2be7eadf-c4f9-48a9-9ba9-dcc368c58472","position":1,"name":"Spinello rosa 2,34 ct · Mahenge","caption":"Spinello rosa 2,34 ct · Mahenge, Tanzania · taglio cuscino · non riscaldato","short":"Spinello 2,34 ct","art":"loose"},{"id":"4d94dbb1-809c-423f-8187-76c9d3a01a35","show_id":"d574a5a9-e5ad-4c94-ac40-a60ed7c4bd9e","position":1,"name":"Solitario 1,02 ct · oro bianco","caption":"Diamante 1,02 ct · colore F · purezza VS1 · certificato GIA","short":"Solitario 1,02 ct","art":"ring"},{"id":"fe3b1390-cb0a-4451-82b5-e58992c01e74","show_id":"1de93cf4-1489-46bb-8eec-4e83d822c02a","position":1,"name":"Orecchini perle Akoya 8 mm e diamanti","caption":"Perle Akoya 8–8,5 mm · diamanti 0,30 ct · oro bianco","short":"Orecchini perle Akoya","art":"earrings"},{"id":"42928e10-8f4a-403e-bebd-b20f7dec5afd","show_id":"fbeecbf4-77a5-4456-bbf0-c6688684e63b","position":1,"name":"Smeraldo Muzo 1,85 ct","caption":"Smeraldo colombiano 1,85 ct · Muzo · minor · certificato","short":"Smeraldo 1,85 ct","art":"emerald"},{"id":"1acbb97d-a493-427e-b618-0e0bb825b9f7","show_id":"2be7eadf-c4f9-48a9-9ba9-dcc368c58472","position":2,"name":"Zaffiro Ceylon 3,05 ct","caption":"Zaffiro Ceylon 3,05 ct · blu royal · taglio ovale · certificato","short":"Zaffiro 3,05 ct","art":"sapphire"},{"id":"b91d3b31-a7f0-4afb-afa7-3b5d17206d96","show_id":"1de93cf4-1489-46bb-8eec-4e83d822c02a","position":2,"name":"Pendenti perle South Sea","caption":"Perle South Sea 11 mm · diamanti 0,50 ct · oro giallo","short":"Pendenti South Sea","art":"earrings"},{"id":"0a5ebb84-0a84-4e91-bc3c-810bfeee5b25","show_id":"d574a5a9-e5ad-4c94-ac40-a60ed7c4bd9e","position":2,"name":"Solitario 0,52 ct · oro rosa","caption":"Diamante 0,52 ct · colore G · purezza VS2 · certificato IGI","short":"Solitario 0,52 ct","art":"ring"},{"id":"09f17fd4-ce21-409a-9d81-d76a61487a12","show_id":"fbeecbf4-77a5-4456-bbf0-c6688684e63b","position":2,"name":"Anello smeraldo 2,40 ct e diamanti","caption":"Smeraldo 2,40 ct · diamanti taglio trapezio 0,90 ct · platino","short":"Anello smeraldo 2,40 ct","art":"sapphire"},{"id":"c0e91b2c-9742-415f-96e4-9afd3f970562","show_id":"c6e3a376-5333-4ff7-a334-09727bf5c59b","position":2,"name":"Anello con zaffiro","caption":"Anello con zaffiro · Ceylon 2,10 ct, non riscaldato · Oro bianco 18 kt · Certificato","short":"Zaffiro Ceylon 2,10 ct","art":"sapphire"},{"id":"e0c2cfda-6200-4e51-a84a-bd54255ad8b4","show_id":"2be7eadf-c4f9-48a9-9ba9-dcc368c58472","position":3,"name":"Lotto tormaline Paraíba","caption":"Tre tormaline Paraíba · 0,80–1,20 ct · Mozambico","short":"Tormaline Paraíba","art":"loose"},{"id":"f2cdf6fc-f2f7-4f29-9e5e-69212e2c210e","show_id":"c6e3a376-5333-4ff7-a334-09727bf5c59b","position":3,"name":"Orecchini pendenti","caption":"Orecchini pendenti · Diamanti taglio goccia, 1,40 ct in totale · Colore F · Oro bianco 18 kt","short":"Orecchini goccia 1,40 ct","art":"earrings"},{"id":"86097afa-0eb8-4fc8-9061-94ee3d4e5cf7","show_id":"d574a5a9-e5ad-4c94-ac40-a60ed7c4bd9e","position":3,"name":"Solitario 2,01 ct · platino","caption":"Diamante 2,01 ct · colore E · purezza VVS2 · certificato GIA","short":"Solitario 2,01 ct","art":"ring"},{"id":"6056ce0c-a948-4a09-b024-369ef35bfc1c","show_id":"1de93cf4-1489-46bb-8eec-4e83d822c02a","position":3,"name":"Orecchini diamanti a goccia","caption":"Diamanti taglio pera 2 × 0,70 ct · colore G · platino","short":"Orecchini a goccia","art":"earrings"}],"covers":[{"show_id":"d574a5a9-e5ad-4c94-ac40-a60ed7c4bd9e","data":"https://live.gemsandjewelrytechlab.com/show/img/covers/solitari-ferri.jpg"},{"show_id":"c6e3a376-5333-4ff7-a334-09727bf5c59b","data":"https://live.gemsandjewelrytechlab.com/show/img/covers/nuovi-arrivi-rossi.jpg"},{"show_id":"2be7eadf-c4f9-48a9-9ba9-dcc368c58472","data":"https://live.gemsandjewelrytechlab.com/show/img/covers/pietre-sciolte-lombardi.jpg"},{"show_id":"1de93cf4-1489-46bb-8eec-4e83d822c02a","data":"https://live.gemsandjewelrytechlab.com/show/img/covers/perle-marchetti.jpg"}],"photos":[],"highlights":[{"id":"0006b902-4b5a-4b09-8da3-a43c4e6b23b9","position":10,"title_i18n":{"ar":"اكتشف المواهب الجديدة","en":"Discover the new talents","fr":"Découvrez les nouveaux talents","it":"Scopri i nuovi talenti","ru":"Откройте новые таланты"},"subtitle_i18n":{"ar":"صاغة ومصممون شباب مختارون، مباشرة من ورشتهم","en":"Selected young goldsmiths and designers, live from their workshop","fr":"Jeunes orfèvres et créateurs sélectionnés, en direct de leur atelier","it":"Giovani orafi e designer selezionati, in diretta dalla loro bottega","ru":"Отобранные молодые ювелиры и дизайнеры, в прямом эфире из своей мастерской"},"link":"cat:nuovi-talenti","image":"https://live.gemsandjewelrytechlab.com/show/img/slides/nuovi-talenti.jpg","video_url":null},{"id":"c7891f59-967b-48ba-9975-e353341abaea","position":20,"title_i18n":{"ar":"أفضل ما في الفضة 925","en":"The best of sterling silver","fr":"Le meilleur de l’argent 925","it":"Il meglio dell’argento 925","ru":"Лучшее из серебра 925"},"subtitle_i18n":{"ar":"مجوهرات فضية مصنوعة يدويًا، ابتداءً من 90 €","en":"Handmade silver jewellery, from €90","fr":"Bijoux en argent faits main, à partir de 90 €","it":"Gioielli in argento fatti a mano, con prezzi da 90 €","ru":"Серебряные украшения ручной работы, от 90 €"},"link":"cat:argento-925","image":"https://live.gemsandjewelrytechlab.com/show/img/slides/argento-925.jpg","video_url":null}]}
+{
+ "jewelers": [
+  {
+   "id": "0d20f5d1-2270-4d7e-8b50-d97391c1821d",
+   "slug": "rossi",
+   "name": "Gioielleria Rossi",
+   "city": "Bergamo",
+   "country": "IT",
+   "kind": "shop",
+   "tagline": "Dal 1962 in centro a Bergamo. Diamanti certificati, pietre colorate, creazioni su misura.",
+   "categories": [
+    "oro-18kt",
+    "diamanti-naturali",
+    "gemme-di-colore",
+    "su-misura"
+   ],
+   "website": "www.gioielleriarossi.it",
+   "shop_url": "https://www.gioielleriarossi.it/shop"
+  },
+  {
+   "id": "4c98306f-f3f4-49d4-965d-36e3d58e8a16",
+   "slug": "ferri",
+   "name": "Atelier Ferri",
+   "city": "Torino",
+   "country": "IT",
+   "kind": "shop",
+   "tagline": "Alta gioielleria torinese. Solitari, tennis, pezzi unici realizzati nel nostro laboratorio.",
+   "categories": [
+    "diamanti-naturali",
+    "platino",
+    "sposi",
+    "alta-gioielleria",
+    "fatto-a-mano",
+    "made-in-italy"
+   ],
+   "website": null,
+   "shop_url": null
+  },
+  {
+   "id": "8f57cc48-8cf1-48be-a705-962e01f71b8e",
+   "slug": "marchetti",
+   "name": "Marchetti Preziosi",
+   "city": "Firenze",
+   "country": "IT",
+   "kind": "shop",
+   "tagline": "Gioielleria di famiglia sul Lungarno. Perle, diamanti e gioielli d'epoca.",
+   "categories": [
+    "perle",
+    "oro-18kt",
+    "vintage",
+    "made-in-italy"
+   ],
+   "website": null,
+   "shop_url": null
+  },
+  {
+   "id": "b4d3cf12-a1dd-4606-9278-a14210127fe9",
+   "slug": "lombardi",
+   "name": "Gemme Lombardi",
+   "city": "Valenza",
+   "country": "IT",
+   "kind": "gems",
+   "tagline": "Pietre sciolte selezionate per gioiellieri e collezionisti. Zaffiri, spinelli, tormaline.",
+   "categories": [
+    "pietre-sciolte",
+    "gemme-di-colore",
+    "blister"
+   ],
+   "website": "www.gemmelombardi.it",
+   "shop_url": null
+  },
+  {
+   "id": "0a8a8f6c-8511-449c-8492-238c4830fcd8",
+   "slug": "pietrerare",
+   "name": "Pietre Rare Milano",
+   "city": "Milano",
+   "country": "IT",
+   "kind": "gems",
+   "tagline": "Smeraldi, rubini e zaffiri con certificato internazionale. Consulenza gemmologica in diretta.",
+   "categories": [
+    "pietre-sciolte",
+    "gemme-di-colore",
+    "diamanti-naturali",
+    "blister"
+   ],
+   "website": null,
+   "shop_url": null
+  }
+ ],
+ "categories": [
+  {
+   "slug": "nuovi-talenti",
+   "position": 10,
+   "name_i18n": {
+    "ar": "مواهب جديدة",
+    "en": "New talents",
+    "fr": "Nouveaux talents",
+    "it": "Nuovi talenti",
+    "ru": "Новые таланты"
+   },
+   "art": "sparkle"
+  },
+  {
+   "slug": "fatto-a-mano",
+   "position": 20,
+   "name_i18n": {
+    "ar": "صناعة يدوية",
+    "en": "Handmade",
+    "fr": "Fait main",
+    "it": "Fatto a mano",
+    "ru": "Ручная работа"
+   },
+   "art": "hammer"
+  },
+  {
+   "slug": "made-in-italy",
+   "position": 25,
+   "name_i18n": {
+    "ar": "صنع في إيطاليا",
+    "en": "Made in Italy",
+    "fr": "Made in Italy",
+    "it": "Made in Italy",
+    "ru": "Сделано в Италии"
+   },
+   "art": "italy"
+  },
+  {
+   "slug": "su-misura",
+   "position": 30,
+   "name_i18n": {
+    "ar": "حسب الطلب",
+    "en": "Bespoke",
+    "fr": "Sur mesure",
+    "it": "Su misura",
+    "ru": "На заказ"
+   },
+   "art": "bespoke"
+  },
+  {
+   "slug": "oro-18kt",
+   "position": 40,
+   "name_i18n": {
+    "ar": "ذهب عيار 18",
+    "en": "18k gold",
+    "fr": "Or 18 carats",
+    "it": "Oro 18 kt",
+    "ru": "Золото 750 (18 карат)"
+   },
+   "art": "gold18"
+  },
+  {
+   "slug": "oro-14kt",
+   "position": 50,
+   "name_i18n": {
+    "ar": "ذهب عيار 14",
+    "en": "14k gold",
+    "fr": "Or 14 carats",
+    "it": "Oro 14 kt",
+    "ru": "Золото 585 (14 карат)"
+   },
+   "art": "gold14"
+  },
+  {
+   "slug": "oro-9kt",
+   "position": 60,
+   "name_i18n": {
+    "ar": "ذهب عيار 9",
+    "en": "9k gold",
+    "fr": "Or 9 carats",
+    "it": "Oro 9 kt",
+    "ru": "Золото 375 (9 карат)"
+   },
+   "art": "gold9"
+  },
+  {
+   "slug": "platino",
+   "position": 70,
+   "name_i18n": {
+    "ar": "بلاتين",
+    "en": "Platinum",
+    "fr": "Platine",
+    "it": "Platino",
+    "ru": "Платина"
+   },
+   "art": "platinum"
+  },
+  {
+   "slug": "argento-925",
+   "position": 80,
+   "name_i18n": {
+    "ar": "فضة 925",
+    "en": "Sterling silver 925",
+    "fr": "Argent 925",
+    "it": "Argento 925",
+    "ru": "Серебро 925"
+   },
+   "art": "silver"
+  },
+  {
+   "slug": "diamanti-naturali",
+   "position": 90,
+   "name_i18n": {
+    "ar": "ألماس طبيعي",
+    "en": "Natural diamonds",
+    "fr": "Diamants naturels",
+    "it": "Diamanti naturali",
+    "ru": "Природные бриллианты"
+   },
+   "art": "diamond"
+  },
+  {
+   "slug": "lab-grown",
+   "position": 100,
+   "name_i18n": {
+    "ar": "ألماس مصنّع مخبريًا",
+    "en": "Lab-grown diamonds",
+    "fr": "Diamants de laboratoire",
+    "it": "Lab grown diamonds",
+    "ru": "Выращенные бриллианты"
+   },
+   "art": "labgrown"
+  },
+  {
+   "slug": "gemme-di-colore",
+   "position": 110,
+   "name_i18n": {
+    "ar": "أحجار كريمة ملونة",
+    "en": "Coloured gemstones",
+    "fr": "Pierres de couleur",
+    "it": "Gemme di colore",
+    "ru": "Цветные камни"
+   },
+   "art": "sapphire"
+  },
+  {
+   "slug": "pietre-sciolte",
+   "position": 120,
+   "name_i18n": {
+    "ar": "أحجار غير مركّبة",
+    "en": "Loose stones",
+    "fr": "Pierres sur papier",
+    "it": "Pietre sciolte",
+    "ru": "Камни без оправы"
+   },
+   "art": "loose"
+  },
+  {
+   "slug": "blister",
+   "position": 130,
+   "name_i18n": {
+    "ar": "أحجار مختومة (بليستر)",
+    "en": "Sealed stones (blister)",
+    "fr": "Blisters",
+    "it": "Blister",
+    "ru": "Камни в блистере"
+   },
+   "art": "blister"
+  },
+  {
+   "slug": "montature",
+   "position": 140,
+   "name_i18n": {
+    "ar": "أطقم تركيب",
+    "en": "Mountings & settings",
+    "fr": "Montures",
+    "it": "Montature",
+    "ru": "Оправы"
+   },
+   "art": "mounting"
+  },
+  {
+   "slug": "perle",
+   "position": 150,
+   "name_i18n": {
+    "ar": "لؤلؤ",
+    "en": "Pearls",
+    "fr": "Perles",
+    "it": "Perle",
+    "ru": "Жемчуг"
+   },
+   "art": "pearls"
+  },
+  {
+   "slug": "sposi",
+   "position": 160,
+   "name_i18n": {
+    "ar": "خطوبة وزفاف",
+    "en": "Engagement & wedding",
+    "fr": "Fiançailles et mariage",
+    "it": "Fedi e fidanzamento",
+    "ru": "Помолвка и свадьба"
+   },
+   "art": "bands"
+  },
+  {
+   "slug": "vintage",
+   "position": 170,
+   "name_i18n": {
+    "ar": "قطع قديمة وعتيقة",
+    "en": "Vintage & antique",
+    "fr": "Vintage et ancien",
+    "it": "Vintage e d'epoca",
+    "ru": "Винтаж и антиквариат"
+   },
+   "art": "brooch"
+  },
+  {
+   "slug": "alta-gioielleria",
+   "position": 180,
+   "name_i18n": {
+    "ar": "المجوهرات الراقية",
+    "en": "High jewellery",
+    "fr": "Haute joaillerie",
+    "it": "Alta gioielleria",
+    "ru": "Высокое ювелирное искусство"
+   },
+   "art": "tiara"
+  }
+ ],
+ "shows": [
+  {
+   "id": "1de93cf4-1489-46bb-8eec-4e83d822c02a",
+   "jeweler_id": "8f57cc48-8cf1-48be-a705-962e01f71b8e",
+   "slug": "orecchini-perle-e-diamanti-1de9",
+   "title": "Orecchini: perle e diamanti",
+   "title_i18n": {
+    "en": "Earrings: pearls and diamonds",
+    "fr": "Boucles d'oreilles : perles et diamants"
+   },
+   "description": "Orecchini con perle Akoya e South Sea e diamanti a goccia, dalla collezione della nostra gioielleria di famiglia sul Lungarno. Perfetti per un regalo importante: in diretta rispondiamo a tutte le domande sulla qualità delle perle.",
+   "scheduled_at": "2026-11-07T15:00:00+00:00",
+   "status": "scheduled",
+   "lang": "it",
+   "likes": 0,
+   "categories": [
+    "perle",
+    "diamanti-naturali",
+    "oro-18kt"
+   ],
+   "price_range": "600–9.000 €",
+   "current_piece_id": "fe3b1390-cb0a-4451-82b5-e58992c01e74"
+  },
+  {
+   "id": "fbeecbf4-77a5-4456-bbf0-c6688684e63b",
+   "jeweler_id": "0a8a8f6c-8511-449c-8492-238c4830fcd8",
+   "slug": "smeraldi-colombiani-con-la-gemmologa-fbee",
+   "title": "Smeraldi colombiani, con la gemmologa",
+   "title_i18n": {
+    "en": "Colombian emeralds, with the gemologist",
+    "fr": "Émeraudes de Colombie, avec la gemmologue"
+   },
+   "description": "Smeraldi colombiani di Muzo, dalla pietra sciolta all'anello finito, raccontati con la gemmologa GIA: origine, trattamenti, certificati. Fascia di prezzo da 2.000 a 15.000 euro.",
+   "scheduled_at": "2026-11-05T16:00:00+00:00",
+   "status": "scheduled",
+   "lang": "it",
+   "likes": 0,
+   "categories": [
+    "gemme-di-colore",
+    "pietre-sciolte",
+    "blister"
+   ],
+   "price_range": "2.000–15.000 €",
+   "current_piece_id": "42928e10-8f4a-403e-bebd-b20f7dec5afd"
+  },
+  {
+   "id": "d574a5a9-e5ad-4c94-ac40-a60ed7c4bd9e",
+   "jeweler_id": "4c98306f-f3f4-49d4-965d-36e3d58e8a16",
+   "slug": "solitari-da-0-50-a-2-carati-d574",
+   "title": "Solitari da 0,50 a 2 carati",
+   "title_i18n": {
+    "en": "Solitaires from 0.50 to 2 carats",
+    "fr": "Solitaires de 0,50 à 2 carats"
+   },
+   "description": "Solitari da 0,50 a 2 carati, in oro bianco, oro rosa e platino, tutti con certificato GIA o IGI. Spieghiamo come leggere colore e purezza e come scegliere la misura giusta: ideale per chi sta pensando a una proposta.",
+   "scheduled_at": "2026-11-04T17:00:00+00:00",
+   "status": "scheduled",
+   "lang": "it",
+   "likes": 0,
+   "categories": [
+    "diamanti-naturali",
+    "platino",
+    "sposi"
+   ],
+   "price_range": "1.500–25.000 €",
+   "current_piece_id": "4d94dbb1-809c-423f-8187-76c9d3a01a35"
+  },
+  {
+   "id": "2be7eadf-c4f9-48a9-9ba9-dcc368c58472",
+   "jeweler_id": "b4d3cf12-a1dd-4606-9278-a14210127fe9",
+   "slug": "pietre-sciolte-spinelli-e-zaffiri-2be7",
+   "title": "Pietre sciolte: spinelli e zaffiri",
+   "title_i18n": {
+    "en": "Loose stones: spinels and sapphires",
+    "fr": "Pierres sur papier : spinelles et saphirs"
+   },
+   "description": "Una selezione di pietre sciolte per gioiellieri e collezionisti: spinelli rosa di Mahenge, zaffiri Ceylon e un lotto di tormaline Paraíba. Ogni pietra viene pesata e osservata in diretta; chi è interessato può chiedere il certificato e prenotare una visione privata.",
+   "scheduled_at": "2026-11-03T10:00:00+00:00",
+   "status": "scheduled",
+   "lang": "it",
+   "likes": 0,
+   "categories": [
+    "pietre-sciolte",
+    "gemme-di-colore"
+   ],
+   "price_range": "300–4.500 €",
+   "current_piece_id": "02931182-00d3-4345-974f-69d0189d4078"
+  },
+  {
+   "id": "c6e3a376-5333-4ff7-a334-09727bf5c59b",
+   "jeweler_id": "0d20f5d1-2270-4d7e-8b50-d97391c1821d",
+   "slug": "nuovi-arrivi-di-novembre-c6e3",
+   "title": "Nuovi arrivi di novembre",
+   "title_i18n": {
+    "en": "November new arrivals",
+    "fr": "Nouveautés de novembre"
+   },
+   "description": "Quattro pezzi nuovi appena arrivati in boutique: un solitario da 1,02 carati con certificato GIA, un anello con zaffiro Ceylon non riscaldato, un anello con perla barocca e pavé di diamanti e orecchini pendenti con diamanti taglio goccia. Li mostriamo da vicino, sotto la luce, con la gemmologa in collegamento per leggere insieme i certificati.",
+   "scheduled_at": "2026-11-02T16:30:00+00:00",
+   "status": "scheduled",
+   "lang": "it",
+   "likes": 0,
+   "categories": [
+    "oro-18kt",
+    "diamanti-naturali",
+    "gemme-di-colore"
+   ],
+   "price_range": "800–6.000 €",
+   "current_piece_id": "58a51e99-3a4d-44a4-a502-88996e65b1c2"
+  }
+ ],
+ "pieces": [
+  {
+   "id": "58a51e99-3a4d-44a4-a502-88996e65b1c2",
+   "show_id": "c6e3a376-5333-4ff7-a334-09727bf5c59b",
+   "position": 1,
+   "name": "Anello solitario",
+   "caption": "Anello solitario · Oro bianco 18 kt · Diamante 1,02 ct · G VS1 · Certificato GIA",
+   "short": "Solitario 1,02 ct",
+   "art": "ring"
+  },
+  {
+   "id": "02931182-00d3-4345-974f-69d0189d4078",
+   "show_id": "2be7eadf-c4f9-48a9-9ba9-dcc368c58472",
+   "position": 1,
+   "name": "Spinello rosa 2,34 ct · Mahenge",
+   "caption": "Spinello rosa 2,34 ct · Mahenge, Tanzania · taglio cuscino · non riscaldato",
+   "short": "Spinello 2,34 ct",
+   "art": "loose"
+  },
+  {
+   "id": "4d94dbb1-809c-423f-8187-76c9d3a01a35",
+   "show_id": "d574a5a9-e5ad-4c94-ac40-a60ed7c4bd9e",
+   "position": 1,
+   "name": "Solitario 1,02 ct · oro bianco",
+   "caption": "Diamante 1,02 ct · colore F · purezza VS1 · certificato GIA",
+   "short": "Solitario 1,02 ct",
+   "art": "ring"
+  },
+  {
+   "id": "fe3b1390-cb0a-4451-82b5-e58992c01e74",
+   "show_id": "1de93cf4-1489-46bb-8eec-4e83d822c02a",
+   "position": 1,
+   "name": "Orecchini perle Akoya 8 mm e diamanti",
+   "caption": "Perle Akoya 8–8,5 mm · diamanti 0,30 ct · oro bianco",
+   "short": "Orecchini perle Akoya",
+   "art": "earrings"
+  },
+  {
+   "id": "42928e10-8f4a-403e-bebd-b20f7dec5afd",
+   "show_id": "fbeecbf4-77a5-4456-bbf0-c6688684e63b",
+   "position": 1,
+   "name": "Smeraldo Muzo 1,85 ct",
+   "caption": "Smeraldo colombiano 1,85 ct · Muzo · minor · certificato",
+   "short": "Smeraldo 1,85 ct",
+   "art": "emerald"
+  },
+  {
+   "id": "1acbb97d-a493-427e-b618-0e0bb825b9f7",
+   "show_id": "2be7eadf-c4f9-48a9-9ba9-dcc368c58472",
+   "position": 2,
+   "name": "Zaffiro Ceylon 3,05 ct",
+   "caption": "Zaffiro Ceylon 3,05 ct · blu royal · taglio ovale · certificato",
+   "short": "Zaffiro 3,05 ct",
+   "art": "sapphire"
+  },
+  {
+   "id": "b91d3b31-a7f0-4afb-afa7-3b5d17206d96",
+   "show_id": "1de93cf4-1489-46bb-8eec-4e83d822c02a",
+   "position": 2,
+   "name": "Pendenti perle South Sea",
+   "caption": "Perle South Sea 11 mm · diamanti 0,50 ct · oro giallo",
+   "short": "Pendenti South Sea",
+   "art": "earrings"
+  },
+  {
+   "id": "0a5ebb84-0a84-4e91-bc3c-810bfeee5b25",
+   "show_id": "d574a5a9-e5ad-4c94-ac40-a60ed7c4bd9e",
+   "position": 2,
+   "name": "Solitario 0,52 ct · oro rosa",
+   "caption": "Diamante 0,52 ct · colore G · purezza VS2 · certificato IGI",
+   "short": "Solitario 0,52 ct",
+   "art": "ring"
+  },
+  {
+   "id": "09f17fd4-ce21-409a-9d81-d76a61487a12",
+   "show_id": "fbeecbf4-77a5-4456-bbf0-c6688684e63b",
+   "position": 2,
+   "name": "Anello smeraldo 2,40 ct e diamanti",
+   "caption": "Smeraldo 2,40 ct · diamanti taglio trapezio 0,90 ct · platino",
+   "short": "Anello smeraldo 2,40 ct",
+   "art": "sapphire"
+  },
+  {
+   "id": "c0e91b2c-9742-415f-96e4-9afd3f970562",
+   "show_id": "c6e3a376-5333-4ff7-a334-09727bf5c59b",
+   "position": 2,
+   "name": "Anello con zaffiro",
+   "caption": "Anello con zaffiro · Ceylon 2,10 ct, non riscaldato · Oro bianco 18 kt · Certificato",
+   "short": "Zaffiro Ceylon 2,10 ct",
+   "art": "sapphire"
+  },
+  {
+   "id": "e0c2cfda-6200-4e51-a84a-bd54255ad8b4",
+   "show_id": "2be7eadf-c4f9-48a9-9ba9-dcc368c58472",
+   "position": 3,
+   "name": "Lotto tormaline Paraíba",
+   "caption": "Tre tormaline Paraíba · 0,80–1,20 ct · Mozambico",
+   "short": "Tormaline Paraíba",
+   "art": "loose"
+  },
+  {
+   "id": "f2cdf6fc-f2f7-4f29-9e5e-69212e2c210e",
+   "show_id": "c6e3a376-5333-4ff7-a334-09727bf5c59b",
+   "position": 3,
+   "name": "Orecchini pendenti",
+   "caption": "Orecchini pendenti · Diamanti taglio goccia, 1,40 ct in totale · Colore F · Oro bianco 18 kt",
+   "short": "Orecchini goccia 1,40 ct",
+   "art": "earrings"
+  },
+  {
+   "id": "86097afa-0eb8-4fc8-9061-94ee3d4e5cf7",
+   "show_id": "d574a5a9-e5ad-4c94-ac40-a60ed7c4bd9e",
+   "position": 3,
+   "name": "Solitario 2,01 ct · platino",
+   "caption": "Diamante 2,01 ct · colore E · purezza VVS2 · certificato GIA",
+   "short": "Solitario 2,01 ct",
+   "art": "ring"
+  },
+  {
+   "id": "6056ce0c-a948-4a09-b024-369ef35bfc1c",
+   "show_id": "1de93cf4-1489-46bb-8eec-4e83d822c02a",
+   "position": 3,
+   "name": "Orecchini diamanti a goccia",
+   "caption": "Diamanti taglio pera 2 × 0,70 ct · colore G · platino",
+   "short": "Orecchini a goccia",
+   "art": "earrings"
+  }
+ ],
+ "covers": [
+  {
+   "show_id": "d574a5a9-e5ad-4c94-ac40-a60ed7c4bd9e",
+   "data": "https://live.gemsandjewelrytechlab.com/show/img/covers/solitari-ferri.jpg"
+  },
+  {
+   "show_id": "c6e3a376-5333-4ff7-a334-09727bf5c59b",
+   "data": "https://live.gemsandjewelrytechlab.com/show/img/covers/nuovi-arrivi-rossi.jpg"
+  },
+  {
+   "show_id": "2be7eadf-c4f9-48a9-9ba9-dcc368c58472",
+   "data": "https://live.gemsandjewelrytechlab.com/show/img/covers/pietre-sciolte-lombardi.jpg"
+  },
+  {
+   "show_id": "1de93cf4-1489-46bb-8eec-4e83d822c02a",
+   "data": "https://live.gemsandjewelrytechlab.com/show/img/covers/perle-marchetti.jpg"
+  }
+ ],
+ "photos": [],
+ "highlights": [
+  {
+   "id": "0006b902-4b5a-4b09-8da3-a43c4e6b23b9",
+   "position": 10,
+   "title_i18n": {
+    "ar": "اكتشف المواهب الجديدة",
+    "en": "Discover the new talents",
+    "fr": "Découvrez les nouveaux talents",
+    "it": "Scopri i nuovi talenti",
+    "ru": "Откройте новые таланты"
+   },
+   "subtitle_i18n": {
+    "ar": "صاغة ومصممون شباب مختارون، مباشرة من ورشتهم",
+    "en": "Selected young goldsmiths and designers, live from their workshop",
+    "fr": "Jeunes orfèvres et créateurs sélectionnés, en direct de leur atelier",
+    "it": "Giovani orafi e designer selezionati, in diretta dalla loro bottega",
+    "ru": "Отобранные молодые ювелиры и дизайнеры, в прямом эфире из своей мастерской"
+   },
+   "link": "cat:nuovi-talenti",
+   "image": "https://live.gemsandjewelrytechlab.com/show/img/slides/nuovi-talenti.jpg",
+   "video_url": null
+  },
+  {
+   "id": "c7891f59-967b-48ba-9975-e353341abaea",
+   "position": 20,
+   "title_i18n": {
+    "ar": "أفضل ما في الفضة 925",
+    "en": "The best of sterling silver",
+    "fr": "Le meilleur de l’argent 925",
+    "it": "Il meglio dell’argento 925",
+    "ru": "Лучшее из серебра 925"
+   },
+   "subtitle_i18n": {
+    "ar": "مجوهرات فضية مصنوعة يدويًا، ابتداءً من 90 €",
+    "en": "Handmade silver jewellery, from €90",
+    "fr": "Bijoux en argent faits main, à partir de 90 €",
+    "it": "Gioielli in argento fatti a mano, con prezzi da 90 €",
+    "ru": "Серебряные украшения ручной работы, от 90 €"
+   },
+   "link": "cat:argento-925",
+   "image": "https://live.gemsandjewelrytechlab.com/show/img/slides/argento-925.jpg",
+   "video_url": null
+  }
+ ]
+}

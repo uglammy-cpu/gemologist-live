@@ -41,7 +41,6 @@ async function fetchData() {
   };
   const since = new Date(Date.now() - 90 * 86400000).toISOString();
   const data = {
-    fetched_at: new Date().toISOString(),
     jewelers: await get("jewelers?select=id,slug,name,city,country,kind,tagline,categories,website,shop_url&is_public=eq.true&order=created_at"),
     categories: await get("categories?select=slug,position,name_i18n,art&active=eq.true&order=position"),
     shows: await get("shows?select=id,jeweler_id,slug,title,title_i18n,description,scheduled_at,status,lang,likes,categories,price_range,current_piece_id&visibility=eq.public&scheduled_at=gte." + since + "&order=scheduled_at.desc&limit=400"),
@@ -53,7 +52,7 @@ async function fetchData() {
   console.log("dati scaricati:", data.jewelers.length, "venditori,", data.shows.length, "dirette,", data.pieces.length, "pezzi,", data.photos.length, "foto");
   return data;
 }
-let DATA = { fetched_at: null, jewelers: [], categories: [], shows: [], pieces: [], covers: [], photos: [] };
+let DATA = { jewelers: [], categories: [], shows: [], pieces: [], covers: [], photos: [] };
 if (process.argv.includes("--fetch")) DATA = await fetchData();
 else if (fs.existsSync(DATA_FILE)) DATA = JSON.parse(fs.readFileSync(DATA_FILE, "utf8"));
 const sellers = DATA.jewelers.map((j) => j.slug).filter((s) => /^[a-z0-9-]{2,40}$/.test(s));

@@ -19,6 +19,8 @@
       <button type="button" id="interest"><span class="ic goldbg" id="gemIc"></span><span id="interestTxt"></span></button>
       <button type="button" id="book"><span class="ic" id="calIc"></span><span id="bookTxt"></span></button>
       <button type="button" id="share"><span class="ic" id="shareIc"></span><span id="shareTxt"></span></button>
+      <button type="button" id="buy" hidden><span class="ic goldbg" id="bagIc"></span><span id="buyTxt"></span></button>
+      <button type="button" id="how"><span class="ic" id="helpIc"></span><span id="howTxt"></span></button>
     </div>
     <form class="pin" id="form"><input id="msg" type="text" maxlength="500" autocomplete="off"><button type="submit" id="send"></button></form>
     <div class="waitv" id="notfound" hidden><div><b>404</b><span id="nfTxt">Pagina non trovata.</span></div></div>
@@ -34,9 +36,9 @@
   var sb = window.supabase.createClient(CFG.url, CFG.key);
   var $ = function(id){ return document.getElementById(id); };
   var LOC = { it:"it-IT", en:"en-GB", fr:"fr-FR", ar:"ar-AE-u-nu-latn", ru:"ru-RU" };
-  var state = { jeweler:null, show:null, pieces:[], invite:null, name:"", lang:"it", t:TT.it, likes:0, channel:null, lastTap:0, queued:0 };
-  try { state.name = localStorage.getItem("live-name") || ""; } catch(e){}
-  $("heartIc").innerHTML = ICON.heart; $("gemIc").innerHTML = ICON.gem; $("calIc").innerHTML = ICON.cal; $("shareIc").innerHTML = ICON.share; $("eyeIc").innerHTML = ICON.eye;
+  var state = { jeweler:null, show:null, pieces:[], invite:null, name:"", contact:"", lang:"it", t:TT.it, likes:0, channel:null, lastTap:0, queued:0 };
+  try { state.name = localStorage.getItem("live-name") || ""; state.contact = localStorage.getItem("live-contact") || ""; } catch(e){}
+  $("heartIc").innerHTML = ICON.heart; $("gemIc").innerHTML = ICON.gem; $("calIc").innerHTML = ICON.cal; $("shareIc").innerHTML = ICON.share; $("eyeIc").innerHTML = ICON.eye; $("bagIc").innerHTML = ICON.bag; $("helpIc").innerHTML = ICON.help;
 
   function fmtDate(iso){ try { return new Intl.DateTimeFormat(LOC[state.lang] || "it-IT", { weekday:"long", day:"numeric", month:"long", hour:"2-digit", minute:"2-digit", hour12:false }).format(new Date(iso)); } catch(e){ return iso; } }
   function currentPiece(){ var id = state.show && state.show.current_piece_id; for (var i = 0; i < state.pieces.length; i++) if (state.pieces[i].id === id) return state.pieces[i]; return state.pieces[0] || null; }
@@ -57,9 +59,10 @@
     else if (s.status === "ended"){ w.hidden = false; $("waitT").textContent = t.waitEnded; $("waitS").textContent = t.waitEndedSub; }
     else { w.hidden = true; }
     $("likes").textContent = fmtK(s.likes, LOC[state.lang]); state.likes = s.likes || 0;
-    $("interestTxt").textContent = t.interest; $("bookTxt").textContent = t.book; $("shareTxt").textContent = t.invite; $("send").textContent = t.send; $("msg").placeholder = t.ask; $("audioBtn").textContent = t.audio;
-    $("interest").disabled = s.status === "ended"; $("heart").disabled = !live; $("send").disabled = s.status === "ended"; $("msg").disabled = s.status === "ended";
-    $("back").title = t.backTo; $("pill").title = t.backTo;
+    $("interestTxt").textContent = t.interest; $("bookTxt").textContent = t.book; $("shareTxt").textContent = t.invite; $("buyTxt").textContent = t.buy; $("howTxt").textContent = t.how; $("send").textContent = t.send; $("msg").placeholder = t.ask; $("audioBtn").textContent = t.audio;
+    $("buy").hidden = !j.shop_url; $("pill").href = CFG.base + "/live/" + CFG.slug + "/profile?lang=" + state.lang;
+    $("interest").disabled = false; $("book").disabled = false; $("heart").disabled = !live; $("send").disabled = s.status === "ended"; $("msg").disabled = s.status === "ended";
+    $("back").title = t.backTo; $("pill").title = t.profile;
     $("credit").textContent = t.foot;
     document.title = j.name + " · " + showTitle();
     if (live) connectVideo(); else disconnectVideo();
@@ -94,6 +97,24 @@
     $("nameIn").focus();
     $("nf").addEventListener("submit", function(e){ e.preventDefault(); var v = ($("nameIn").value || "").trim(); if (!v){ toast(state.t.askName); return; } state.name = v; try { localStorage.setItem("live-name", v); } catch(x){} closeModal(); cb(v); });
   }
+  function requireContact(cb){
+    var n = guestName();
+    if (n && state.contact){ cb(n, state.contact); return; }
+    openModal('<p class="eyebrow">' + esc(state.t.yourName) + '</p><p class="muted" style="font-size:14px">' + esc(state.t.contactLead) + '</p><form id="cf"><input id="nameIn" type="text" maxlength="60" autocomplete="name" placeholder="' + esc(state.t.yourName) + '" value="' + esc(n || "") + '"><input id="contactIn" type="text" maxlength="120" autocomplete="email" inputmode="email" placeholder="' + esc(state.t.contact) + '" value="' + esc(state.contact || "") + '"><button class="btn dark" type="submit">' + esc(state.t.cont) + '</button></form>');
+    (n ? $("contactIn") : $("nameIn")).focus();
+    $("cf").addEventListener("submit", function(e){
+      e.preventDefault(); var v = ($("nameIn").value || "").trim(), c = ($("contactIn").value || "").trim();
+      if (!v){ toast(state.t.askName); return; } if (c.length < 5){ toast(state.t.contact); return; }
+      if (!state.invite) state.name = v; state.contact = c; try { localStorage.setItem("live-name", v); localStorage.setItem("live-contact", c); } catch(x){}
+      closeModal(); cb(guestName(), c);
+    });
+  }
+  function pickPiece(cb){
+    var live = state.show && state.show.status === "live";
+    if (live || state.pieces.length < 2){ cb(currentPiece()); return; }
+    openModal('<p class="eyebrow">' + esc(state.t.whichPiece) + '</p><div class="slots">' + state.pieces.map(function(p){ return '<button class="slot" type="button" data-p="' + esc(p.id) + '">' + esc(p.name) + '</button>'; }).join("") + '</div>');
+    Array.prototype.forEach.call(modal.querySelectorAll("[data-p]"), function(b){ b.addEventListener("click", function(){ var id = b.getAttribute("data-p"); closeModal(); cb(state.pieces.filter(function(p){ return p.id === id; })[0] || null); }); });
+  }
   var modal = $("modal");
   function openModal(html){ modal.innerHTML = '<div class="mcard">' + html + '<button class="x" type="button" aria-label="Chiudi">×</button></div>'; modal.hidden = false; modal.querySelector(".x").addEventListener("click", closeModal); }
   function closeModal(){ modal.hidden = true; modal.innerHTML = ""; }
@@ -124,17 +145,23 @@
     });
   });
   $("interest").addEventListener("click", function(){
-    requireName(function(n){
-      var p = currentPiece();
-      sb.rpc("create_request", { p_show: state.show.id, p_invite: state.invite ? state.invite.invite_id : null, p_guest: n, p_type: "interest", p_piece: p ? p.id : null, p_slot: null }).then(function(r){
-        if (r.error){ toast(r.error.message); return; }
-        toast(state.t.sentInterest + state.jeweler.name + (p ? ": " + p.short : ""));
-        sendClient(state.t.interestMsg + (p ? p.short : showTitle()));
+    requireContact(function(n, c){
+      pickPiece(function(p){
+        sb.rpc("create_request2", { p_show: state.show.id, p_invite: state.invite ? state.invite.invite_id : null, p_guest: n, p_contact: c, p_type: "interest", p_piece: p ? p.id : null, p_slot: null }).then(function(r){
+          if (r.error){ toast(r.error.message); return; }
+          toast(state.t.sentInterest + state.jeweler.name + (p ? ": " + p.short : ""));
+          if (state.show.status !== "ended") sendClient(state.t.interestMsg + (p ? p.short : showTitle()));
+        });
       });
     });
   });
+  $("buy").addEventListener("click", function(){ if (state.jeweler && state.jeweler.shop_url) window.open(/^https?:/i.test(state.jeweler.shop_url) ? state.jeweler.shop_url : "https://" + state.jeweler.shop_url, "_blank", "noopener"); });
+  $("how").addEventListener("click", function(){
+    var j = state.jeweler, t = state.t;
+    openModal('<p class="eyebrow">' + esc(t.howTitle) + '</p><p style="font-size:14px;line-height:1.5">' + esc(t.howInterest) + '</p><p style="font-size:14px;line-height:1.5">' + esc(t.howBook) + '</p><p style="font-size:14px;line-height:1.5">' + esc(t.howBuy) + '</p>' + (j && j.shop_url ? '<a class="btn dark" href="' + esc(/^https?:/i.test(j.shop_url) ? j.shop_url : "https://" + j.shop_url) + '" target="_blank" rel="noopener">' + esc(t.shopLink) + '</a>' : '') + '<a class="btn sm" href="' + CFG.base + '/live/' + CFG.slug + '/profile?lang=' + state.lang + '">' + esc(t.profile) + ' · ' + esc(j ? j.name : "") + '</a>');
+  });
   $("book").addEventListener("click", function(){
-    requireName(function(n){
+    requireContact(function(n, c){
       var slots = Array.isArray(state.show.slots) ? state.show.slots : [];
       var html = '<p class="eyebrow">' + esc(state.t.book) + '</p><h3>' + esc(state.t.when) + '</h3><p class="muted" style="font-size:14px">' + esc(state.t.book2 + state.jeweler.name) + '</p><div class="slots">';
       for (var i = 0; i < slots.length; i++) html += '<button class="slot" type="button" data-slot="' + esc(slots[i]) + '">' + esc(slots[i]) + '</button>';
@@ -143,11 +170,11 @@
       openModal(html);
       function choose(slot){
         var p = currentPiece();
-        sb.rpc("create_request", { p_show: state.show.id, p_invite: state.invite ? state.invite.invite_id : null, p_guest: n, p_type: "appointment", p_piece: p ? p.id : null, p_slot: slot }).then(function(r){
+        sb.rpc("create_request2", { p_show: state.show.id, p_invite: state.invite ? state.invite.invite_id : null, p_guest: n, p_contact: c, p_type: "appointment", p_piece: p ? p.id : null, p_slot: slot }).then(function(r){
           if (r.error){ toast(r.error.message); return; }
           openModal('<p class="ok">✓ ' + esc(state.t.confirmed) + '</p><h3>' + esc(slot) + '</h3><p class="muted" style="font-size:14px">' + esc(state.jeweler.name) + '</p><button class="btn dark" type="button" id="mClose">' + esc(state.t.back) + '</button>');
           $("mClose").addEventListener("click", closeModal);
-          sendClient(state.t.booked + slot);
+          if (state.show.status !== "ended") sendClient(state.t.booked + slot);
         });
       }
       Array.prototype.forEach.call(modal.querySelectorAll(".slot"), function(b){ b.addEventListener("click", function(){ choose(b.getAttribute("data-slot")); }); });

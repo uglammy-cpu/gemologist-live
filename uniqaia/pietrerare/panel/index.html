@@ -169,6 +169,19 @@ body.dark{background:#0E0B07;color:#F7EBCB;padding:0}
 .tile small{font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;opacity:.85;position:relative}
 .tile.on{outline:3px solid var(--gold);outline-offset:-3px}
 .ctitle small{display:block;font-family:var(--body);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:#EDD596;margin-bottom:3px;text-shadow:none}
+.phead{display:flex;gap:16px;align-items:flex-start;margin-top:18px}
+.phead .big{width:72px;height:72px;border-radius:50%;background:var(--soft-2);color:var(--gold-edge);display:grid;place-items:center;font-family:var(--display);font-size:28px;border:2px solid var(--gold);flex:none}
+.phead h1{font-family:var(--display);font-size:clamp(24px,6vw,34px);line-height:1.1;font-weight:400;margin:0}
+.phead .sub{color:var(--muted);font-size:14px;margin-top:4px}
+.ptag{font-size:15px;line-height:1.5;margin-top:14px}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px}.chips a,.chips span{border:1px solid var(--line);border-radius:999px;padding:6px 12px;font-size:13px;color:var(--ink);text-decoration:none;background:var(--paper)}
+.pacts{display:flex;flex-wrap:wrap;gap:8px;margin-top:16px}
+.livebox{margin-top:18px;border-radius:18px;background:var(--gold-ink);color:var(--gold-hi);padding:18px;display:flex;align-items:center;justify-content:space-between;gap:12px;text-decoration:none}
+.livebox b{font-family:var(--display);font-size:20px;font-weight:400;display:block}.livebox small{opacity:.8;font-size:13px}
+.livebox .go{border-radius:999px;background:var(--gold);color:#1C1406;padding:11px 18px;font-weight:500;font-size:14px;white-space:nowrap}
+.past{display:flex;flex-direction:column;gap:8px}.past div{display:flex;justify-content:space-between;gap:12px;border-bottom:1px solid var(--line);padding:10px 0;font-size:14px}.past small{color:var(--muted);white-space:nowrap}
+.howbox{margin-top:26px;border:1px solid var(--line);border-radius:18px;padding:18px;display:flex;flex-direction:column;gap:10px;font-size:14px;line-height:1.5}.howbox p{margin:0}.howbox b{font-weight:500}
+.pcat{display:flex;flex-wrap:wrap;gap:6px 10px;align-items:center;font-size:13px;color:var(--muted);margin-top:10px}
 .trust{display:flex;flex-wrap:wrap;gap:6px 16px;margin-top:12px;font-size:11.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--gold-edge)}
 .trust span{display:inline-flex;align-items:flex-start;gap:6px;line-height:1.35}
 .trust i{width:5px;height:5px;border-radius:50%;background:var(--gold);display:block;flex:none;margin-top:5px}
@@ -303,8 +316,8 @@ label input,label select,label textarea{width:100%}
 .mcard form{display:flex;flex-direction:column;gap:10px}
 .chk-grid{border:1px solid var(--line);border-radius:12px;padding:8px 10px 10px;display:grid;grid-template-columns:1fr 1fr;gap:4px 10px;margin:0}
 .chk-grid legend{font-size:13px;color:var(--muted);padding:0 4px}
-.chk{display:flex;align-items:center;gap:8px;font-size:14px;color:var(--ink);flex-direction:row}
-.chk input{width:auto;min-height:0;margin:0}
+.ck{display:flex;align-items:center;gap:8px;font-size:14px;color:var(--ink);flex-direction:row}
+.ck input{width:auto;min-height:0;margin:0}
 @media (max-width:1000px){.panel{grid-template-columns:1fr}.card .msgs{min-height:240px;max-height:360px}}
 </style></head>
 <body>
@@ -321,6 +334,7 @@ label input,label select,label textarea{width:100%}
       <div class="seg" id="visSeg"><button type="button" data-vis="private">Privata su invito</button><button type="button" data-vis="public">In vetrina</button></div>
       <p class="hint" id="visHint"></p>
       <div class="share"><span>Link per i clienti</span><input id="shareUrl" readonly><button class="btn sm" type="button" id="copyShare">Copia</button></div>
+      <div class="share"><span>La tua scheda</span><input id="profileUrl" readonly><button class="btn sm" type="button" id="copyProfile">Copia</button></div>
       <p class="eyebrow" style="margin-top:6px">La tua camera</p>
       <div class="cam" id="cam"><span class="hintv" id="camHint">Camera spenta. Accendila per trasmettere: i clienti vedono il video quando la diretta è «In diretta».</span><div class="videos" id="camVideos"></div></div>
       <div class="cam-actions"><button class="btn dark sm" type="button" id="camBtn">Accendi la camera</button><button class="btn sm" type="button" id="micBtn" hidden>Microfono: on</button><button class="btn sm" type="button" id="flipBtn" hidden>Cambia camera</button></div>
@@ -361,6 +375,8 @@ var ICON = {
   gem:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M6 3h12l4 6-10 12L2 9z"/><path d="M2 9h20M9 3l3 6 3-6M6 9l6 12 6-12"/></svg>',
   cal:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="5" width="18" height="16" rx="3"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>',
   share:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 12v7a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-7M12 15V3M7 8l5-5 5 5"/></svg>',
+  help:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.7.4-1 .9-1 1.7M12 17h.01"/></svg>',
+  bag:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M5 8h14l-1 12H6L5 8zM9 8V6a3 3 0 0 1 6 0v2"/></svg>',
   search:'<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.8-3.8"/></svg>'
 };
 function esc(s){ return String(s == null ? "" : s).replace(/[&<>"']/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]; }); }
@@ -429,9 +445,10 @@ function lkAttachRemote(room, tiles, LK){
   var ARTS = { ring:"Anello solitario", sapphire:"Anello con pietra colorata", earrings:"Orecchini", necklace:"Collana / pendente", bracelet:"Bracciale", diamond:"Diamante sciolto", loose:"Pietre sciolte", pearls:"Perle", bands:"Fedi", brooch:"Spilla / vintage", tiara:"Alta gioielleria", bespoke:"Su misura", none:"Nessuna immagine" };
   var CATS = [];
   function catName(slug){ for (var i = 0; i < CATS.length; i++) if (CATS[i].slug === slug) return (CATS[i].name_i18n || {}).it || slug; return slug; }
-  function catChecks(id, selected, max){ return '<fieldset class="chk-grid" id="' + id + '"><legend>Categorie (al massimo ' + max + ')</legend>' + CATS.map(function(c){ return '<label class="chk"><input type="checkbox" value="' + esc(c.slug) + '"' + ((selected || []).indexOf(c.slug) >= 0 ? " checked" : "") + '><span>' + esc(catName(c.slug)) + '</span></label>'; }).join("") + '</fieldset>'; }
+  function catChecks(id, selected, max){ return '<fieldset class="chk-grid" id="' + id + '"><legend>Categorie (al massimo ' + max + ')</legend>' + CATS.map(function(c){ return '<label class="ck"><input type="checkbox" value="' + esc(c.slug) + '"' + ((selected || []).indexOf(c.slug) >= 0 ? " checked" : "") + '><span>' + esc(catName(c.slug)) + '</span></label>'; }).join("") + '</fieldset>'; }
   function catPicked(id, max){ var v = Array.prototype.map.call(document.querySelectorAll("#" + id + " input:checked"), function(i){ return i.value; }); if (v.length > max){ toast("Al massimo " + max + " categorie"); return null; } return v; }
   var KINDS = { shop:"Gioielleria", gems:"Gem dealer" };
+  var COUNTRIES = [["IT","Italia"],["CH","Svizzera"],["FR","Francia"],["DE","Germania"],["ES","Spagna"],["GB","Regno Unito"],["BE","Belgio"],["NL","Paesi Bassi"],["AT","Austria"],["MC","Monaco"],["AE","Emirati Arabi Uniti"],["US","Stati Uniti"],["TR","Turchia"],["IN","India"],["TH","Thailandia"],["HK","Hong Kong"],["IL","Israele"],["LK","Sri Lanka"]];
   $("likesIc").innerHTML = ICON.heart; $("eyeIc2").innerHTML = ICON.eye;
 
   function esc(s){ return String(s == null ? "" : s).replace(/[&<>"']/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]; }); }
@@ -470,7 +487,7 @@ function lkAttachRemote(room, tiles, LK){
     if (s.status === "scheduled"){ t.textContent = "Inizia la diretta"; t.className = "btn dark"; }
     else if (s.status === "live"){ t.textContent = "Termina la diretta"; t.className = "btn"; }
     else { t.textContent = "Riapri la diretta"; t.className = "btn"; }
-    $("shareUrl").value = viewerUrl();
+    $("shareUrl").value = viewerUrl(); $("profileUrl").value = CFG.base + "/" + CFG.slug + "/profile/";
     Array.prototype.forEach.call(document.querySelectorAll("#visSeg button"), function(b){ b.classList.toggle("on", b.getAttribute("data-vis") === (s.visibility || "private")); });
     $("visHint").textContent = s.visibility === "public" ? "Compare nella vetrina pubblica: chiunque può entrare." : "Entra solo chi ha il link o un invito personale.";
     $("stats").hidden = false; $("likesN").textContent = s.likes || 0;
@@ -588,7 +605,7 @@ function lkAttachRemote(room, tiles, LK){
       if (isNew) fresh++;
       var d = document.createElement("div"); d.className = "item" + (isNew ? " new" : "");
       var what = r.type === "appointment" ? "Appuntamento" + (r.slot ? ": " + r.slot : "") : "Mi interessa";
-      d.innerHTML = '<span class="pill ' + esc(r.type) + '">' + esc(what) + '</span><b style="font-weight:500">' + esc(r.guest_name) + '</b>' + (r.piece_name ? '<span>' + esc(r.piece_name) + '</span>' : '') + '<span class="meta">' + esc(fmtShort(r.created_at)) + '</span>';
+      d.innerHTML = '<span class="pill ' + esc(r.type) + '">' + esc(what) + '</span><b style="font-weight:500">' + esc(r.guest_name) + (r.contact ? ' · <a href="' + esc(/@/.test(r.contact) ? "mailto:" + r.contact : "tel:" + r.contact.replace(/s+/g, "")) + '">' + esc(r.contact) + '</a>' : '') + '</b>' + (r.piece_name ? '<span>' + esc(r.piece_name) + '</span>' : '') + '<span class="meta">' + esc(fmtShort(r.created_at)) + '</span>';
       box.appendChild(d);
     });
     if (!state.firstReq && fresh > 0) toast(fresh === 1 ? "Nuova richiesta da " + rows[0].guest_name : fresh + " nuove richieste");
@@ -614,12 +631,13 @@ function lkAttachRemote(room, tiles, LK){
   });
   $("editJ").addEventListener("click", function(){
     var j = state.jeweler;
-    openModal('<p class="eyebrow">La tua attività</p><form id="jf"><label>Nome<input id="jfName" type="text" maxlength="80" value="' + esc(j.name) + '"></label><label>Città<input id="jfCity" type="text" maxlength="60" value="' + esc(j.city || "") + '"></label><label>Tipo<select id="jfKind"><option value="shop">Gioielleria</option><option value="gems">Gem dealer</option></select></label><label>Una riga di presentazione (facoltativa)<input id="jfTag" type="text" maxlength="160" value="' + esc(j.tagline || "") + '"></label>' + catChecks("jfCats", j.categories, 5).replace("Categorie (al massimo", "Specialità in vetrina (al massimo") + '<button class="btn dark" type="submit">Salva</button></form>');
-    $("jfKind").value = j.kind || "shop";
-    $("jf").addEventListener("submit", function(e){ e.preventDefault(); var cats = catPicked("jfCats", 5); if (!cats) return; sb.rpc("update_jeweler", { p_token: CFG.token, p_jeweler: j.id, p_name: $("jfName").value, p_city: $("jfCity").value, p_kind: $("jfKind").value, p_tagline: $("jfTag").value }).then(function(r){ if (err(r)) return; return sb.rpc("set_jeweler_categories", { p_token: CFG.token, p_jeweler: j.id, p_cats: cats }); }).then(function(r){ if (r && err(r)) return; closeModal(); location.reload(); }); });
+    openModal('<p class="eyebrow">La tua attività</p><form id="jf"><label>Nome<input id="jfName" type="text" maxlength="80" value="' + esc(j.name) + '"></label><label>Città<input id="jfCity" type="text" maxlength="60" value="' + esc(j.city || "") + '"></label><label>Tipo<select id="jfKind"><option value="shop">Gioielleria</option><option value="gems">Gem dealer</option></select></label><label>Una riga di presentazione (facoltativa)<input id="jfTag" type="text" maxlength="160" value="' + esc(j.tagline || "") + '"></label><label>Paese<select id="jfCountry">' + COUNTRIES.map(function(c){ return '<option value="' + c[0] + '">' + c[1] + '</option>'; }).join("") + '</select></label><label>Sito web (facoltativo)<input id="jfSite" type="text" maxlength="160" placeholder="www.tuosito.it" value="' + esc(j.website || "") + '"></label><label>Negozio online per gli acquisti (facoltativo: i clienti vedono «Acquista»)<input id="jfShop" type="text" maxlength="300" placeholder="https://…" value="' + esc(j.shop_url || "") + '"></label>' + catChecks("jfCats", j.categories, 5).replace("Categorie (al massimo", "Specialità in vetrina (al massimo") + '<button class="btn dark" type="submit">Salva</button></form>');
+    $("jfKind").value = j.kind || "shop"; $("jfCountry").value = j.country || "IT";
+    $("jf").addEventListener("submit", function(e){ e.preventDefault(); var cats = catPicked("jfCats", 5); if (!cats) return; sb.rpc("update_jeweler", { p_token: CFG.token, p_jeweler: j.id, p_name: $("jfName").value, p_city: $("jfCity").value, p_kind: $("jfKind").value, p_tagline: $("jfTag").value }).then(function(r){ if (err(r)) return; return sb.rpc("set_jeweler_details", { p_token: CFG.token, p_jeweler: j.id, p_country: $("jfCountry").value, p_website: $("jfSite").value, p_shop_url: $("jfShop").value }); }).then(function(r){ if (r && err(r)) return; return sb.rpc("set_jeweler_categories", { p_token: CFG.token, p_jeweler: j.id, p_cats: cats }); }).then(function(r){ if (r && err(r)) return; closeModal(); location.reload(); }); });
   });
   $("showSel").addEventListener("change", function(){ var u = new URL(location.href); u.searchParams.set("show", this.value); location.href = u.toString(); });
   $("copyShare").addEventListener("click", function(){ copy(viewerUrl(), this); });
+  $("copyProfile").addEventListener("click", function(){ copy($("profileUrl").value, this); });
   $("toggle").addEventListener("click", function(){
     var s = state.show, next;
     if (s.status === "scheduled") next = "live";
@@ -647,6 +665,7 @@ function lkAttachRemote(room, tiles, LK){
       '<label>Data e ora<input id="sfAt" type="datetime-local" required value="' + toLocalInput(s.scheduled_at) + '"></label>' +
       '<label>Lingua della pagina clienti<select id="sfLang"><option value="it">Italiano</option><option value="en">Inglese</option><option value="fr">Francese</option></select></label>' +
       catChecks("sfCats", s.categories, 3) +
+      '<label>Fascia di prezzo dei pezzi (facoltativa, es. 500–5.000 €)<input id="sfPrice" type="text" maxlength="40" value="' + esc(s.price_range || "") + '"></label>' +
       '<label>Orari proposti per gli appuntamenti privati (uno per riga)<textarea id="sfSlots">' + esc(slots) + '</textarea></label>' +
       '<button class="btn dark" type="submit">' + (existing ? "Salva" : "Crea la diretta") + '</button></form>');
     $("sfLang").value = s.lang || "it"; $("sfVis").value = s.visibility || "private";
@@ -658,9 +677,9 @@ function lkAttachRemote(room, tiles, LK){
       var vis = $("sfVis").value;
       var cats = catPicked("sfCats", 3); if (!cats) return;
       if (existing){
-        sb.rpc("update_show2", { p_show: s.id, p_token: CFG.token, p_title: $("sfTitle").value, p_at: at.toISOString(), p_lang: $("sfLang").value, p_slots: slotsArr, p_i18n: i18n, p_vis: vis }).then(function(r){ if (err(r)) return; return sb.rpc("set_show_categories", { p_show: s.id, p_token: CFG.token, p_cats: cats }); }).then(function(r){ if (r && err(r)) return; closeModal(); location.reload(); });
+        sb.rpc("update_show2", { p_show: s.id, p_token: CFG.token, p_title: $("sfTitle").value, p_at: at.toISOString(), p_lang: $("sfLang").value, p_slots: slotsArr, p_i18n: i18n, p_vis: vis }).then(function(r){ if (err(r)) return; return sb.rpc("set_show_categories", { p_show: s.id, p_token: CFG.token, p_cats: cats }); }).then(function(r){ if (r && err(r)) return; return sb.rpc("set_show_price", { p_show: s.id, p_token: CFG.token, p_price: $("sfPrice").value }); }).then(function(r){ if (r && err(r)) return; closeModal(); location.reload(); });
       } else {
-        sb.rpc("create_show", { p_token: CFG.token, p_jeweler: state.jeweler.id, p_title: $("sfTitle").value, p_at: at.toISOString(), p_lang: $("sfLang").value, p_slots: slotsArr }).then(function(r){ if (err(r)) return; var id = r.data.id; sb.rpc("update_show2", { p_show: id, p_token: CFG.token, p_title: null, p_at: null, p_lang: null, p_slots: null, p_i18n: i18n, p_vis: vis }).then(function(){ return sb.rpc("set_show_categories", { p_show: id, p_token: CFG.token, p_cats: cats }); }).then(function(){ var u = new URL(location.href); u.searchParams.set("show", id); location.href = u.toString(); }); });
+        sb.rpc("create_show", { p_token: CFG.token, p_jeweler: state.jeweler.id, p_title: $("sfTitle").value, p_at: at.toISOString(), p_lang: $("sfLang").value, p_slots: slotsArr }).then(function(r){ if (err(r)) return; var id = r.data.id; sb.rpc("update_show2", { p_show: id, p_token: CFG.token, p_title: null, p_at: null, p_lang: null, p_slots: null, p_i18n: i18n, p_vis: vis }).then(function(){ return sb.rpc("set_show_categories", { p_show: id, p_token: CFG.token, p_cats: cats }); }).then(function(){ return sb.rpc("set_show_price", { p_show: id, p_token: CFG.token, p_price: $("sfPrice").value }); }).then(function(){ var u = new URL(location.href); u.searchParams.set("show", id); location.href = u.toString(); }); });
       }
     });
   }

@@ -32,6 +32,7 @@ function render(t, name, runtime) {
     join: { title: "Uniqaia · Trasmetti con noi · Go live with us", desc: "La piattaforma di live show per gioiellerie e gem dealer. The live-show platform for jewellers and gem dealers.", url: cfg.SITE + P + "/join/" },
     viewer: { title: "Uniqaia · Live show", desc: "Gioielli e gemme dal vivo, con una gemmologa GIA. Jewellery and gems live, with a GIA gemologist.", url: "" },
     panel: { title: "Uniqaia · Pannello", desc: "Pannello riservato ai venditori.", url: "" },
+    profile: { title: "Uniqaia · Scheda del venditore", desc: "Gioielleria o gem dealer selezionato su Uniqaia: specialità, dirette in programma, come acquistare.", url: "" },
   };
   let b = tpl(name + ".html");
   for (const [k, v] of Object.entries(parts)) b = b.split(`{{${k}}}`).join(v);
@@ -44,6 +45,16 @@ function render(t, name, runtime) {
   b = b.split("var CFG = {").join('var Q = new URLSearchParams(location.search), SLUG = (location.pathname.match(/^' + esc(P) + '\\/([a-z0-9-]{2,40})(?:\\/|$)/) || [])[1] || "";\n  var CFG = {');
   // Indirizzi del sito: <prefix>/... al posto di /live/...
   const rep = [
+    ['"/live/" + CFG.slug + "/profile?lang="', '"' + P + '/" + CFG.slug + "/profile/?lang="'],
+    ["'/live/' + CFG.slug + '/profile?lang='", "'" + P + "/' + CFG.slug + '/profile/?lang='"],
+    ['"/live/" + CFG.slug + "/profile"', '"' + P + '/" + CFG.slug + "/profile/"'],
+    ['"/live/" + CFG.slug + "?s="', '"' + P + '/" + CFG.slug + "/?s="'],
+    ['"/live/" + CFG.slug + "?lang="', '"' + P + '/" + CFG.slug + "/?lang="'],
+    ['"/live/" + j.slug + "/profile?lang="', '"' + P + '/" + j.slug + "/profile/?lang="'],
+    ['"/live?c="', '"' + P + '/?c="'],
+    ["'/live?c='", "'" + P + "/?c='"],
+    ['"/live?lang="', '"' + P + '/?lang="'],
+    ["'/live?lang='", "'" + P + "/?lang='"],
     ['"/live/" + CFG.slug', '"' + P + '/" + CFG.slug + "/"'],
     ['"/live/" + j.slug + "?s="', '"' + P + '/" + j.slug + "/?s="'],
     ['"/live/" + j.slug + "?lang="', '"' + P + '/" + j.slug + "/?lang="'],
@@ -69,7 +80,7 @@ function render(t, name, runtime) {
   for (const [k, v] of Object.entries(vars)) b = b.split(`{{${k}}}`).join(v);
   const left = b.match(/\{\{[A-Z]+\}\}/g);
   if (left) throw new Error(name + ": segnaposto non risolti " + left.join(","));
-  const live = b.split(cfg.TOKEN_BASE).join("").match(/[^/]\/live[/"']/g);
+  const live = b.split(cfg.TOKEN_BASE).join("").match(/[^/]\/live[/"'?]/g);
   if (live) throw new Error(name + ": restano indirizzi /live: " + live.join(" "));
   if (P === "" && b.includes("/show/")) throw new Error(name + ": resta un indirizzo /show/ nella versione per il dominio");
   return b;
@@ -81,10 +92,12 @@ for (const t of TARGETS) {
   write("join/index.html", render(t, "join", {}));
   const viewer = render(t, "viewer", { tokenParam: "t" });
   const panel = render(t, "panel", { tokenParam: "k" });
+  const profile = render(t, "profile", {});
   write("_viewer.html", viewer);
   write("_panel.html", panel);
+  write("_profile.html", profile);
   // Una cartella per ogni venditore noto (indirizzi "veri" con risposta 200); gli altri passano dal 404.html
-  for (const s of sellers) { write(`${s}/index.html`, viewer); write(`${s}/panel/index.html`, panel); }
+  for (const s of sellers) { write(`${s}/index.html`, viewer); write(`${s}/panel/index.html`, panel); write(`${s}/profile/index.html`, profile); }
   // Immagini (logo, icona, anteprima) condivise tra le due versioni
   if (t.prefix === "") { fs.mkdirSync(path.join(t.out, "img"), { recursive: true }); for (const f of fs.readdirSync(path.join(ROOT, "show", "img"))) fs.copyFileSync(path.join(ROOT, "show", "img", f), path.join(t.out, "img", f)); }
   // 404.html: instrada <prefix>/<slug> e <prefix>/<slug>/panel verso le pagine giuste
@@ -93,9 +106,9 @@ for (const t of TARGETS) {
 <style>body{margin:0;font-family:system-ui,sans-serif;background:#FBF8F2;color:#2B2520;display:grid;place-items:center;min-height:100vh}p{text-align:center;padding:24px;line-height:1.6}a{color:inherit}</style></head>
 <body><script>
 (function(){
-  var m = location.pathname.match(/^${esc(P)}\\/([a-z0-9-]{2,40})(\\/panel)?\\/?$/);
+  var m = location.pathname.match(/^${esc(P)}\\/([a-z0-9-]{2,40})(\\/panel|\\/profile)?\\/?$/);
   if (!m || m[1] === "join" || m[1] === "img") return;
-  fetch(m[2] ? "${P}/_panel.html" : "${P}/_viewer.html", { cache: "no-store" }).then(function(r){ return r.text(); }).then(function(h){ document.open(); document.write(h); document.close(); });
+  fetch(m[2] === "/panel" ? "${P}/_panel.html" : (m[2] === "/profile" ? "${P}/_profile.html" : "${P}/_viewer.html"), { cache: "no-store" }).then(function(r){ return r.text(); }).then(function(h){ document.open(); document.write(h); document.close(); });
 })();
 </script><p><b>Pagina non trovata · Page not found</b><br><a href="${P}/">Vai alla vetrina · Go to the showcase</a></p></body></html>
 `;

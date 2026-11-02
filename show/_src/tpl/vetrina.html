@@ -45,8 +45,10 @@
   function title(s){ var i = s.title_i18n || {}; return i[lang] || (lang !== "it" && i.en) || s.title; }
   function kindLabel(j){ return j.kind === "gems" ? t.gems : t.shop; }
   function catName(slug){ var c = null; for (var i = 0; i < state.cats.length; i++) if (state.cats[i].slug === slug) c = state.cats[i]; if (!c) return slug; var n = c.name_i18n || {}; return n[lang] || n.en || n.it || slug; }
+  var FOLLOWS = []; try { FOLLOWS = JSON.parse(localStorage.getItem("vetrina-follows") || "[]"); } catch(e){}
+  function followed(j){ return FOLLOWS.indexOf(j.slug) >= 0; }
   function inCat(x){ return !state.cat || ((x.categories || []).indexOf(state.cat) >= 0); }
-  function catLabel(s){ var cs = (s.categories || []).slice(0, 2).map(catName); return cs.length ? '<small>' + esc(cs.join(" · ")) + '</small>' : ''; }
+  function catLabel(s){ var bits = [(s.lang || "").toUpperCase()].concat((s.categories || []).slice(0, 2).map(catName)); if (s.price_range) bits.push(s.price_range); return '<small>' + esc(bits.filter(Boolean).join(" · ")) + '</small>'; }
   function nShows(n){ if (n === 0) return t.catSoon; if (n === 1) return t.catOne; if (lang === "ru" && t.catFew){ var m10 = n % 10, m100 = n % 100; if (m10 >= 2 && m10 <= 4 && (m100 < 12 || m100 > 14)) return t.catFew.replace("{n}", n); } return t.catMany.replace("{n}", n); }
   function setCat(slug){ state.cat = slug === state.cat ? "" : slug; try { var u = new URL(location.href); if (state.cat) u.searchParams.set("c", state.cat); else u.searchParams.delete("c"); history.replaceState(null, "", u.toString()); } catch(e){} renderCats(); renderTiles(); renderLive(); renderSoon(); renderShops(); }
   function renderCats(){
@@ -125,9 +127,9 @@
   function renderShops(){
     var row = $("shopsRow"); row.innerHTML = "";
     var liveBy = {}; state.shows.forEach(function(s){ if (s.status === "live") liveBy[s.jeweler_id] = true; });
-    Object.keys(state.jewelers).map(function(k){ return state.jewelers[k]; }).filter(function(j){ return !state.cat || (j.categories || []).indexOf(state.cat) >= 0 || state.shows.some(function(s){ return s.jeweler_id === j.id && inCat(s); }); }).sort(function(a,b){ return (liveBy[b.id] ? 1 : 0) - (liveBy[a.id] ? 1 : 0) || a.name.localeCompare(b.name); }).forEach(function(j){
-      var a = document.createElement("a"); a.href = CFG.base + "/live/" + j.slug + "?lang=" + lang; a.className = "seller" + (liveBy[j.id] ? " live" : "");
-      a.innerHTML = '<span class="big">' + esc((j.name || "?").charAt(0).toUpperCase()) + '</span>' + (liveBy[j.id] ? '<span class="live-tag">' + esc(t.live) + '</span>' : '') + '<b>' + esc(j.name) + '</b><small>' + esc(j.city || "") + '<br>' + esc(kindLabel(j)) + '</small>';
+    Object.keys(state.jewelers).map(function(k){ return state.jewelers[k]; }).filter(function(j){ return !state.cat || (j.categories || []).indexOf(state.cat) >= 0 || state.shows.some(function(s){ return s.jeweler_id === j.id && inCat(s); }); }).sort(function(a,b){ return (liveBy[b.id] ? 1 : 0) - (liveBy[a.id] ? 1 : 0) || (followed(b) ? 1 : 0) - (followed(a) ? 1 : 0) || a.name.localeCompare(b.name); }).forEach(function(j){
+      var a = document.createElement("a"); a.href = CFG.base + "/live/" + j.slug + "/profile?lang=" + lang; a.className = "seller" + (liveBy[j.id] ? " live" : "");
+      a.innerHTML = '<span class="big">' + esc((j.name || "?").charAt(0).toUpperCase()) + '</span>' + (liveBy[j.id] ? '<span class="live-tag">' + esc(t.live) + '</span>' : '') + '<b>' + (followed(j) ? '★ ' : '') + esc(j.name) + '</b><small>' + esc(j.city || "") + '<br>' + esc(kindLabel(j)) + '</small>';
       row.appendChild(a);
     });
   }
@@ -166,7 +168,7 @@
 
   function loadShows(){
     var since = new Date(Date.now() - 12 * 3600 * 1000).toISOString();
-    return sb.from("shows").select("id,jeweler_id,title,title_i18n,scheduled_at,status,lang,likes,current_piece_id,categories").eq("visibility", "public").in("status", ["live","scheduled"]).gte("scheduled_at", since).order("scheduled_at").then(function(r){
+    return sb.from("shows").select("id,jeweler_id,title,title_i18n,scheduled_at,status,lang,likes,current_piece_id,categories,price_range").eq("visibility", "public").in("status", ["live","scheduled"]).gte("scheduled_at", since).order("scheduled_at").then(function(r){
       state.shows = r.data || [];
       var ids = state.shows.map(function(s){ return s.id; });
       if (!ids.length) return;
@@ -184,7 +186,7 @@
 
   function boot(){
     Promise.all([
-      sb.from("jewelers").select("id,slug,name,city,kind,tagline,categories").eq("is_public", true),
+      sb.from("jewelers").select("id,slug,name,city,country,kind,tagline,categories").eq("is_public", true),
       sb.from("categories").select("slug,position,name_i18n,art").eq("active", true).order("position")
     ]).then(function(r){
       (r[0].data || []).forEach(function(j){ state.jewelers[j.id] = j; });

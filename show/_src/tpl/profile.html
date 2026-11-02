@@ -1,0 +1,129 @@
+<!doctype html><html lang="{{LANG}}"><head>{{HEAD}}<title>{{NAME}}</title><style>{{CSS}}</style></head>
+<body class="vetrina">
+<header class="topv wrap"><div class="col">
+  <div class="brand"><a class="logo" href="{{BASE}}/live" aria-label="{{NAME}}"><svg class="ulogo" xmlns="http://www.w3.org/2000/svg" viewBox="88 32 830 190" role="img" aria-label="Uniqaia"><g font-family="'Cormorant Garamond',Garamond,'Times New Roman',serif" font-weight="500" font-size="150" fill="currentColor" text-anchor="middle"><text x="151" y="160">U</text><text x="283" y="160">N</text><text x="386" y="160">I</text><text x="659" y="160">A</text><text x="756" y="160">I</text><text x="853" y="160">A</text></g><path fill="var(--logo-gold,#A47F3A)" fill-rule="evenodd" d="M 435 112.5 A 75 75 0 1 0 585 112.5 A 75 75 0 1 0 435 112.5 Z M 453 112.5 A 57 67 0 1 0 567 112.5 A 57 67 0 1 0 453 112.5 Z"/><path fill="var(--logo-gold,#A47F3A)" d="M 521.7 186.6 C 545 196 575 203 610 202 C 575 214 540 212 512 196 Z"/><path d="M 470.1 90.5 A 44 52 0 0 1 495 63.6" fill="none" stroke="var(--logo-gold,#A47F3A)" stroke-width="5" stroke-linecap="round"/><circle cx="510" cy="112.5" r="14" fill="var(--logo-gem,#D43F52)"/></svg></a><small id="tag"></small></div>
+  <div class="topright"><div class="langs" id="langs"><button type="button" class="cur" id="langCur" aria-haspopup="listbox">IT</button><div class="menu" id="langMenu" hidden><button type="button" data-lang="it">Italiano <small>IT</small></button><button type="button" data-lang="en">English <small>EN</small></button><button type="button" data-lang="fr">Français <small>FR</small></button><button type="button" data-lang="ar">العربية <small>AR</small></button><button type="button" data-lang="ru">Русский <small>RU</small></button></div></div></div>
+</div></header>
+<main class="wrap"><div class="col" id="page"><p class="hint" style="padding:40px 0">…</p></div></main>
+<footer class="wrap" id="foot"></footer>
+<div class="modal" id="modal" hidden></div>
+<script>
+{{LKJS}}
+(function(){
+  var CFG = {"url":"{{URL}}","key":"{{KEY}}","base":"{{BASE}}","name":"{{NAME}}","lang":"{{LANG}}","slug":"{{SLUG}}","art":{{ART}}};
+  var TT = {{T}};
+  var sb = window.supabase.createClient(CFG.url, CFG.key);
+  var $ = function(id){ return document.getElementById(id); };
+  var LOC = { it:"it-IT", en:"en-GB", fr:"fr-FR", ar:"ar-AE-u-nu-latn", ru:"ru-RU" };
+  var PAL = ["#3A2A17,#0F0A05","#122B45,#070D15","#2A2A30,#0A0A0D","#3A1F2C,#120810","#1C3328,#06100B","#2E2140,#0C0814","#22303A,#070B0E"];
+  var lang = (new URLSearchParams(location.search).get("lang") || "").toLowerCase();
+  if (!TT[lang]) { try { lang = localStorage.getItem("vetrina-lang") || ""; } catch(e){} }
+  if (!TT[lang]) { var nav = (CFG.lang || navigator.language || "it").slice(0,2).toLowerCase(); lang = TT[nav] ? nav : "it"; }
+  var t = TT[lang];
+  var state = { j:null, shows:[], cats:[], covers:{}, follows:[] };
+  try { state.follows = JSON.parse(localStorage.getItem("vetrina-follows") || "[]"); } catch(e){ state.follows = []; }
+
+  function fday(iso){ try { return new Intl.DateTimeFormat(LOC[lang], { weekday:"short", day:"numeric", month:"short" }).format(new Date(iso)); } catch(e){ return iso; } }
+  function ftime(iso){ try { return new Intl.DateTimeFormat(LOC[lang], { hour:"2-digit", minute:"2-digit", hour12:false }).format(new Date(iso)); } catch(e){ return ""; } }
+  function fdate(iso){ try { return new Intl.DateTimeFormat(LOC[lang], { day:"numeric", month:"long", year:"numeric" }).format(new Date(iso)); } catch(e){ return iso; } }
+  function country(code){ try { return new Intl.DisplayNames([LOC[lang] || "it"], { type:"region" }).of(code); } catch(e){ return code; } }
+  function pal(key){ var h = 0; for (var i = 0; i < key.length; i++) h = (h * 31 + key.charCodeAt(i)) >>> 0; return PAL[h % PAL.length].split(","); }
+  function title(s){ var i = s.title_i18n || {}; return i[lang] || (lang !== "it" && i.en) || s.title; }
+  function catName(slug){ for (var i = 0; i < state.cats.length; i++) if (state.cats[i].slug === slug){ var n = state.cats[i].name_i18n || {}; return n[lang] || n.en || n.it || slug; } return slug; }
+  function showUrl(s){ return CFG.base + "/live/" + CFG.slug + "?s=" + s.id + "&lang=" + lang; }
+  function liveUrl(){ return CFG.base + "/live/" + CFG.slug + "?lang=" + lang; }
+  function kindLabel(j){ return j.kind === "gems" ? t.gems : t.shop; }
+  function siteHref(u){ return /^https?:/i.test(u) ? u : "https://" + u; }
+  function isFollowed(){ return state.follows.indexOf(CFG.slug) >= 0; }
+  function cover(s, extra){
+    var p = pal(CFG.slug), cv = state.covers[s.id];
+    var art = ((s.pieces && s.pieces[0] && CFG.art[s.pieces[0].art]) || CFG.art.ring);
+    return '<div class="cover" style="--c1:' + p[0] + ';--c2:' + p[1] + '"><div class="ph"></div>' + (cv ? '<img class="cv" alt="" src="' + cv + '">' : '<div class="art">' + art + '</div>') + extra + '</div>';
+  }
+  function label(s){ var bits = [(s.lang || "").toUpperCase()].concat((s.categories || []).slice(0, 2).map(catName)); if (s.price_range) bits.push(s.price_range); return '<small>' + esc(bits.filter(Boolean).join(" · ")) + '</small>'; }
+  function icsUrl(s){
+    function z(d){ return d.toISOString().replace(/[-:]/g, "").replace(/\.\d{3}/, ""); }
+    var start = new Date(s.scheduled_at), end = new Date(start.getTime() + 60 * 60000);
+    var ics = ["BEGIN:VCALENDAR","VERSION:2.0","PRODID:-//uniqaia//IT","BEGIN:VEVENT","UID:" + s.id + "@uniqaia","DTSTAMP:" + z(new Date()),"DTSTART:" + z(start),"DTEND:" + z(end),"SUMMARY:" + title(s).replace(/,/g, "\\,") + " · " + state.j.name.replace(/,/g, "\\,"),"URL:" + showUrl(s),"DESCRIPTION:" + showUrl(s),"END:VEVENT","END:VCALENDAR"].join("\r\n");
+    return "data:text/calendar;charset=utf-8," + encodeURIComponent(ics);
+  }
+
+  var modal = $("modal");
+  function openModal(html){ modal.innerHTML = '<div class="mcard">' + html + '<button class="x" type="button" aria-label="Chiudi">×</button></div>'; modal.hidden = false; modal.querySelector(".x").addEventListener("click", closeModal); }
+  function closeModal(){ modal.hidden = true; modal.innerHTML = ""; }
+  modal.addEventListener("click", function(e){ if (e.target === modal) closeModal(); });
+
+  function render(){
+    t = TT[lang]; document.documentElement.lang = lang; document.documentElement.dir = lang === "ar" ? "rtl" : "ltr"; $("langCur").textContent = lang.toUpperCase();
+    Array.prototype.forEach.call(document.querySelectorAll("#langMenu button"), function(b){ b.classList.toggle("on", b.getAttribute("data-lang") === lang); });
+    $("tag").textContent = t.tag; $("foot").innerHTML = esc(t.foot) + '<br>' + esc(t.footJoin);
+    var j = state.j, page = $("page");
+    if (!j){ page.innerHTML = '<div class="empty" style="margin-top:30px"><b>404</b>Pagina non trovata.</div>'; return; }
+    document.title = j.name + " · " + CFG.name;
+    var live = state.shows.filter(function(s){ return s.status === "live"; })[0];
+    var soon = state.shows.filter(function(s){ return s.status === "scheduled" && new Date(s.scheduled_at) > new Date(Date.now() - 12 * 3600000); }).sort(function(a,b){ return new Date(a.scheduled_at) - new Date(b.scheduled_at); });
+    var past = state.shows.filter(function(s){ return s.status === "ended"; }).sort(function(a,b){ return new Date(b.scheduled_at) - new Date(a.scheduled_at); }).slice(0, 10);
+    var html = '<div class="phead"><span class="big">' + esc((j.name || "?").charAt(0).toUpperCase()) + '</span><div style="min-width:0"><h1>' + esc(j.name) + ' <span class="chk">✓</span></h1><div class="sub">' + esc([j.city, country(j.country || "IT"), kindLabel(j)].filter(Boolean).join(" · ")) + '</div></div></div>';
+    if (j.tagline) html += '<p class="ptag" dir="auto">' + esc(j.tagline) + '</p>';
+    if ((j.categories || []).length) html += '<p class="eyebrow" style="margin-top:14px">' + esc(t.specialties) + '</p><div class="chips">' + j.categories.map(function(c){ return '<a href="' + CFG.base + '/live?c=' + esc(c) + '&lang=' + lang + '">' + esc(catName(c)) + '</a>'; }).join("") + '</div>';
+    html += '<div class="pacts"><button class="btn sm' + (isFollowed() ? ' dark' : '') + '" type="button" id="followBtn">' + esc(isFollowed() ? t.following : t.follow) + '</button>' +
+      (j.website ? '<a class="btn sm" href="' + esc(siteHref(j.website)) + '" target="_blank" rel="noopener">' + esc(t.website) + '</a>' : '') +
+      (j.shop_url ? '<a class="btn sm" href="' + esc(siteHref(j.shop_url)) + '" target="_blank" rel="noopener">' + esc(t.shopLink) + '</a>' : '') + '</div>';
+    if (live) html += '<a class="livebox" href="' + showUrl(live) + '"><span><span class="lbl" style="position:static"><i></i>' + esc(t.live) + '</span><b>' + esc(title(live)) + '</b><small>' + esc(fmtK(live.likes, LOC[lang])) + ' ♥</small></span><span class="go">' + esc(t.enterLive) + '</span></a>';
+    html += '<section style="margin-top:28px"><div class="sh"><h2>' + esc(t.upcomingP) + '</h2></div>';
+    if (soon.length){
+      html += '<div class="grid">' + soon.map(function(s, i){ return '<div class="vcard"><a class="vcard" href="' + showUrl(s) + '">' + cover(s, '<span class="lbl off"><i></i>' + esc(t.soon) + '</span><div class="when"><small>' + esc(fday(s.scheduled_at)) + '</small><b>' + esc(ftime(s.scheduled_at)) + '</b></div><div class="ctitle" dir="auto">' + label(s) + esc(title(s)) + '</div>') + '</a><a class="btn sm" style="align-self:flex-start;color:var(--gold-edge);border-color:var(--gold-hi);font-size:13px;min-height:34px" download="' + esc(CFG.slug) + '-live.ics" href="' + icsUrl(s) + '">' + esc(t.remind) + '</a></div>'; }).join("") + '</div>';
+    } else html += '<div class="empty">' + esc(t.noShowsP) + '</div>';
+    html += '</section>';
+    if (past.length) html += '<section style="margin-top:28px"><div class="sh"><h2>' + esc(t.pastShows) + '</h2></div><div class="past">' + past.map(function(s){ return '<div><span dir="auto">' + esc(title(s)) + '</span><small>' + esc(fdate(s.scheduled_at)) + '</small></div>'; }).join("") + '</div></section>';
+    html += '<div class="howbox"><p class="eyebrow">' + esc(t.howTitle) + '</p><p>' + esc(t.howInterest) + '</p><p>' + esc(t.howBook) + '</p><p>' + esc(t.howBuy) + '</p></div>';
+    html += '<p style="margin-top:22px"><a class="btn sm" href="' + CFG.base + '/live?lang=' + lang + '">← ' + esc(t.backTo) + '</a></p>';
+    page.innerHTML = html;
+    $("followBtn").addEventListener("click", followClick);
+  }
+  function followClick(){
+    var j = state.j;
+    if (isFollowed()){ state.follows = state.follows.filter(function(x){ return x !== CFG.slug; }); try { localStorage.setItem("vetrina-follows", JSON.stringify(state.follows)); } catch(e){} render(); return; }
+    openModal('<p class="eyebrow">' + esc(t.follow) + ' · ' + esc(j.name) + '</p><p class="muted" style="font-size:14px">' + esc(t.followLead.replace("{name}", j.name)) + '</p><form id="ff"><input id="fEmail" type="email" placeholder="Email" autocomplete="email" required><button class="btn dark" type="submit">' + esc(t.ok) + '</button></form>');
+    $("fEmail").focus();
+    $("ff").addEventListener("submit", function(e){
+      e.preventDefault(); var em = ($("fEmail").value || "").trim();
+      sb.rpc("follow", { p_email: em, p_jeweler: j.id, p_category: null, p_lang: lang }).then(function(r){
+        if (r.error){ toast(r.error.message); return; }
+        state.follows.push(CFG.slug); try { localStorage.setItem("vetrina-follows", JSON.stringify(state.follows)); localStorage.setItem("live-contact", em); } catch(x){}
+        closeModal(); toast(t.followOk); render();
+      });
+    });
+  }
+
+  $("langCur").addEventListener("click", function(e){ e.stopPropagation(); $("langMenu").hidden = !$("langMenu").hidden; });
+  document.addEventListener("click", function(){ $("langMenu").hidden = true; });
+  Array.prototype.forEach.call(document.querySelectorAll("#langMenu button"), function(b){
+    b.addEventListener("click", function(){ lang = b.getAttribute("data-lang"); $("langMenu").hidden = true; try { localStorage.setItem("vetrina-lang", lang); } catch(e){} render(); });
+  });
+
+  function boot(){
+    Promise.all([
+      sb.from("jewelers").select("id,slug,name,city,country,kind,tagline,categories,website,shop_url").eq("slug", CFG.slug).maybeSingle(),
+      sb.from("categories").select("slug,position,name_i18n,art").eq("active", true).order("position")
+    ]).then(function(r){
+      state.j = r[0].data; state.cats = r[1].data || [];
+      if (!state.j){ render(); return; }
+      return sb.from("shows").select("id,title,title_i18n,scheduled_at,status,lang,likes,categories,price_range,visibility").eq("jeweler_id", state.j.id).order("scheduled_at", { ascending:false }).limit(40).then(function(r2){
+        state.shows = (r2.data || []).filter(function(s){ return s.visibility === "public"; });
+        var ids = state.shows.map(function(s){ return s.id; });
+        if (!ids.length){ render(); return; }
+        return Promise.all([ sb.from("show_covers").select("show_id,data").in("show_id", ids), sb.from("pieces").select("show_id,art,position").in("show_id", ids).order("position") ]).then(function(res){
+          (res[0].data || []).forEach(function(c){ state.covers[c.show_id] = c.data; });
+          var byShow = {}; (res[1].data || []).forEach(function(p){ (byShow[p.show_id] = byShow[p.show_id] || []).push(p); });
+          state.shows.forEach(function(s){ s.pieces = byShow[s.id] || []; });
+          render();
+          sb.channel("profile-" + state.j.id).on("postgres_changes", { event:"*", schema:"public", table:"shows", filter:"jeweler_id=eq." + state.j.id }, function(){ boot(); }).subscribe();
+        });
+      });
+    });
+  }
+  render(); boot();
+})();
+</script>
+</body></html>

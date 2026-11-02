@@ -9,11 +9,14 @@
   <nav class="tabs" id="tabs">
     <button class="tab on" type="button" data-to="live"><span data-t="tabLive"></span><span class="n" id="nLive" hidden>0</span></button>
     <button class="tab" type="button" data-to="soon" data-t="tabSoon"></button>
+    <button class="tab" type="button" data-to="browse" data-t="tabCats"></button>
     <button class="tab" type="button" data-to="shops" data-t="tabShops"></button>
   </nav>
+  <div class="cats" id="cats"></div>
   <div class="trust" id="trust"></div>
   <section id="live"><div class="sh"><h2 data-t="hLive"></h2></div><div class="grid" id="gridLive"></div><div class="empty" id="emptyLive" hidden></div></section>
   <section id="soon"><div class="sh"><h2 data-t="hSoon"></h2></div><div class="grid" id="gridSoon"></div><div class="empty" id="emptySoon" hidden></div></section>
+  <section id="browse"><div class="sh"><h2 data-t="hCats"></h2></div><div class="tiles" id="tiles"></div></section>
   <section id="shops"><div class="sh"><h2 data-t="hShops"></h2><a id="joinLink" href="{{BASE}}/live/join" data-t="join"></a></div><div class="shops" id="shopsRow"></div></section>
   <div class="cta" id="cta"></div>
 </div></main>
@@ -32,7 +35,8 @@
   try { lang = localStorage.getItem("vetrina-lang") || ""; } catch(e){}
   if (!TT[lang]) { var nav = (CFG.lang || navigator.language || "it").slice(0,2).toLowerCase(); lang = TT[nav] ? nav : "it"; }
   var t = TT[lang];
-  var state = { jewelers:{}, shows:[], covers:{}, viewers:{}, channels:{} };
+  var state = { jewelers:{}, shows:[], covers:{}, viewers:{}, channels:{}, cats:[], cat:"" };
+  try { var c0 = new URLSearchParams(location.search).get("c") || ""; if (/^[a-z0-9-]{2,40}$/.test(c0)) state.cat = c0; } catch(e){}
   $("searchIc").innerHTML = ICON.search;
 
   function fday(iso){ try { return new Intl.DateTimeFormat(LOC[lang], { weekday:"short", day:"numeric", month:"short" }).format(new Date(iso)); } catch(e){ return iso; } }
@@ -40,6 +44,31 @@
   function pal(key){ var h = 0; for (var i = 0; i < key.length; i++) h = (h * 31 + key.charCodeAt(i)) >>> 0; return PAL[h % PAL.length].split(","); }
   function title(s){ var i = s.title_i18n || {}; return i[lang] || (lang !== "it" && i.en) || s.title; }
   function kindLabel(j){ return j.kind === "gems" ? t.gems : t.shop; }
+  function catName(slug){ var c = null; for (var i = 0; i < state.cats.length; i++) if (state.cats[i].slug === slug) c = state.cats[i]; if (!c) return slug; var n = c.name_i18n || {}; return n[lang] || n.en || n.it || slug; }
+  function inCat(x){ return !state.cat || ((x.categories || []).indexOf(state.cat) >= 0); }
+  function catLabel(s){ var cs = (s.categories || []).slice(0, 2).map(catName); return cs.length ? '<small>' + esc(cs.join(" · ")) + '</small>' : ''; }
+  function nShows(n){ if (n === 0) return t.catSoon; if (n === 1) return t.catOne; if (lang === "ru" && t.catFew){ var m10 = n % 10, m100 = n % 100; if (m10 >= 2 && m10 <= 4 && (m100 < 12 || m100 > 14)) return t.catFew.replace("{n}", n); } return t.catMany.replace("{n}", n); }
+  function setCat(slug){ state.cat = slug === state.cat ? "" : slug; try { var u = new URL(location.href); if (state.cat) u.searchParams.set("c", state.cat); else u.searchParams.delete("c"); history.replaceState(null, "", u.toString()); } catch(e){} renderCats(); renderTiles(); renderLive(); renderSoon(); renderShops(); }
+  function renderCats(){
+    var box = $("cats"); box.innerHTML = "";
+    var all = document.createElement("button"); all.type = "button"; all.className = state.cat ? "" : "on"; all.textContent = t.catAll; all.addEventListener("click", function(){ setCat(""); }); box.appendChild(all);
+    state.cats.forEach(function(c){
+      var n = state.shows.filter(function(s){ return (s.categories || []).indexOf(c.slug) >= 0; }).length;
+      var b = document.createElement("button"); b.type = "button"; b.className = state.cat === c.slug ? "on" : ""; b.innerHTML = esc(catName(c.slug)) + (n ? '<small>' + n + '</small>' : '');
+      b.addEventListener("click", function(){ setCat(c.slug); }); box.appendChild(b);
+    });
+  }
+  function renderTiles(){
+    var box = $("tiles"); box.innerHTML = "";
+    state.cats.forEach(function(c){
+      var n = state.shows.filter(function(s){ return (s.categories || []).indexOf(c.slug) >= 0; }).length;
+      var p = pal(c.slug);
+      var b = document.createElement("button"); b.type = "button"; b.className = "tile" + (state.cat === c.slug ? " on" : ""); b.style.cssText = "--c1:" + p[0] + ";--c2:" + p[1];
+      b.innerHTML = (CFG.art[c.art] || CFG.art.ring) + '<b>' + esc(catName(c.slug)) + '</b><small>' + esc(nShows(n)) + '</small>';
+      b.addEventListener("click", function(){ setCat(c.slug); var el = $("live"); if (el) el.scrollIntoView({ behavior:"smooth", block:"start" }); });
+      box.appendChild(b);
+    });
+  }
   function showUrl(s, j){ return CFG.base + "/live/" + j.slug + "?s=" + s.id + "&lang=" + lang; }
 
   function cover(s, j, extra){
@@ -64,26 +93,28 @@
   }
   function renderLive(){
     var g = $("gridLive"); g.innerHTML = "";
-    var rows = state.shows.filter(function(s){ return s.status === "live" && state.jewelers[s.jeweler_id]; });
+    var rows = state.shows.filter(function(s){ return s.status === "live" && state.jewelers[s.jeweler_id] && inCat(s); });
     rows.forEach(function(s){
       var j = state.jewelers[s.jeweler_id];
       var a = document.createElement("a"); a.className = "vcard"; a.href = showUrl(s, j);
-      a.innerHTML = cover(s, j, '<span class="lbl"><i></i>' + esc(t.live) + '</span><div class="stat"><span>' + ICON.heart + '<span data-likes="' + s.id + '">' + fmtK(s.likes, LOC[lang]) + '</span></span><span>' + ICON.eye + '<span data-viewers="' + s.id + '">' + (state.viewers[s.id] || 0) + '</span></span></div><div class="ctitle" dir="auto">' + esc(title(s)) + '</div>') + meta(j);
+      a.innerHTML = cover(s, j, '<span class="lbl"><i></i>' + esc(t.live) + '</span><div class="stat"><span>' + ICON.heart + '<span data-likes="' + s.id + '">' + fmtK(s.likes, LOC[lang]) + '</span></span><span>' + ICON.eye + '<span data-viewers="' + s.id + '">' + (state.viewers[s.id] || 0) + '</span></span></div><div class="ctitle" dir="auto">' + catLabel(s) + esc(title(s)) + '</div>') + meta(j);
       g.appendChild(a);
     });
     $("emptyLive").hidden = rows.length > 0; $("nLive").hidden = !rows.length; $("nLive").textContent = rows.length;
+    $("emptyLive").innerHTML = state.cat ? '<b>' + esc(catName(state.cat)) + '</b>' + esc(t.noneCat) : '<b>' + esc(t.emptyLiveT) + '</b>' + esc(t.emptyLive);
   }
   function renderSoon(){
     var g = $("gridSoon"); g.innerHTML = "";
-    var rows = state.shows.filter(function(s){ return s.status === "scheduled" && state.jewelers[s.jeweler_id]; }).sort(function(a,b){ return new Date(a.scheduled_at) - new Date(b.scheduled_at); });
+    var rows = state.shows.filter(function(s){ return s.status === "scheduled" && state.jewelers[s.jeweler_id] && inCat(s); }).sort(function(a,b){ return new Date(a.scheduled_at) - new Date(b.scheduled_at); });
     rows.forEach(function(s){
       var j = state.jewelers[s.jeweler_id];
       var d = document.createElement("div"); d.className = "vcard";
-      d.innerHTML = '<a class="vcard" href="' + showUrl(s, j) + '">' + cover(s, j, '<span class="lbl off"><i></i>' + esc(t.soon) + '</span><div class="when"><small>' + esc(fday(s.scheduled_at)) + '</small><b>' + esc(ftime(s.scheduled_at)) + '</b></div><div class="ctitle" dir="auto">' + esc(title(s)) + '</div>') + meta(j) + '</a><a class="btn sm" style="align-self:flex-start;color:var(--gold-edge);border-color:var(--gold-hi);font-size:13px;min-height:34px" download="' + esc(j.slug) + '-live.ics" href="' + icsUrl(s, j) + '" data-remind>' + esc(t.remind) + '</a>';
+      d.innerHTML = '<a class="vcard" href="' + showUrl(s, j) + '">' + cover(s, j, '<span class="lbl off"><i></i>' + esc(t.soon) + '</span><div class="when"><small>' + esc(fday(s.scheduled_at)) + '</small><b>' + esc(ftime(s.scheduled_at)) + '</b></div><div class="ctitle" dir="auto">' + catLabel(s) + esc(title(s)) + '</div>') + meta(j) + '</a><a class="btn sm" style="align-self:flex-start;color:var(--gold-edge);border-color:var(--gold-hi);font-size:13px;min-height:34px" download="' + esc(j.slug) + '-live.ics" href="' + icsUrl(s, j) + '" data-remind>' + esc(t.remind) + '</a>';
       d.querySelector("[data-remind]").addEventListener("click", function(){ toast(t.remindToast + fday(s.scheduled_at) + " · " + ftime(s.scheduled_at)); });
       g.appendChild(d);
     });
     $("emptySoon").hidden = rows.length > 0;
+    $("emptySoon").innerHTML = state.cat ? '<b>' + esc(catName(state.cat)) + '</b>' + esc(t.noneCat) : '<b>' + esc(t.emptySoonT) + '</b>' + esc(t.emptySoon);
   }
   function icsUrl(s, j){
     function z(d){ return d.toISOString().replace(/[-:]/g, "").replace(/\.\d{3}/, ""); }
@@ -94,13 +125,13 @@
   function renderShops(){
     var row = $("shopsRow"); row.innerHTML = "";
     var liveBy = {}; state.shows.forEach(function(s){ if (s.status === "live") liveBy[s.jeweler_id] = true; });
-    Object.keys(state.jewelers).map(function(k){ return state.jewelers[k]; }).sort(function(a,b){ return (liveBy[b.id] ? 1 : 0) - (liveBy[a.id] ? 1 : 0) || a.name.localeCompare(b.name); }).forEach(function(j){
+    Object.keys(state.jewelers).map(function(k){ return state.jewelers[k]; }).filter(function(j){ return !state.cat || (j.categories || []).indexOf(state.cat) >= 0 || state.shows.some(function(s){ return s.jeweler_id === j.id && inCat(s); }); }).sort(function(a,b){ return (liveBy[b.id] ? 1 : 0) - (liveBy[a.id] ? 1 : 0) || a.name.localeCompare(b.name); }).forEach(function(j){
       var a = document.createElement("a"); a.href = CFG.base + "/live/" + j.slug + "?lang=" + lang; a.className = "seller" + (liveBy[j.id] ? " live" : "");
       a.innerHTML = '<span class="big">' + esc((j.name || "?").charAt(0).toUpperCase()) + '</span>' + (liveBy[j.id] ? '<span class="live-tag">' + esc(t.live) + '</span>' : '') + '<b>' + esc(j.name) + '</b><small>' + esc(j.city || "") + '<br>' + esc(kindLabel(j)) + '</small>';
       row.appendChild(a);
     });
   }
-  function renderAll(){ t = TT[lang]; renderStatic(); renderLive(); renderSoon(); renderShops(); }
+  function renderAll(){ t = TT[lang]; renderStatic(); renderCats(); renderTiles(); renderLive(); renderSoon(); renderShops(); }
 
   // benvenuto (prima visita)
   function renderWelcome(){
@@ -135,7 +166,7 @@
 
   function loadShows(){
     var since = new Date(Date.now() - 12 * 3600 * 1000).toISOString();
-    return sb.from("shows").select("id,jeweler_id,title,title_i18n,scheduled_at,status,lang,likes,current_piece_id").eq("visibility", "public").in("status", ["live","scheduled"]).gte("scheduled_at", since).order("scheduled_at").then(function(r){
+    return sb.from("shows").select("id,jeweler_id,title,title_i18n,scheduled_at,status,lang,likes,current_piece_id,categories").eq("visibility", "public").in("status", ["live","scheduled"]).gte("scheduled_at", since).order("scheduled_at").then(function(r){
       state.shows = r.data || [];
       var ids = state.shows.map(function(s){ return s.id; });
       if (!ids.length) return;
@@ -149,11 +180,15 @@
       });
     });
   }
-  function refresh(){ return loadShows().then(function(){ renderLive(); renderSoon(); renderShops(); watchPresence(); }); }
+  function refresh(){ return loadShows().then(function(){ renderCats(); renderTiles(); renderLive(); renderSoon(); renderShops(); watchPresence(); }); }
 
   function boot(){
-    sb.from("jewelers").select("id,slug,name,city,kind,tagline").eq("is_public", true).then(function(r){
-      (r.data || []).forEach(function(j){ state.jewelers[j.id] = j; });
+    Promise.all([
+      sb.from("jewelers").select("id,slug,name,city,kind,tagline,categories").eq("is_public", true),
+      sb.from("categories").select("slug,position,name_i18n,art").eq("active", true).order("position")
+    ]).then(function(r){
+      (r[0].data || []).forEach(function(j){ state.jewelers[j.id] = j; });
+      state.cats = r[1].data || [];
       return refresh();
     }).then(function(){
       renderStatic();

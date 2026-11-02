@@ -49,6 +49,10 @@ label input,label select,label textarea{width:100%}
 .keybox{font-size:12px;overflow-wrap:anywhere;background:var(--soft);padding:6px 8px;border-radius:8px}
 .grid2{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:10px}
 .mcard form{display:flex;flex-direction:column;gap:10px}
+.chk-grid{border:1px solid var(--line);border-radius:12px;padding:8px 10px 10px;display:grid;grid-template-columns:1fr 1fr;gap:4px 10px;margin:0}
+.chk-grid legend{font-size:13px;color:var(--muted);padding:0 4px}
+.chk{display:flex;align-items:center;gap:8px;font-size:14px;color:var(--ink);flex-direction:row}
+.chk input{width:auto;min-height:0;margin:0}
 @media (max-width:1000px){.panel{grid-template-columns:1fr}.card .msgs{min-height:240px;max-height:360px}}
 </style></head>
 <body>
@@ -105,7 +109,11 @@ label input,label select,label textarea{width:100%}
   var $ = function(id){ return document.getElementById(id); };
   var state = { jeweler:null, shows:[], show:null, pieces:[], role:"", name:"", seen:0, firstReq:true, pendingStop:false, timer:null };
   var LANGS = { it:"Italiano", en:"Inglese", fr:"Francese" };
-  var ARTS = { ring:"Anello solitario", sapphire:"Anello con pietra colorata", earrings:"Orecchini", loose:"Pietre sciolte", none:"Nessuna immagine" };
+  var ARTS = { ring:"Anello solitario", sapphire:"Anello con pietra colorata", earrings:"Orecchini", necklace:"Collana / pendente", bracelet:"Bracciale", diamond:"Diamante sciolto", loose:"Pietre sciolte", pearls:"Perle", bands:"Fedi", brooch:"Spilla / vintage", tiara:"Alta gioielleria", bespoke:"Su misura", none:"Nessuna immagine" };
+  var CATS = [];
+  function catName(slug){ for (var i = 0; i < CATS.length; i++) if (CATS[i].slug === slug) return (CATS[i].name_i18n || {}).it || slug; return slug; }
+  function catChecks(id, selected, max){ return '<fieldset class="chk-grid" id="' + id + '"><legend>Categorie (al massimo ' + max + ')</legend>' + CATS.map(function(c){ return '<label class="chk"><input type="checkbox" value="' + esc(c.slug) + '"' + ((selected || []).indexOf(c.slug) >= 0 ? " checked" : "") + '><span>' + esc(catName(c.slug)) + '</span></label>'; }).join("") + '</fieldset>'; }
+  function catPicked(id, max){ var v = Array.prototype.map.call(document.querySelectorAll("#" + id + " input:checked"), function(i){ return i.value; }); if (v.length > max){ toast("Al massimo " + max + " categorie"); return null; } return v; }
   var KINDS = { shop:"Gioielleria", gems:"Gem dealer" };
   $("likesIc").innerHTML = ICON.heart; $("eyeIc2").innerHTML = ICON.eye;
 
@@ -140,7 +148,7 @@ label input,label select,label textarea{width:100%}
     var s = state.show;
     var sel = $("showSel"); sel.innerHTML = "";
     state.shows.forEach(function(x){ var o = document.createElement("option"); o.value = x.id; o.textContent = x.title + " · " + fmtShort(x.scheduled_at) + " · " + statusLabel(x.status); if (s && x.id === s.id) o.selected = true; sel.appendChild(o); });
-    $("title").textContent = s.title; $("when").textContent = fmtDate(s.scheduled_at) + " · " + LANGS[s.lang] ;
+    $("title").textContent = s.title; $("when").textContent = fmtDate(s.scheduled_at) + " · " + LANGS[s.lang] + ((s.categories || []).length ? " · " + s.categories.map(catName).join(", ") : " · nessuna categoria");
     var t = $("toggle"); state.pendingStop = false;
     if (s.status === "scheduled"){ t.textContent = "Inizia la diretta"; t.className = "btn dark"; }
     else if (s.status === "live"){ t.textContent = "Termina la diretta"; t.className = "btn"; }
@@ -149,7 +157,7 @@ label input,label select,label textarea{width:100%}
     Array.prototype.forEach.call(document.querySelectorAll("#visSeg button"), function(b){ b.classList.toggle("on", b.getAttribute("data-vis") === (s.visibility || "private")); });
     $("visHint").textContent = s.visibility === "public" ? "Compare nella vetrina pubblica: chiunque può entrare." : "Entra solo chi ha il link o un invito personale.";
     $("stats").hidden = false; $("likesN").textContent = s.likes || 0;
-    $("jinfo").textContent = state.jeweler.name + " · " + (state.jeweler.city || "città non indicata") + " · " + (KINDS[state.jeweler.kind] || "Gioielleria");
+    $("jinfo").textContent = state.jeweler.name + " · " + (state.jeweler.city || "città non indicata") + " · " + (KINDS[state.jeweler.kind] || "Gioielleria") + ((state.jeweler.categories || []).length ? " · " + state.jeweler.categories.map(catName).join(", ") : "");
     renderHeader(); renderPieces();
     document.title = "Pannello · " + s.title;
   }
@@ -289,9 +297,9 @@ label input,label select,label textarea{width:100%}
   });
   $("editJ").addEventListener("click", function(){
     var j = state.jeweler;
-    openModal('<p class="eyebrow">La tua attività</p><form id="jf"><label>Nome<input id="jfName" type="text" maxlength="80" value="' + esc(j.name) + '"></label><label>Città<input id="jfCity" type="text" maxlength="60" value="' + esc(j.city || "") + '"></label><label>Tipo<select id="jfKind"><option value="shop">Gioielleria</option><option value="gems">Gem dealer</option></select></label><label>Una riga di presentazione (facoltativa)<input id="jfTag" type="text" maxlength="160" value="' + esc(j.tagline || "") + '"></label><button class="btn dark" type="submit">Salva</button></form>');
+    openModal('<p class="eyebrow">La tua attività</p><form id="jf"><label>Nome<input id="jfName" type="text" maxlength="80" value="' + esc(j.name) + '"></label><label>Città<input id="jfCity" type="text" maxlength="60" value="' + esc(j.city || "") + '"></label><label>Tipo<select id="jfKind"><option value="shop">Gioielleria</option><option value="gems">Gem dealer</option></select></label><label>Una riga di presentazione (facoltativa)<input id="jfTag" type="text" maxlength="160" value="' + esc(j.tagline || "") + '"></label>' + catChecks("jfCats", j.categories, 5).replace("Categorie (al massimo", "Specialità in vetrina (al massimo") + '<button class="btn dark" type="submit">Salva</button></form>');
     $("jfKind").value = j.kind || "shop";
-    $("jf").addEventListener("submit", function(e){ e.preventDefault(); sb.rpc("update_jeweler", { p_token: CFG.token, p_jeweler: j.id, p_name: $("jfName").value, p_city: $("jfCity").value, p_kind: $("jfKind").value, p_tagline: $("jfTag").value }).then(function(r){ if (!err(r)){ closeModal(); location.reload(); } }); });
+    $("jf").addEventListener("submit", function(e){ e.preventDefault(); var cats = catPicked("jfCats", 5); if (!cats) return; sb.rpc("update_jeweler", { p_token: CFG.token, p_jeweler: j.id, p_name: $("jfName").value, p_city: $("jfCity").value, p_kind: $("jfKind").value, p_tagline: $("jfTag").value }).then(function(r){ if (err(r)) return; return sb.rpc("set_jeweler_categories", { p_token: CFG.token, p_jeweler: j.id, p_cats: cats }); }).then(function(r){ if (r && err(r)) return; closeModal(); location.reload(); }); });
   });
   $("showSel").addEventListener("change", function(){ var u = new URL(location.href); u.searchParams.set("show", this.value); location.href = u.toString(); });
   $("copyShare").addEventListener("click", function(){ copy(viewerUrl(), this); });
@@ -321,6 +329,7 @@ label input,label select,label textarea{width:100%}
       '<label>Visibilità<select id="sfVis"><option value="private">Privata su invito</option><option value="public">In vetrina pubblica</option></select></label>' +
       '<label>Data e ora<input id="sfAt" type="datetime-local" required value="' + toLocalInput(s.scheduled_at) + '"></label>' +
       '<label>Lingua della pagina clienti<select id="sfLang"><option value="it">Italiano</option><option value="en">Inglese</option><option value="fr">Francese</option></select></label>' +
+      catChecks("sfCats", s.categories, 3) +
       '<label>Orari proposti per gli appuntamenti privati (uno per riga)<textarea id="sfSlots">' + esc(slots) + '</textarea></label>' +
       '<button class="btn dark" type="submit">' + (existing ? "Salva" : "Crea la diretta") + '</button></form>');
     $("sfLang").value = s.lang || "it"; $("sfVis").value = s.visibility || "private";
@@ -330,10 +339,11 @@ label input,label select,label textarea{width:100%}
       var slotsArr = $("sfSlots").value.split("\n").map(function(x){ return x.trim(); }).filter(Boolean);
       var i18n = {}; if ($("sfEn").value.trim()) i18n.en = $("sfEn").value.trim(); if ($("sfFr").value.trim()) i18n.fr = $("sfFr").value.trim();
       var vis = $("sfVis").value;
+      var cats = catPicked("sfCats", 3); if (!cats) return;
       if (existing){
-        sb.rpc("update_show2", { p_show: s.id, p_token: CFG.token, p_title: $("sfTitle").value, p_at: at.toISOString(), p_lang: $("sfLang").value, p_slots: slotsArr, p_i18n: i18n, p_vis: vis }).then(function(r){ if (!err(r)){ closeModal(); location.reload(); } });
+        sb.rpc("update_show2", { p_show: s.id, p_token: CFG.token, p_title: $("sfTitle").value, p_at: at.toISOString(), p_lang: $("sfLang").value, p_slots: slotsArr, p_i18n: i18n, p_vis: vis }).then(function(r){ if (err(r)) return; return sb.rpc("set_show_categories", { p_show: s.id, p_token: CFG.token, p_cats: cats }); }).then(function(r){ if (r && err(r)) return; closeModal(); location.reload(); });
       } else {
-        sb.rpc("create_show", { p_token: CFG.token, p_jeweler: state.jeweler.id, p_title: $("sfTitle").value, p_at: at.toISOString(), p_lang: $("sfLang").value, p_slots: slotsArr }).then(function(r){ if (err(r)) return; var id = r.data.id; sb.rpc("update_show2", { p_show: id, p_token: CFG.token, p_title: null, p_at: null, p_lang: null, p_slots: null, p_i18n: i18n, p_vis: vis }).then(function(){ var u = new URL(location.href); u.searchParams.set("show", id); location.href = u.toString(); }); });
+        sb.rpc("create_show", { p_token: CFG.token, p_jeweler: state.jeweler.id, p_title: $("sfTitle").value, p_at: at.toISOString(), p_lang: $("sfLang").value, p_slots: slotsArr }).then(function(r){ if (err(r)) return; var id = r.data.id; sb.rpc("update_show2", { p_show: id, p_token: CFG.token, p_title: null, p_at: null, p_lang: null, p_slots: null, p_i18n: i18n, p_vis: vis }).then(function(){ return sb.rpc("set_show_categories", { p_show: id, p_token: CFG.token, p_cats: cats }); }).then(function(){ var u = new URL(location.href); u.searchParams.set("show", id); location.href = u.toString(); }); });
       }
     });
   }
@@ -401,7 +411,7 @@ label input,label select,label textarea{width:100%}
     });
   }
   function boot(){
-    sb.from("jewelers").select("*").eq("slug", CFG.slug).maybeSingle().then(function(r){
+    sb.from("categories").select("slug,position,name_i18n,art").eq("active", true).order("position").then(function(c){ CATS = c.data || []; return sb.from("jewelers").select("*").eq("slug", CFG.slug).maybeSingle(); }).then(function(r){
       if (!r.data){ $("denied").hidden = false; return; }
       state.jeweler = r.data;
       return sb.from("shows").select("*").eq("jeweler_id", state.jeweler.id).order("scheduled_at", { ascending:false }).then(function(r2){

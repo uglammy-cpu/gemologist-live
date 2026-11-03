@@ -13,40 +13,25 @@ della diretta mostra nella fascia sotto il video.
 
 ## Cosa serve prima di accenderlo
 
-Tre valori in un file `.env.local` dentro questa cartella:
+Un file `.env.local` con le chiavi LiveKit della piattaforma e l'indirizzo
+di Supabase con la chiave pubblicabile. Nessun contratto nuovo: trascrizione
+e traduzione passano dai modelli fatturati da LiveKit.
 
-```
-LIVEKIT_URL=wss://…livekit.cloud
-LIVEKIT_API_KEY=…
-LIVEKIT_API_SECRET=…
-OPENAI_API_KEY=…
-SUPABASE_URL=https://itoxzepuukyvdxxtfetf.supabase.co
-SUPABASE_SERVICE_KEY=…
-```
+## Avviarlo
 
-I primi tre esistono già (sono quelli della piattaforma). La chiave OpenAI
-serve solo per la traduzione: a 5 $ di credito si coprono mesi di dirette.
-La chiave Supabase è quella di servizio, che legge il glossario.
+Su Windows basta il doppio clic su `AVVIA.bat`: prepara l'ambiente la prima
+volta, poi si collega a LiveKit e aspetta. Finché la finestra resta aperta,
+l'agent entra da solo in ogni diretta che si apre.
 
-## Provarlo senza pubblico
+A mano, su qualunque sistema:
 
 ```
 pip install -r requirements.txt
-lk agent console traduzione.py
+python traduzione.py dev
 ```
 
-Parla al microfono in italiano: in console compaiono le trascrizioni e le
-traduzioni. Per vedere come appaiono nella pagina, basta aprire una diretta
-con `?subs=demo` in fondo all'indirizzo.
-
-## Metterlo online
-
-```
-lk agent create .
-lk agent deploy
-```
-
-Da quel momento l'agent entra da solo in ogni stanza che lo richiede.
+Per vedere come appaiono i sottotitoli nella pagina senza una diretta in
+corso, aprire una diretta con `?subs=demo` in fondo all'indirizzo.
 
 ## Costo
 

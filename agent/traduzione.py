@@ -17,7 +17,7 @@ import os
 import httpx
 from dotenv import load_dotenv
 from livekit.agents import Agent, AgentServer, AgentSession, JobContext, cli, inference
-from openai import AsyncOpenAI
+from livekit.agents.llm import ChatContext
 
 load_dotenv(".env.local")
 log = logging.getLogger("traduzione")
@@ -30,9 +30,11 @@ LINGUE = {
 }
 
 SUPABASE_URL = os.environ["SUPABASE_URL"]
-SUPABASE_KEY = os.environ["SUPABASE_SERVICE_KEY"]
+SUPABASE_KEY = os.environ["SUPABASE_ANON_KEY"]
 
-openai = AsyncOpenAI()
+# Traduzione e trascrizione passano dai modelli fatturati da LiveKit:
+# nessun secondo contratto, tutto sulla bolletta che c'è già.
+traduttore = inference.LLM(model="openai/gpt-5-nano")
 server = AgentServer()
 
 
@@ -77,17 +79,19 @@ def istruzioni(lingua: str, glossario: str) -> str:
 
 
 async def traduci(testo: str, lingua: str, glossario: str) -> str:
-    r = await openai.chat.completions.create(
-        model="gpt-5-nano",
-        messages=[
-            {"role": "system", "content": istruzioni(lingua, glossario)},
-            {"role": "user", "content": testo},
-        ],
-    )
-    return (r.choices[0].message.content or "").strip()
+    ctx = ChatContext.empty()
+    ctx.add_message(role="system", content=istruzioni(lingua, glossario))
+    ctx.add_message(role="user", content=testo)
+    fuori = ""
+    async for pezzo in traduttore.chat(chat_ctx=ctx):
+        if pezzo.delta and pezzo.delta.content:
+            fuori += pezzo.delta.content
+    return fuori.strip()
 
 
-@server.rtc_session(agent_name="traduzione")
+# Senza agent_name l'agent entra da solo in ogni diretta che si apre:
+# nessuna configurazione da ricordare quando si va in onda.
+@server.rtc_session()
 async def entrypoint(ctx: JobContext):
     ctx.log_context_fields = {"room": ctx.room.name}
     glossario = await carica_glossario()

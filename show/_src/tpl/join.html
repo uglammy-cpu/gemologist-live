@@ -28,15 +28,32 @@
       '<h3>' + esc(t.jFormH) + '</h3><form class="jform" id="jForm">' +
         '<label>' + esc(t.fName) + '<input id="jName" type="text" maxlength="80" required></label><label>' + esc(t.fCity) + '<input id="jCity" type="text" maxlength="60" required></label>' +
         '<label>' + esc(t.fKind) + '<select id="jKind"><option value="shop">' + esc(t.kShop) + '</option><option value="gems">' + esc(t.kGems) + '</option></select></label><label>' + esc(t.fSite) + '<input id="jSite" type="text" maxlength="160" placeholder="www…"></label>' +
+        '<label class="full">' + esc(t.fNight) + '<select id="jNight"><option value="">' + esc(t.nightAny) + '</option></select></label>' +
         '<label class="full">' + esc(t.fShow) + '<textarea id="jShow" maxlength="600"></textarea></label>' +
         '<label>' + esc(t.fEmail) + '<input id="jEmail" type="email" maxlength="120" required></label><label>' + esc(t.fPhone) + '<input id="jPhone" type="tel" maxlength="40"></label>' +
         '<button class="submit" type="submit" id="jSend">' + esc(t.jSend) + '</button></form><p class="hint">' + esc(t.jFine) + '</p>';
+    // Le serate a tema sono il motivo per cui uno si candida adesso invece
+    // che un giorno qualunque: vanno messe davanti, non nascoste.
+    sb.rpc("list_nights", { p_from: null }).then(function(r){
+      var sel = $("jNight"); if (!sel || r.error) return;
+      (r.data || []).forEach(function(n){
+        if (!n.applications_open) return;
+        var o = document.createElement("option");
+        o.value = n.id;
+        var i18n = n.title_i18n || {};
+        var nome = i18n[lang] || (lang !== "it" && i18n.en) || n.title;
+        var quando = "";
+        try { quando = new Intl.DateTimeFormat(lang || "it", { weekday:"long", day:"numeric", month:"long", hour:"2-digit", minute:"2-digit" }).format(new Date(n.starts_at)); } catch(e){}
+        o.textContent = nome + (quando ? " · " + quando : "");
+        sel.appendChild(o);
+      });
+    });
     $("jForm").addEventListener("submit", function(e){
       e.preventDefault();
       var name = $("jName").value.trim(), city = $("jCity").value.trim(), email = $("jEmail").value.trim();
       if (!name || !city || !email){ toast(t.need); return; }
       $("jSend").disabled = true; $("jSend").textContent = t.sending;
-      sb.rpc("apply_seller", { p_name: name, p_city: city, p_kind: $("jKind").value, p_site: $("jSite").value.trim(), p_show_what: $("jShow").value.trim(), p_email: email, p_phone: $("jPhone").value.trim(), p_lang: lang }).then(function(r){
+      sb.rpc("apply_seller", { p_name: name, p_city: city, p_kind: $("jKind").value, p_site: $("jSite").value.trim(), p_show_what: $("jShow").value.trim(), p_email: email, p_phone: $("jPhone").value.trim(), p_lang: lang, p_night: ($("jNight") && $("jNight").value) || null }).then(function(r){
         if (r.error){ toast(r.error.message); $("jSend").disabled = false; $("jSend").textContent = t.jSend; return; }
         $("page").innerHTML = '<div class="thanks"><span class="okc">✓</span><h2>' + esc(t.thTitle) + '</h2><p>' + esc(t.thText) + '</p><a class="btn dark" style="margin-top:8px" href="' + CFG.base + '/live">' + esc(t.thBtn) + '</a></div>';
         window.scrollTo(0, 0);

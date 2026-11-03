@@ -57,7 +57,18 @@ function landingBody(d) {
     if (!voci.length) return "";
     return '<small class="decl" dir="auto">' + esc(voci.join(" \u00b7 ")) + '<i>' + esc(t.declaredBy) + '</i></small>';
   }
-  if (d.pieces.length) html += '<p class="eyebrow" style="margin-top:24px">' + esc(t.piecesH) + '</p><div class="lpieces">' + d.pieces.map(function(pc){ var ph = d.photoUrls[pc.id]; var pn = tr(pc.name_i18n, pc.name), pcap = tr(pc.caption_i18n, pc.caption); return '<div class="lpiece"><div class="ph">' + (ph ? '<img src="' + esc(ph) + '" alt="' + esc(pn) + '">' : (d.art[pc.art] || d.art.none)) + '</div><b dir="auto">' + esc(pn) + '</b><small dir="auto">' + esc(pcap) + '</small>' + dichiarazione(pc.id) + '</div>'; }).join("") + '</div>';
+  // Il prezzo porta alla scheda del pezzo sul sito del venditore, non alla
+  // home del negozio: chi vuole comprare non deve rimettersi a cercarlo.
+  function prezzo(pc){
+    if (!pc.price_cents) return "";
+    var v;
+    try { v = (pc.price_cents / 100).toLocaleString(lang || "it", { minimumFractionDigits: pc.price_cents % 100 ? 2 : 0, maximumFractionDigits: 2 }); }
+    catch(e){ v = String(pc.price_cents / 100); }
+    var txt = v + " " + (!pc.currency || pc.currency === "EUR" ? "€" : pc.currency);
+    if (!pc.buy_url || !/^https:\/\//i.test(pc.buy_url)) return '<small class="lprice">' + esc(txt) + '</small>';
+    return '<a class="lprice" href="' + esc(pc.buy_url) + '" target="_blank" rel="noopener noreferrer">' + esc(txt) + '<span>' + esc(t.buyPiece) + '</span></a>';
+  }
+  if (d.pieces.length) html += '<p class="eyebrow" style="margin-top:24px">' + esc(t.piecesH) + '</p><div class="lpieces">' + d.pieces.map(function(pc){ var ph = d.photoUrls[pc.id]; var pn = tr(pc.name_i18n, pc.name), pcap = tr(pc.caption_i18n, pc.caption); return '<div class="lpiece"><div class="ph">' + (ph ? '<img src="' + esc(ph) + '" alt="' + esc(pn) + '">' : (d.art[pc.art] || d.art.none)) + '</div><b dir="auto">' + esc(pn) + '</b><small dir="auto">' + esc(pcap) + '</small>' + prezzo(pc) + dichiarazione(pc.id) + '</div>'; }).join("") + '</div>';
   html += '<a class="lseller" href="' + esc(profileUrl) + '"><span class="av">' + esc((j.name || "?").charAt(0).toUpperCase()) + '</span><span><b>' + esc(j.name) + ' <span class="chk">✓</span></b><small>' + esc([j.city, country(j.country || "IT"), kindLabel()].filter(Boolean).join(" · ")) + (tr(j.tagline_i18n, j.tagline) ? ' — ' + esc(tr(j.tagline_i18n, j.tagline)) : '') + '</small></span></a>';
   html += '<div class="howbox"><p class="eyebrow">' + esc(t.howTitle) + '</p><p>' + esc(t.howInterest) + '</p><p>' + esc(t.howBook) + '</p><p>' + esc(t.howBuy) + '</p></div>';
   html += '<p style="margin-top:22px"><a class="btn sm" href="' + d.site + d.prefix + '/?lang=' + lang + '">← ' + esc(t.backTo) + '</a></p>';

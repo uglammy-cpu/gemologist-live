@@ -50,7 +50,7 @@ async function fetchData() {
     jewelers: await get("jewelers?select=id,slug,name,city,country,kind,tagline,tagline_i18n,categories,website,shop_url&is_public=eq.true&order=created_at"),
     categories: await get("categories?select=slug,position,name_i18n,art&active=eq.true&order=position"),
     shows: await get("shows?select=id,jeweler_id,slug,title,title_i18n,description_i18n,description,scheduled_at,status,lang,likes,categories,price_range,current_piece_id&visibility=eq.public&scheduled_at=gte." + since + "&order=scheduled_at.desc&limit=400"),
-    pieces: await get("pieces?select=id,show_id,position,name,name_i18n,caption,caption_i18n,short,art&order=position"),
+    pieces: await get("pieces?select=id,show_id,position,name,name_i18n,caption,caption_i18n,short,art,price_cents,currency,buy_url&order=position"),
     covers: await get("show_covers?select=show_id,data"),
     photos: await get("piece_photos?select=piece_id,data"),
     highlights: await get("highlights?select=id,position,title_i18n,subtitle_i18n,link,image,video_url&order=position"),
@@ -216,7 +216,7 @@ ${LANDING_JS}
     var j = js[0]; if (!j) return;
     return Promise.all([ get("shows?select=id,jeweler_id,slug,title,title_i18n,description_i18n,description,scheduled_at,status,lang,likes,categories,price_range&jeweler_id=eq." + j.id + "&slug=eq." + m[2]), get("categories?select=slug,position,name_i18n,art&active=eq.true&order=position") ]).then(function(r){
       var s = r[0][0]; if (!s) return;
-      return Promise.all([ get("pieces?select=id,show_id,position,name,name_i18n,caption,caption_i18n,short,art&show_id=eq." + s.id + "&order=position"), get("show_covers?select=show_id,data&show_id=eq." + s.id) ]).then(function(r2){
+      return Promise.all([ get("pieces?select=id,show_id,position,name,name_i18n,caption,caption_i18n,short,art,price_cents,currency,buy_url&show_id=eq." + s.id + "&order=position"), get("show_covers?select=show_id,data&show_id=eq." + s.id) ]).then(function(r2){
         var pieces = r2[0], ids = pieces.map(function(p){ return p.id; });
         return (ids.length ? get("piece_photos?select=piece_id,data&piece_id=in.(" + ids.join(",") + ")") : Promise.resolve([])).then(function(ph){
           var photoUrls = {}; ph.forEach(function(x){ photoUrls[x.piece_id] = x.data; });

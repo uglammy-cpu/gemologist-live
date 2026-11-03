@@ -113,7 +113,7 @@ label input,label select,label textarea{width:100%}
   var CFG = {"url":"{{URL}}","key":"{{KEY}}","slug":"{{SLUG}}","token":"{{TOKEN}}","base":"{{BASE}}","tokenUrl":"{{TOKENURL}}","art":{{ART}}};
   var sb = window.supabase.createClient(CFG.url, CFG.key);
   var $ = function(id){ return document.getElementById(id); };
-  var state = { jeweler:null, shows:[], show:null, pieces:[], photos:{}, decl:{}, role:"", name:"", seen:0, firstReq:true, pendingStop:false, timer:null };
+  var state = { jeweler:null, shows:[], show:null, pieces:[], photos:{}, decl:{}, pay:{}, role:"", name:"", seen:0, firstReq:true, pendingStop:false, timer:null };
   var LANGS = { it:"Italiano", en:"Inglese", fr:"Francese" };
   var ARTS = { ring:"Anello solitario", sapphire:"Anello con pietra colorata", earrings:"Orecchini", necklace:"Collana / pendente", bracelet:"Bracciale", diamond:"Diamante sciolto", labgrown:"Diamante lab grown", loose:"Pietre sciolte", blister:"Pietra in blister", mounting:"Montatura", pearls:"Perle", bands:"Fedi", brooch:"Spilla / vintage", tiara:"Alta gioielleria", gold18:"Oro 18 kt", gold14:"Oro 14 kt", gold9:"Oro 9 kt", platinum:"Platino", silver:"Argento 925", bespoke:"Su misura", hammer:"Fatto a mano", sparkle:"Nuovi talenti", italy:"Made in Italy", none:"Nessuna immagine" };
   var CATS = [];
@@ -138,6 +138,23 @@ label input,label select,label textarea{width:100%}
     else { var i = document.createElement("textarea"); i.value = text; document.body.appendChild(i); i.select(); try { document.execCommand("copy"); done(); } catch(e){ toast("Copia manualmente il link"); } i.remove(); }
   }
   function err(r){ if (r && r.error){ toast(r.error.message || "Errore"); return true; } return false; }
+  // Gli importi si scrivono come viene comodo: 4200, 4.200, 4200,50, € 4.200,50.
+  function centesimi(s){
+    s = String(s == null ? "" : s).replace(/[^d.,]/g, "");
+    if (!s) return null;
+    var m = s.match(/[.,](d{1,2})$/), dec = 0;
+    if (m){ dec = m[1].length === 1 ? Number(m[1]) * 10 : Number(m[1]); s = s.slice(0, m.index); }
+    var intero = Number(s.replace(/[.,]/g, "")) || 0;
+    var tot = intero * 100 + dec;
+    return tot > 0 ? tot : null;
+  }
+  function euro(c, cur){
+    if (c == null) return "importo non indicato";
+    var v;
+    try { v = (c / 100).toLocaleString("it-IT", { minimumFractionDigits: c % 100 ? 2 : 0, maximumFractionDigits: 2 }); }
+    catch(e){ v = String(c / 100); }
+    return v + " " + (!cur || cur === "EUR" ? "€" : cur);
+  }
 
   var modal = $("modal");
   function openModal(html){ modal.innerHTML = '<div class="mcard">' + html + '<button class="x" type="button" aria-label="Chiudi">×</button></div>'; modal.hidden = false; modal.querySelector(".x").addEventListener("click", closeModal); }
@@ -185,7 +202,16 @@ label input,label select,label textarea{width:100%}
       dich.textContent = fatta ? "Scheda ✓" : "Scheda !";
       dich.title = fatta ? "Dichiarazione del venditore: compilata" : "Manca la dichiarazione: senza non va in onda";
       dich.addEventListener("click", function(){ apriDichiarazione(p); });
-      row.appendChild(b); row.appendChild(lab); row.appendChild(dich); box.appendChild(row);
+      var vend = document.createElement("button"); vend.type = "button";
+      var prezzato = !!(p.price_cents || p.buy_url);
+      vend.className = "btn sm";
+      vend.style.cssText = "min-height:0;padding:0 10px;cursor:pointer;flex:none";
+      vend.textContent = prezzato ? "€ ✓" : "€";
+      vend.title = prezzato
+        ? euro(p.price_cents, p.currency) + (p.buy_url ? " · con pagina d’acquisto" : " · nessuna pagina d’acquisto")
+        : "Prezzo e pagina d’acquisto";
+      vend.addEventListener("click", function(){ apriVendita(p); });
+      row.appendChild(b); row.appendChild(lab); row.appendChild(dich); row.appendChild(vend); box.appendChild(row);
     });
   }
   // Video (LiveKit): lo staff trasmette camera e microfono e vede gli altri presentatori
@@ -289,6 +315,17 @@ label input,label select,label textarea{width:100%}
       var d = document.createElement("div"); d.className = "item" + (isNew ? " new" : "");
       var what = r.type === "appointment" ? "Appuntamento" + (r.slot ? ": " + r.slot : "") : "Mi interessa";
       d.innerHTML = '<span class="pill ' + esc(r.type) + '">' + esc(what) + '</span><b style="font-weight:500">' + esc(r.guest_name) + (r.contact ? ' · <a href="' + esc(/@/.test(r.contact) ? "mailto:" + r.contact : "tel:" + r.contact.replace(/s+/g, "")) + '">' + esc(r.contact) + '</a>' : '') + '</b>' + (r.piece_name ? '<span>' + esc(r.piece_name) + '</span>' : '') + '<span class="meta">' + esc(fmtShort(r.created_at)) + '</span>';
+      var inviato = state.pay[r.id];
+      var pag = document.createElement("button");
+      pag.type = "button";
+      pag.className = "btn sm" + (inviato ? "" : " dark");
+      pag.style.cssText = "min-height:0;padding:3px 10px;margin-top:8px;align-self:flex-start";
+      pag.textContent = inviato ? "Link inviato · " + euro(inviato.amount_cents, inviato.currency) : "Manda il link di pagamento";
+      pag.title = inviato
+        ? "Inviato " + fmtShort(inviato.sent_at) + " su " + inviato.host + (inviato.seen_at ? ", aperto dal cliente" : ", non ancora aperto")
+        : "Il cliente lo vede comparire nella sua pagina, mentre guarda";
+      pag.addEventListener("click", function(){ apriPagamento(r); });
+      d.appendChild(pag);
       box.appendChild(d);
     });
     if (!state.firstReq && fresh > 0) toast(fresh === 1 ? "Nuova richiesta da " + rows[0].guest_name : fresh + " nuove richieste");
@@ -349,6 +386,62 @@ label input,label select,label textarea{width:100%}
         if (err(r)){ $("dSave").disabled = false; return; }
         closeModal();
         loadDeclarations().then(function(){ renderPieces(); toast("Dichiarazione registrata"); });
+      });
+    });
+  }
+
+  // ---- prezzo e pagina d'acquisto del pezzo ----
+  function apriVendita(p){
+    openModal('<p class="eyebrow">Prezzo e acquisto</p><h3 style="margin:.2em 0 .1em">' + esc(p.name) + '</h3>' +
+      '<p class="hint" style="margin-bottom:12px">Il prezzo compare sotto il pezzo. Se metti anche il link, il bottone «Acquista» porta il cliente direttamente alla scheda del pezzo invece che alla home del negozio.</p>' +
+      '<form class="jform" id="vForm">' +
+        '<label>Prezzo in euro<input id="vAmt" type="text" inputmode="decimal" placeholder="4200" value="' + esc(p.price_cents ? String(p.price_cents / 100).replace(".", ",") : "") + '"></label>' +
+        '<label class="full">Pagina d’acquisto<input id="vUrl" type="url" maxlength="600" placeholder="https://..." value="' + esc(p.buy_url || "") + '"></label>' +
+        '<button class="submit" type="submit" id="vSave">Salva</button>' +
+      '</form>');
+    $("vForm").addEventListener("submit", function(e){
+      e.preventDefault();
+      $("vSave").disabled = true;
+      sb.rpc("set_piece_sale", { p_token: CFG.token, p_piece: p.id, p_price_cents: centesimi($("vAmt").value), p_buy_url: $("vUrl").value }).then(function(r){
+        if (err(r)){ $("vSave").disabled = false; return; }
+        closeModal(); loadPieces(); toast("Salvato");
+      });
+    });
+  }
+
+  // ---- link di pagamento verso una richiesta precisa ----
+  // I soldi non passano da Uniqaia: qui si trasporta solo il link del venditore,
+  // e resta registrato chi lo ha mandato, a chi e per quanto.
+  function loadPaymentLinks(){
+    return sb.rpc("list_payment_links", { p_show: state.show.id, p_token: CFG.token }).then(function(r){
+      if (r.error) return;
+      state.pay = {};
+      // list_payment_links torna dal piu' recente: il primo per richiesta vince.
+      (r.data || []).forEach(function(x){ if (!state.pay[x.request_id]) state.pay[x.request_id] = x; });
+    });
+  }
+  function apriPagamento(r){
+    var prev = state.pay[r.id], pezzo = null;
+    for (var i = 0; i < state.pieces.length; i++) if (state.pieces[i].id === r.piece_id) pezzo = state.pieces[i];
+    var ammessi = (state.jeweler && state.jeweler.payment_hosts) || [];
+    openModal('<p class="eyebrow">Link di pagamento</p><h3 style="margin:.2em 0 .1em">' + esc(r.guest_name) + '</h3>' +
+      '<p class="hint" style="margin-bottom:12px">' + esc(r.piece_name || "Nessun pezzo indicato") + '. Il link compare nella pagina del cliente mentre guarda, con il nome del venditore accanto. Incassa il venditore, sul suo sistema: Uniqaia non è parte della vendita.</p>' +
+      '<form class="jform" id="pForm">' +
+        '<label class="full">Link<input id="pUrl" type="url" maxlength="600" required placeholder="https://buy.stripe.com/..." value="' + esc(pezzo && pezzo.buy_url ? pezzo.buy_url : "") + '"></label>' +
+        '<label>Importo in euro<input id="pAmt" type="text" inputmode="decimal" placeholder="4200" value="' + esc(pezzo && pezzo.price_cents ? String(pezzo.price_cents / 100).replace(".", ",") : "") + '"></label>' +
+        '<label class="full">Nota per il cliente<input id="pNote" type="text" maxlength="200" placeholder="es. spedizione assicurata inclusa"></label>' +
+        '<button class="submit" type="submit" id="pSend">Manda il link</button>' +
+      '</form>' +
+      '<p class="hint" style="margin-top:10px">Domini ammessi: il sito del venditore' + (ammessi.length ? ", " + esc(ammessi.join(", ")) : "") + ', Stripe e PayPal. Un dominio diverso viene rifiutato: va aggiunto prima al venditore.</p>' +
+      (prev ? '<p class="hint" style="margin-top:6px">Già inviato ' + esc(fmtShort(prev.sent_at)) + ' su ' + esc(prev.host) + (prev.seen_at ? ", aperto dal cliente" : ", non ancora aperto") + '. Se ne mandi un altro, il cliente vede il più recente.</p>' : ""));
+    $("pForm").addEventListener("submit", function(e){
+      e.preventDefault();
+      $("pSend").disabled = true;
+      sb.rpc("send_payment_link", { p_token: CFG.token, p_request: r.id, p_url: $("pUrl").value, p_amount: centesimi($("pAmt").value), p_note: $("pNote").value }).then(function(res){
+        if (err(res)){ $("pSend").disabled = false; return; }
+        closeModal();
+        loadPaymentLinks().then(loadRequests);
+        toast("Link mandato a " + r.guest_name);
       });
     });
   }
@@ -462,7 +555,7 @@ label input,label select,label textarea{width:100%}
       .subscribe();
     var pres = sb.channel("show-" + state.show.id, { config: { presence: { key: "p" + Math.random().toString(36).slice(2, 10) } } });
     pres.on("presence", { event:"sync" }, function(){ var n = 0; var st = pres.presenceState(); Object.keys(st).forEach(function(k){ if (k.charAt(0) === "v") n++; }); $("viewersN").textContent = n; }).subscribe();
-    state.timer = setInterval(loadRequests, 5000);
+    state.timer = setInterval(function(){ loadPaymentLinks().then(loadRequests); }, 5000);
     document.addEventListener("visibilitychange", function(){ if (!document.hidden) loadRequests(); });
   }
 
@@ -594,7 +687,7 @@ label input,label select,label textarea{width:100%}
           return Promise.all([
             loadPieces(),
             sb.from("messages").select("*").eq("show_id", state.show.id).order("created_at").limit(300).then(function(m){ (m.data || []).forEach(addMsg); })
-          ]).then(function(){ loadRequests(); loadInvites(); loadDeclarations().then(renderPieces); subscribe(); if (state.role === "gemologist") loadAdmin(); });
+          ]).then(function(){ loadPaymentLinks().then(loadRequests); loadInvites(); loadDeclarations().then(renderPieces); subscribe(); if (state.role === "gemologist") loadAdmin(); });
         });
       });
     });

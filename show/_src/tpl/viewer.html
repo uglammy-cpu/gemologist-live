@@ -64,7 +64,7 @@
     $("likes").textContent = fmtK(s.likes, LOC[state.lang]); state.likes = s.likes || 0;
     $("interestTxt").textContent = t.interest; $("bookTxt").textContent = t.book; $("shareTxt").textContent = t.invite; $("buyTxt").textContent = t.buy; $("howTxt").textContent = t.how; $("send").textContent = t.send; $("msg").placeholder = t.ask; $("audioBtn").textContent = t.audio;
     $("ccTxt").textContent = t.cc; $("subTxt").setAttribute("data-wait", t.subsWait); applySubs();
-    $("buy").hidden = !j.shop_url; $("pill").href = CFG.base + "/live/" + CFG.slug + "/profile?lang=" + state.lang;
+    aggiornaBuy(); $("pill").href = CFG.base + "/live/" + CFG.slug + "/profile?lang=" + state.lang;
     $("interest").disabled = false; $("book").disabled = false; $("heart").disabled = !live; $("send").disabled = s.status === "ended"; $("msg").disabled = s.status === "ended";
     $("back").title = t.backTo; $("pill").title = t.profile;
     $("credit").textContent = t.foot;
@@ -224,15 +224,81 @@
   $("interest").addEventListener("click", function(){
     requireContact(function(n, c){
       pickPiece(function(p){
-        sb.rpc("create_request2", { p_show: state.show.id, p_invite: state.invite ? state.invite.invite_id : null, p_guest: n, p_contact: c, p_type: "interest", p_piece: p ? p.id : null, p_slot: null }).then(function(r){
+        sb.rpc("create_request3", { p_show: state.show.id, p_invite: state.invite ? state.invite.invite_id : null, p_guest: n, p_contact: c, p_type: "interest", p_piece: p ? p.id : null, p_slot: null }).then(function(r){
           if (r.error){ toast(r.error.message); return; }
+          addClaim(r.data);
           toast(state.t.sentInterest + state.jeweler.name + (p ? ": " + tr(p.name_i18n, p.short || p.name) : ""));
           if (state.show.status !== "ended") sendClient(state.t.interestMsg + (p ? tr(p.name_i18n, p.short || p.name) : showTitle()));
         });
       });
     });
   });
-  $("buy").addEventListener("click", function(){ if (state.jeweler && state.jeweler.shop_url) window.open(/^https?:/i.test(state.jeweler.shop_url) ? state.jeweler.shop_url : "https://" + state.jeweler.shop_url, "_blank", "noopener"); });
+  // ---- pagamento ----
+  // I soldi non passano da Uniqaia. Il venditore manda il link del suo sistema
+  // e qui lo si consegna a chi l'ha chiesto, scritto accanto a chi incassa.
+  // La chiave e' il segreto della richiesta, tenuto solo in questo browser:
+  // gli id delle richieste sono progressivi e chiunque li indovinerebbe.
+  var pay = { last:null, timer:null };
+  function claims(){ try { var a = JSON.parse(localStorage.getItem("uniqaia-claims") || "[]"); return Array.isArray(a) ? a : []; } catch(e){ return []; } }
+  function addClaim(c){
+    if (!c) return;
+    try {
+      var a = claims();
+      if (a.indexOf(c) >= 0) return;
+      a.push(c); while (a.length > 20) a.shift();
+      localStorage.setItem("uniqaia-claims", JSON.stringify(a));
+    } catch(e){}
+    loadPay();
+  }
+  function importo(l){
+    if (l.amount_cents == null) return "";
+    var v;
+    try { v = (l.amount_cents / 100).toLocaleString(LOC[state.lang] || "it-IT", { minimumFractionDigits: l.amount_cents % 100 ? 2 : 0, maximumFractionDigits: 2 }); }
+    catch(e){ v = String(l.amount_cents / 100); }
+    return v + " " + (!l.currency || l.currency === "EUR" ? "€" : l.currency);
+  }
+  function aggiornaBuy(){
+    var t = state.t, j = state.jeweler, p = currentPiece(), b = $("buy");
+    if (!t) return;
+    if (pay.last){ b.hidden = false; $("buyTxt").textContent = t.payNow + (pay.last.amount_cents != null ? " · " + importo(pay.last) : ""); return; }
+    if (p && p.buy_url){ b.hidden = false; $("buyTxt").textContent = t.buyPiece; return; }
+    b.hidden = !(j && j.shop_url); $("buyTxt").textContent = t.buy;
+  }
+  function apriPagamento(l){
+    var t = state.t;
+    openModal('<p class="eyebrow">' + esc(t.payTitle) + '</p>' +
+      (l.amount_cents != null ? '<h3 style="margin:.2em 0 .1em">' + esc(importo(l)) + '</h3>' : '') +
+      (l.piece_name ? '<p class="muted" style="font-size:14px;margin:0 0 10px">' + esc(l.piece_name) + '</p>' : '') +
+      '<p style="font-size:14px;line-height:1.5;margin:0 0 4px"><b>' + esc(t.payBy) + '</b> ' + esc(l.seller_name || "") + (l.seller_city ? ' · ' + esc(l.seller_city) : '') + (l.seller_country ? ' (' + esc(l.seller_country) + ')' : '') + '</p>' +
+      '<p style="font-size:14px;line-height:1.5;margin:0 0 10px"><b>' + esc(t.payOn) + '</b> ' + esc(l.host) + '</p>' +
+      (l.note ? '<p style="font-size:14px;line-height:1.5">' + esc(l.note) + '</p>' : '') +
+      '<a class="btn dark" id="payGo" href="' + esc(l.url) + '" target="_blank" rel="noopener noreferrer">' + esc(t.payOpen) + '</a>' +
+      '<p class="muted" style="font-size:12.5px;line-height:1.5;margin-top:10px">' + esc(t.payOutside) + '</p>');
+    var g = $("payGo");
+    if (g) g.addEventListener("click", function(){ sb.rpc("mark_payment_link_seen", { p_claim: l.claim, p_id: l.id }); });
+  }
+  function loadPay(){
+    var cs = claims(); if (!cs.length) return;
+    sb.rpc("my_payment_links", { p_claims: cs }).then(function(r){
+      if (r.error || !r.data || !r.data.length) return;
+      var l = r.data[r.data.length - 1];
+      var nuovo = !pay.last || pay.last.id !== l.id;
+      pay.last = l; aggiornaBuy();
+      if (!nuovo) return;
+      var k = "uniqaia-pay-" + l.id, visto = false;
+      try { visto = !!localStorage.getItem(k); localStorage.setItem(k, "1"); } catch(e){}
+      if (!visto){ toast(state.t.payArrived); apriPagamento(l); }
+    });
+  }
+  $("buy").addEventListener("click", function(){
+    if (pay.last){ apriPagamento(pay.last); return; }
+    var p = currentPiece();
+    var u = (p && p.buy_url) || (state.jeweler && state.jeweler.shop_url);
+    if (u) window.open(/^https?:/i.test(u) ? u : "https://" + u, "_blank", "noopener");
+  });
+  pay.timer = setInterval(loadPay, 7000);
+  document.addEventListener("visibilitychange", function(){ if (!document.hidden) loadPay(); });
+  loadPay();
   $("how").addEventListener("click", function(){
     var j = state.jeweler, t = state.t;
     openModal('<p class="eyebrow">' + esc(t.howTitle) + '</p><p style="font-size:14px;line-height:1.5">' + esc(t.howInterest) + '</p><p style="font-size:14px;line-height:1.5">' + esc(t.howBook) + '</p><p style="font-size:14px;line-height:1.5">' + esc(t.howBuy) + '</p>' + (j && j.shop_url ? '<a class="btn dark" href="' + esc(/^https?:/i.test(j.shop_url) ? j.shop_url : "https://" + j.shop_url) + '" target="_blank" rel="noopener">' + esc(t.shopLink) + '</a>' : '') + '<a class="btn sm" href="' + CFG.base + '/live/' + CFG.slug + '/profile?lang=' + state.lang + '">' + esc(t.profile) + ' · ' + esc(j ? j.name : "") + '</a>');
@@ -247,8 +313,9 @@
       openModal(html);
       function choose(slot){
         var p = currentPiece();
-        sb.rpc("create_request2", { p_show: state.show.id, p_invite: state.invite ? state.invite.invite_id : null, p_guest: n, p_contact: c, p_type: "appointment", p_piece: p ? p.id : null, p_slot: slot }).then(function(r){
+        sb.rpc("create_request3", { p_show: state.show.id, p_invite: state.invite ? state.invite.invite_id : null, p_guest: n, p_contact: c, p_type: "appointment", p_piece: p ? p.id : null, p_slot: slot }).then(function(r){
           if (r.error){ toast(r.error.message); return; }
+          addClaim(r.data);
           openModal('<p class="ok">✓ ' + esc(state.t.confirmed) + '</p><h3>' + esc(slot) + '</h3><p class="muted" style="font-size:14px">' + esc(state.jeweler.name) + '</p><button class="btn dark" type="button" id="mClose">' + esc(state.t.back) + '</button>');
           $("mClose").addEventListener("click", closeModal);
           if (state.show.status !== "ended") sendClient(state.t.booked + slot);

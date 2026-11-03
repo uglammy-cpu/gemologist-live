@@ -812,19 +812,39 @@ function lkAttachRemote(room, tiles, LK){
       var isNew = r.id > state.seen;
       if (isNew) fresh++;
       var d = document.createElement("div"); d.className = "item" + (isNew ? " new" : "");
-      var what = r.type === "appointment" ? "Appuntamento" + (r.slot ? ": " + r.slot : "") : "Mi interessa";
+      var what = r.type === "appointment" ? "Appuntamento" + (r.slot ? ": " + r.slot : "")
+              : r.type === "purchase" ? "Lo prendo" + (r.price_cents ? " · " + euro(r.price_cents, "EUR") : "")
+              : "Mi interessa";
       d.innerHTML = '<span class="pill ' + esc(r.type) + '">' + esc(what) + '</span><b style="font-weight:500">' + esc(r.guest_name) + (r.contact ? ' · <a href="' + esc(/@/.test(r.contact) ? "mailto:" + r.contact : "tel:" + r.contact.replace(/s+/g, "")) + '">' + esc(r.contact) + '</a>' : '') + '</b>' + (r.piece_name ? '<span>' + esc(r.piece_name) + '</span>' : '') + '<span class="meta">' + esc(fmtShort(r.created_at)) + '</span>';
       var inviato = state.pay[r.id];
       var pag = document.createElement("button");
       pag.type = "button";
       pag.className = "btn sm" + (inviato ? "" : " dark");
       pag.style.cssText = "min-height:0;padding:3px 10px;margin-top:8px;align-self:flex-start";
-      pag.textContent = inviato ? "Link inviato · " + euro(inviato.amount_cents, inviato.currency) : "Manda il link di pagamento";
+      var stato = !inviato ? "" : inviato.paid_at ? "Pagato" : inviato.cancelled_at ? "Annullato" : "Link inviato";
+      pag.textContent = inviato ? stato + " · " + euro(inviato.amount_cents, inviato.currency) : "Manda il link di pagamento";
       pag.title = inviato
         ? "Inviato " + fmtShort(inviato.sent_at) + " su " + inviato.host + (inviato.seen_at ? ", aperto dal cliente" : ", non ancora aperto")
         : "Il cliente lo vede comparire nella sua pagina, mentre guarda";
       pag.addEventListener("click", function(){ apriPagamento(r); });
       d.appendChild(pag);
+      // L'incasso avviene sul sistema del venditore: lo stato lo dichiara lui.
+      if (inviato && !inviato.paid_at && !inviato.cancelled_at){
+        var azioni = document.createElement("div");
+        azioni.style.cssText = "display:flex;gap:6px;margin-top:6px";
+        [["Segna pagato", "paid"], ["Annulla", "cancelled"]].forEach(function(x){
+          var b2 = document.createElement("button"); b2.type = "button"; b2.className = "btn sm";
+          b2.style.cssText = "min-height:0;padding:3px 10px";
+          b2.textContent = x[0];
+          b2.addEventListener("click", function(){
+            sb.rpc("mark_payment_state", { p_token: CFG.token, p_id: inviato.id, p_state: x[1] }).then(function(res){
+              if (err(res)) return; loadPaymentLinks().then(loadRequests);
+            });
+          });
+          azioni.appendChild(b2);
+        });
+        d.appendChild(azioni);
+      }
       box.appendChild(d);
     });
     if (!state.firstReq && fresh > 0) toast(fresh === 1 ? "Nuova richiesta da " + rows[0].guest_name : fresh + " nuove richieste");
@@ -1185,6 +1205,23 @@ function lkAttachRemote(room, tiles, LK){
       (r.data || []).forEach(function(j){
         var d = document.createElement("div"); d.className = "app";
         d.innerHTML = '<b style="font-weight:500">' + esc(j.name) + '</b><span class="meta2">' + esc(j.city || "") + ' · ' + esc(KINDS[j.kind] || j.kind) + ' · /show/' + esc(j.slug) + '/' + '</span><div class="keybox">Pannello: ' + esc(CFG.base + "/show/" + j.slug + "/panel/?k=" + (j.staff_token || "")) + '</div><div class="acts"><a class="btn sm" href="' + esc(CFG.base + "/show/" + j.slug + "/panel/?k=" + CFG.token) + '">Apri come gemmologa</a></div>';
+        var dom = document.createElement("div");
+        dom.style.cssText = "margin-top:8px";
+        var lista = (j.payment_hosts || []).join(", ");
+        dom.innerHTML = '<span class="meta2">Domini di incasso: ' + esc(lista || "nessuno oltre al suo sito, Stripe e PayPal") + '</span>';
+        var ed = document.createElement("div"); ed.style.cssText = "display:flex;gap:6px;margin-top:6px";
+        var inp = document.createElement("input"); inp.type = "text"; inp.placeholder = "pay.sumup.com, checkout.suosito.it";
+        inp.value = lista; inp.style.cssText = "flex:1;min-width:0";
+        var sv = document.createElement("button"); sv.type = "button"; sv.className = "btn sm";
+        sv.style.cssText = "min-height:0;padding:3px 12px"; sv.textContent = "Salva";
+        sv.addEventListener("click", function(){
+          var hosts = inp.value.split(",").map(function(x){ return x.trim(); }).filter(Boolean);
+          sb.rpc("set_payment_hosts", { p_token: CFG.token, p_jeweler: j.id, p_hosts: hosts }).then(function(res){
+            if (err(res)) return; toast("Domini salvati"); loadSellers();
+          });
+        });
+        ed.appendChild(inp); ed.appendChild(sv); dom.appendChild(ed);
+        d.appendChild(dom);
         box.appendChild(d);
       });
     });

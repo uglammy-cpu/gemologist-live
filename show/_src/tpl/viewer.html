@@ -327,11 +327,45 @@
     catch(e){ v = String(l.amount_cents / 100); }
     return v + " " + (!l.currency || l.currency === "EUR" ? "€" : l.currency);
   }
+  function prezzoPezzo(p){
+    if (!p || !p.price_cents) return "";
+    var v;
+    try { v = (p.price_cents / 100).toLocaleString(LOC[state.lang] || "it-IT", { minimumFractionDigits: p.price_cents % 100 ? 2 : 0, maximumFractionDigits: 2 }); }
+    catch(e){ v = String(p.price_cents / 100); }
+    return v + " " + (!p.currency || p.currency === "EUR" ? "€" : p.currency);
+  }
+  // "Lo prendo" registra l'impegno su un pezzo preciso al prezzo di adesso.
+  // Lo si manda anche quando il cliente va a pagare sul sito del venditore:
+  // senza, una vendita nata in diretta non lascerebbe nessuna traccia qui.
+  function loPrendo(p, url){
+    if (!p) return;
+    var manda = function(n, c){
+      sb.rpc("create_request3", {
+        p_show: state.show.id, p_invite: state.invite ? state.invite.invite_id : null,
+        p_guest: n, p_contact: c, p_type: "purchase", p_piece: p.id, p_slot: null
+      }).then(function(r){
+        if (r.error){ if (!url) toast(r.error.message); return; }
+        addClaim(r.data);
+        if (!url){
+          toast(state.t.takenOk);
+          if (state.show.status !== "ended") sendClient(state.t.takenMsg + tr(p.name_i18n, p.short || p.name));
+        }
+      });
+    };
+    // Dopo la porta il contatto c'e' gia': non si chiede due volte.
+    if (state.contact) manda(guestName() || "Ospite", state.contact);
+    else if (url) { /* fuori diretta si lascia passare senza trattenere nessuno */ }
+    else requireContact(manda);
+    if (url) window.open(/^https?:/i.test(url) ? url : "https://" + url, "_blank", "noopener");
+  }
   function aggiornaBuy(){
     var t = state.t, j = state.jeweler, p = currentPiece(), b = $("buy");
     if (!t) return;
     if (pay.last){ b.hidden = false; $("buyTxt").textContent = t.payNow + (pay.last.amount_cents != null ? " · " + importo(pay.last) : ""); return; }
     if (p && p.buy_url){ b.hidden = false; $("buyTxt").textContent = t.buyPiece; return; }
+    // Prezzo detto in diretta senza una pagina d'acquisto: ci si impegna qui,
+    // e il link per pagare arriva dal venditore.
+    if (p && p.price_cents){ b.hidden = false; $("buyTxt").textContent = t.takeIt + " · " + prezzoPezzo(p); return; }
     b.hidden = !(j && j.shop_url); $("buyTxt").textContent = t.buy;
   }
   function apriPagamento(l){
@@ -363,7 +397,9 @@
   $("buy").addEventListener("click", function(){
     if (pay.last){ apriPagamento(pay.last); return; }
     var p = currentPiece();
-    var u = (p && p.buy_url) || (state.jeweler && state.jeweler.shop_url);
+    if (p && p.buy_url){ loPrendo(p, p.buy_url); return; }
+    if (p && p.price_cents){ loPrendo(p, null); return; }
+    var u = state.jeweler && state.jeweler.shop_url;
     if (u) window.open(/^https?:/i.test(u) ? u : "https://" + u, "_blank", "noopener");
   });
   pay.timer = setInterval(loadPay, 7000);

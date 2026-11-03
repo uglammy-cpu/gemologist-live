@@ -16,6 +16,7 @@ import os
 
 import httpx
 from dotenv import load_dotenv
+from livekit import rtc
 from livekit.agents import (
     Agent,
     AgentServer,
@@ -104,13 +105,22 @@ async def traduci(testo: str, lingua: str, glossario: str) -> str:
     return fuori.strip()
 
 
-async def attendi_regia(ctx: JobContext) -> str:
-    """Aspetta chi conduce la diretta, ignorando gli spettatori."""
+async def attendi_chi_parla(ctx: JobContext) -> str:
+    """Aspetta chi ha davvero il microfono acceso.
+
+    In una diretta parla una persona sola: o la gemmologa che la conduce, o il
+    venditore che se la fa per conto suo, mentre l'altro resta in ascolto con il
+    microfono spento. Agganciarsi al primo che si collega vuol dire, met\u00e0 delle
+    volte, mettersi in ascolto di un microfono chiuso.
+    """
 
     def cerca():
         for p in ctx.room.remote_participants.values():
-            if p.identity.startswith("staff:"):
-                return p.identity
+            if not p.identity.startswith("staff:"):
+                continue
+            for pub in p.track_publications.values():
+                if pub.source == rtc.TrackSource.SOURCE_MICROPHONE and not pub.muted:
+                    return p.identity
         return None
 
     trovato = cerca()
@@ -119,12 +129,17 @@ async def attendi_regia(ctx: JobContext) -> str:
 
     atteso: asyncio.Future = asyncio.get_running_loop().create_future()
 
-    @ctx.room.on("participant_connected")
-    def _(p):
-        if p.identity.startswith("staff:") and not atteso.done():
-            atteso.set_result(p.identity)
+    def controlla(*_):
+        if atteso.done():
+            return
+        chi = cerca()
+        if chi:
+            atteso.set_result(chi)
 
-    log.info("in attesa che la regia entri nella stanza")
+    for evento in ("participant_connected", "track_published", "track_subscribed", "track_unmuted"):
+        ctx.room.on(evento, controlla)
+
+    log.info("in attesa di un microfono acceso")
     return await atteso
 
 
@@ -173,10 +188,8 @@ async def entrypoint(ctx: JobContext):
 
     await ctx.connect()
 
-    # Chi conduce entra con identità "staff:...", il pubblico con "viewer:...".
-    # Senza questa scelta l'agent si aggancia al primo che trova — di solito uno
-    # spettatore, che non ha microfono — e resta in ascolto del nulla.
-    regia = await attendi_regia(ctx)
+    # Si ascolta chi ha il microfono acceso, chiunque sia dei due.
+    regia = await attendi_chi_parla(ctx)
     log.info("ascolto la regia: %s", regia)
 
     await session.start(

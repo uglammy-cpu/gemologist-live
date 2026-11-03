@@ -109,6 +109,18 @@ body.dark{background:#0E0B07;color:#F7EBCB;padding:0}
 .ptop .x{position:static;margin-left:auto;width:34px;height:34px;border-radius:50%;background:rgba(0,0,0,.45);display:grid;place-items:center;font-size:20px;color:#fff;flex:none;text-decoration:none}
 .pchip{position:absolute;left:12px;top:calc(68px + env(safe-area-inset-top,0px));z-index:4;display:inline-flex;align-items:center;gap:8px;background:rgba(0,0,0,.5);backdrop-filter:blur(8px);border-radius:12px;padding:7px 11px;font-size:12.5px;max-width:72%}
 .pchip i{width:8px;height:8px;border-radius:50%;background:var(--gold);display:block;flex:none}
+.gate{position:absolute;inset:0;z-index:20;display:none;flex-direction:column;justify-content:center;gap:11px;padding:26px 22px;background:rgba(7,7,10,.94);color:#fff;overflow-y:auto}
+.gate.on{display:flex}
+.gate b{display:block;font-family:var(--display);font-size:25px;font-weight:400;line-height:1.2}
+.gate p{margin:0;font-size:14px;line-height:1.5;color:rgba(255,255,255,.74)}
+.gate input[type=email],.gate input[type=text]{width:100%;box-sizing:border-box;padding:12px 14px;border-radius:12px;border:1px solid rgba(247,235,203,.26);background:rgba(255,255,255,.07);color:#fff;font:inherit;font-size:16px}
+.gate input::placeholder{color:rgba(255,255,255,.44)}
+.gate .cons{display:flex;gap:10px;align-items:flex-start;font-size:13.5px;line-height:1.45;color:rgba(255,255,255,.84);cursor:pointer}
+.gate .cons input{flex:none;width:18px;height:18px;margin:1px 0 0;accent-color:var(--gold)}
+.gate .cons span{flex:1 1 auto;min-width:0}
+.gate .fine{font-size:11.5px;line-height:1.5;color:rgba(255,255,255,.52)}
+.gate button{width:100%;min-height:48px;border-radius:999px;border:0;background:var(--gold);color:var(--gold-ink);font:inherit;font-size:16px;font-weight:500;cursor:pointer}
+.gate[dir="rtl"] .cons{flex-direction:row-reverse;text-align:right}
 .waitv{position:absolute;inset:0;z-index:3;display:grid;place-items:center;text-align:center;padding:24px;background:rgba(10,10,12,.55);color:#fff;font-size:16px;line-height:1.5}
 .waitv b{display:block;font-family:var(--display);font-size:26px;font-weight:400;margin-bottom:6px}
 .rail{position:absolute;right:10px;bottom:calc(120px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;gap:14px;align-items:center;z-index:5}
@@ -496,6 +508,8 @@ label input,label select,label textarea{width:100%}
     <section class="card">
       <p class="eyebrow">Richieste <span class="count" id="reqCount" hidden>0</span></p>
       <div class="list" id="reqs"><p class="hint">Nessuna richiesta per ora.</p></div>
+      <p class="eyebrow" style="margin-top:18px">Chi è entrato <span class="count" id="subCount" hidden>0</span></p>
+      <div class="list" id="subs"><p class="hint">Nessuno ancora.</p></div>
       <p class="eyebrow" style="margin-top:8px">Inviti personali</p>
       <form id="invForm" style="display:flex;flex-direction:column;gap:8px"><input id="invName" type="text" maxlength="60" placeholder="Nome del cliente" required><div class="row"><input id="invEmail" type="email" placeholder="Email (facoltativa)"><button class="btn dark sm" type="submit">Crea link</button></div></form>
       <div class="list" id="invs"></div>
@@ -931,6 +945,36 @@ function lkAttachRemote(room, tiles, LK){
     });
   }
 
+  // ---- chi e' entrato in diretta ----
+  // Chi ha spuntato la casella e' lista utilizzabile; chi no e' solo un
+  // ingresso, e va trattato come tale.
+  function loadSignups(){
+    return sb.rpc("list_signups", { p_show: state.show.id, p_token: CFG.token }).then(function(r){
+      if (r.error) return;
+      var rows = r.data || [], box = $("subs");
+      $("subCount").hidden = !rows.length; $("subCount").textContent = rows.length;
+      box.innerHTML = "";
+      if (!rows.length){ box.innerHTML = '<p class="hint">Nessuno ancora.</p>'; return; }
+      var ok = rows.filter(function(x){ return x.marketing_consent; });
+      var testa = document.createElement("div"); testa.className = "item";
+      testa.innerHTML = '<span class="meta">' + rows.length + (rows.length === 1 ? " ingresso" : " ingressi") + " · " + ok.length + " con consenso alle comunicazioni</span>";
+      var cp = document.createElement("button"); cp.type = "button"; cp.className = "btn sm";
+      cp.style.cssText = "min-height:0;padding:3px 10px;margin-top:8px;align-self:flex-start";
+      cp.textContent = "Copia le email col consenso";
+      cp.disabled = !ok.length;
+      cp.addEventListener("click", function(){ copy(ok.map(function(x){ return x.email; }).join(", "), this); });
+      testa.appendChild(cp); box.appendChild(testa);
+      rows.forEach(function(x){
+        var d = document.createElement("div"); d.className = "item";
+        d.innerHTML = '<b style="font-weight:500">' + esc(x.name || "—") + '</b>' +
+          '<span><a href="mailto:' + esc(x.email) + '">' + esc(x.email) + '</a></span>' +
+          '<span class="meta">' + (x.marketing_consent ? "✓ consenso alle comunicazioni" : "solo ingresso, niente comunicazioni") +
+          (x.lang ? " · " + esc(x.lang) : "") + " · " + esc(fmtShort(x.created_at)) + '</span>';
+        box.appendChild(d);
+      });
+    });
+  }
+
   function loadRequests(){ sb.rpc("list_requests", { p_show: state.show.id, p_token: CFG.token }).then(function(r){ if (!r.error) renderRequests(r.data || []); }); }
   function loadInvites(){ sb.rpc("list_invites", { p_show: state.show.id, p_token: CFG.token }).then(function(r){ if (!r.error) renderInvites((r.data || []).sort(function(a,b){ return a.client_name.localeCompare(b.client_name); })); }); }
   function loadPieces(){ return sb.from("pieces").select("*").eq("show_id", state.show.id).order("position").then(function(r){ state.pieces = r.data || []; renderPieces(); var ids = state.pieces.map(function(p){ return p.id; }); if (ids.length) return sb.from("piece_photos").select("piece_id,data").in("piece_id", ids).then(function(ph){ (ph.data || []).forEach(function(x){ state.photos[x.piece_id] = x.data; }); renderPieces(); }); }); }
@@ -1040,7 +1084,7 @@ function lkAttachRemote(room, tiles, LK){
       .subscribe();
     var pres = sb.channel("show-" + state.show.id, { config: { presence: { key: "p" + Math.random().toString(36).slice(2, 10) } } });
     pres.on("presence", { event:"sync" }, function(){ var n = 0; var st = pres.presenceState(); Object.keys(st).forEach(function(k){ if (k.charAt(0) === "v") n++; }); $("viewersN").textContent = n; }).subscribe();
-    state.timer = setInterval(function(){ loadPaymentLinks().then(loadRequests); }, 5000);
+    state.timer = setInterval(function(){ loadPaymentLinks().then(loadRequests); loadSignups(); }, 5000);
     document.addEventListener("visibilitychange", function(){ if (!document.hidden) loadRequests(); });
   }
 
@@ -1172,7 +1216,7 @@ function lkAttachRemote(room, tiles, LK){
           return Promise.all([
             loadPieces(),
             sb.from("messages").select("*").eq("show_id", state.show.id).order("created_at").limit(300).then(function(m){ (m.data || []).forEach(addMsg); })
-          ]).then(function(){ loadPaymentLinks().then(loadRequests); loadInvites(); loadDeclarations().then(renderPieces); subscribe(); if (state.role === "gemologist") loadAdmin(); });
+          ]).then(function(){ loadPaymentLinks().then(loadRequests); loadSignups(); loadInvites(); loadDeclarations().then(renderPieces); subscribe(); if (state.role === "gemologist") loadAdmin(); });
         });
       });
     });

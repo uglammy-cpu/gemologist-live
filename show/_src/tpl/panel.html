@@ -91,6 +91,8 @@ label input,label select,label textarea{width:100%}
     <section class="card">
       <p class="eyebrow">Richieste <span class="count" id="reqCount" hidden>0</span></p>
       <div class="list" id="reqs"><p class="hint">Nessuna richiesta per ora.</p></div>
+      <p class="eyebrow" style="margin-top:18px">Chi è entrato <span class="count" id="subCount" hidden>0</span></p>
+      <div class="list" id="subs"><p class="hint">Nessuno ancora.</p></div>
       <p class="eyebrow" style="margin-top:8px">Inviti personali</p>
       <form id="invForm" style="display:flex;flex-direction:column;gap:8px"><input id="invName" type="text" maxlength="60" placeholder="Nome del cliente" required><div class="row"><input id="invEmail" type="email" placeholder="Email (facoltativa)"><button class="btn dark sm" type="submit">Crea link</button></div></form>
       <div class="list" id="invs"></div>
@@ -446,6 +448,36 @@ label input,label select,label textarea{width:100%}
     });
   }
 
+  // ---- chi e' entrato in diretta ----
+  // Chi ha spuntato la casella e' lista utilizzabile; chi no e' solo un
+  // ingresso, e va trattato come tale.
+  function loadSignups(){
+    return sb.rpc("list_signups", { p_show: state.show.id, p_token: CFG.token }).then(function(r){
+      if (r.error) return;
+      var rows = r.data || [], box = $("subs");
+      $("subCount").hidden = !rows.length; $("subCount").textContent = rows.length;
+      box.innerHTML = "";
+      if (!rows.length){ box.innerHTML = '<p class="hint">Nessuno ancora.</p>'; return; }
+      var ok = rows.filter(function(x){ return x.marketing_consent; });
+      var testa = document.createElement("div"); testa.className = "item";
+      testa.innerHTML = '<span class="meta">' + rows.length + (rows.length === 1 ? " ingresso" : " ingressi") + " · " + ok.length + " con consenso alle comunicazioni</span>";
+      var cp = document.createElement("button"); cp.type = "button"; cp.className = "btn sm";
+      cp.style.cssText = "min-height:0;padding:3px 10px;margin-top:8px;align-self:flex-start";
+      cp.textContent = "Copia le email col consenso";
+      cp.disabled = !ok.length;
+      cp.addEventListener("click", function(){ copy(ok.map(function(x){ return x.email; }).join(", "), this); });
+      testa.appendChild(cp); box.appendChild(testa);
+      rows.forEach(function(x){
+        var d = document.createElement("div"); d.className = "item";
+        d.innerHTML = '<b style="font-weight:500">' + esc(x.name || "—") + '</b>' +
+          '<span><a href="mailto:' + esc(x.email) + '">' + esc(x.email) + '</a></span>' +
+          '<span class="meta">' + (x.marketing_consent ? "✓ consenso alle comunicazioni" : "solo ingresso, niente comunicazioni") +
+          (x.lang ? " · " + esc(x.lang) : "") + " · " + esc(fmtShort(x.created_at)) + '</span>';
+        box.appendChild(d);
+      });
+    });
+  }
+
   function loadRequests(){ sb.rpc("list_requests", { p_show: state.show.id, p_token: CFG.token }).then(function(r){ if (!r.error) renderRequests(r.data || []); }); }
   function loadInvites(){ sb.rpc("list_invites", { p_show: state.show.id, p_token: CFG.token }).then(function(r){ if (!r.error) renderInvites((r.data || []).sort(function(a,b){ return a.client_name.localeCompare(b.client_name); })); }); }
   function loadPieces(){ return sb.from("pieces").select("*").eq("show_id", state.show.id).order("position").then(function(r){ state.pieces = r.data || []; renderPieces(); var ids = state.pieces.map(function(p){ return p.id; }); if (ids.length) return sb.from("piece_photos").select("piece_id,data").in("piece_id", ids).then(function(ph){ (ph.data || []).forEach(function(x){ state.photos[x.piece_id] = x.data; }); renderPieces(); }); }); }
@@ -555,7 +587,7 @@ label input,label select,label textarea{width:100%}
       .subscribe();
     var pres = sb.channel("show-" + state.show.id, { config: { presence: { key: "p" + Math.random().toString(36).slice(2, 10) } } });
     pres.on("presence", { event:"sync" }, function(){ var n = 0; var st = pres.presenceState(); Object.keys(st).forEach(function(k){ if (k.charAt(0) === "v") n++; }); $("viewersN").textContent = n; }).subscribe();
-    state.timer = setInterval(function(){ loadPaymentLinks().then(loadRequests); }, 5000);
+    state.timer = setInterval(function(){ loadPaymentLinks().then(loadRequests); loadSignups(); }, 5000);
     document.addEventListener("visibilitychange", function(){ if (!document.hidden) loadRequests(); });
   }
 
@@ -687,7 +719,7 @@ label input,label select,label textarea{width:100%}
           return Promise.all([
             loadPieces(),
             sb.from("messages").select("*").eq("show_id", state.show.id).order("created_at").limit(300).then(function(m){ (m.data || []).forEach(addMsg); })
-          ]).then(function(){ loadPaymentLinks().then(loadRequests); loadInvites(); loadDeclarations().then(renderPieces); subscribe(); if (state.role === "gemologist") loadAdmin(); });
+          ]).then(function(){ loadPaymentLinks().then(loadRequests); loadSignups(); loadInvites(); loadDeclarations().then(renderPieces); subscribe(); if (state.role === "gemologist") loadAdmin(); });
         });
       });
     });

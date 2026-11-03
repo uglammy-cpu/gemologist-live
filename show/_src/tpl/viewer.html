@@ -11,6 +11,7 @@
     </div>
     <div class="pchip" id="pchip" hidden><i></i><span id="pchipTxt" dir="auto"></span></div>
     <div class="waitv" id="wait" hidden><div><b id="waitT"></b><span id="waitS"></span></div></div>
+    <form class="gate" id="gate"><b id="gateT"></b><p id="gateL"></p><input id="gateName" type="text" maxlength="60" autocomplete="name"><input id="gateMail" type="email" maxlength="254" autocomplete="email" inputmode="email" required><label class="cons"><input id="gateCons" type="checkbox"><span id="gateConsT"></span></label><button type="submit" id="gateGo"></button><p class="fine" id="gateP"></p></form>
     <button class="audio-btn" type="button" id="audioBtn" hidden></button>
     <div class="pchat" id="msgs" aria-live="polite"></div>
     <div class="hearts" id="hearts"></div>
@@ -64,7 +65,7 @@
     $("likes").textContent = fmtK(s.likes, LOC[state.lang]); state.likes = s.likes || 0;
     $("interestTxt").textContent = t.interest; $("bookTxt").textContent = t.book; $("shareTxt").textContent = t.invite; $("buyTxt").textContent = t.buy; $("howTxt").textContent = t.how; $("send").textContent = t.send; $("msg").placeholder = t.ask; $("audioBtn").textContent = t.audio;
     $("ccTxt").textContent = t.cc; $("subTxt").setAttribute("data-wait", t.subsWait); applySubs();
-    aggiornaBuy(); $("pill").href = CFG.base + "/live/" + CFG.slug + "/profile?lang=" + state.lang;
+    aggiornaBuy(); apriPorta(); $("pill").href = CFG.base + "/live/" + CFG.slug + "/profile?lang=" + state.lang;
     $("interest").disabled = false; $("book").disabled = false; $("heart").disabled = !live; $("send").disabled = s.status === "ended"; $("msg").disabled = s.status === "ended";
     $("back").title = t.backTo; $("pill").title = t.profile;
     $("credit").textContent = t.foot;
@@ -233,6 +234,75 @@
       });
     });
   });
+  // ---- la porta: per entrare in diretta si lascia l'email ----
+  // L'ingresso e il consenso al marketing restano separati di proposito: un
+  // consenso dato in cambio dell'accesso non e' libero, quindi non vale, e
+  // renderebbe inutilizzabile tutta la lista.
+  var porta = { mostrata:false, dentro:false };
+  function chiaveSpettatore(){
+    var k = "";
+    try { k = localStorage.getItem("uniqaia-viewer") || ""; } catch(e){}
+    if (!k){
+      try { k = crypto.randomUUID(); }
+      catch(e){
+        k = "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, function(c){
+          var r = Math.random() * 16 | 0;
+          return (c === "x" ? r : (r & 0x3 | 0x8)).toString(16);
+        });
+      }
+      try { localStorage.setItem("uniqaia-viewer", k); } catch(e){}
+    }
+    return k;
+  }
+  function emailNota(){
+    if (state.invite && state.invite.email) return state.invite.email;
+    try { return localStorage.getItem("uniqaia-email") || ""; } catch(e){ return ""; }
+  }
+  function registraIngresso(email, nome, consenso){
+    porta.dentro = true;
+    state.contact = email;
+    if (nome && !state.invite) state.name = nome;
+    try {
+      localStorage.setItem("uniqaia-email", email);
+      if (nome) localStorage.setItem("live-name", nome);
+      localStorage.setItem("live-contact", email);
+    } catch(e){}
+    return sb.rpc("enter_show", {
+      p_key: chiaveSpettatore(), p_show: state.show.id, p_email: email,
+      p_name: nome || null, p_consent: !!consenso,
+      p_invite: state.invite ? state.invite.invite_id : null, p_lang: state.lang
+    });
+  }
+  function apriPorta(){
+    if (porta.dentro || !state.show || state.show.status !== "live") return;
+    var gia = emailNota();
+    // Chi l'ha gia' lasciata non se la rivede chiedere: si registra e basta.
+    if (gia){ registraIngresso(gia, guestName() || null, false); return; }
+    if (porta.mostrata) return;
+    porta.mostrata = true;
+    var t = state.t, g = $("gate");
+    $("gateT").textContent = t.gateTitle; $("gateL").textContent = t.gateLead;
+    $("gateName").placeholder = t.gateName; $("gateMail").placeholder = t.gateEmail;
+    $("gateConsT").textContent = t.gateConsent; $("gateGo").textContent = t.gateGo;
+    $("gateP").textContent = t.gatePrivacy;
+    g.setAttribute("dir", state.lang === "ar" ? "rtl" : "ltr");
+    $("gateName").value = guestName() || "";
+    g.className = "gate on";
+    setTimeout(function(){ try { $("gateMail").focus(); } catch(e){} }, 150);
+  }
+  $("gate").addEventListener("submit", function(e){
+    e.preventDefault();
+    var m = ($("gateMail").value || "").trim().toLowerCase();
+    var n = ($("gateName").value || "").trim();
+    if (!/^[^@s]+@[^@s]+.[a-z]{2,}$/i.test(m)){ toast(state.t.gateBadEmail); $("gateMail").focus(); return; }
+    $("gateGo").disabled = true;
+    registraIngresso(m, n, $("gateCons").checked).then(function(r){
+      $("gateGo").disabled = false;
+      if (r && r.error){ porta.dentro = false; toast(r.error.message); return; }
+      $("gate").className = "gate";
+    });
+  });
+
   // ---- pagamento ----
   // I soldi non passano da Uniqaia. Il venditore manda il link del suo sistema
   // e qui lo si consegna a chi l'ha chiesto, scritto accanto a chi incassa.

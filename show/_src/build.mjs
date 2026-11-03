@@ -1,6 +1,6 @@
 // Genera le pagine statiche della piattaforma Uniqaia dai modelli in _src/tpl, in due versioni:
 //   1. /show/…   sul sito live.gemsandjewelrytechlab.com (GitHub Pages di questo repository)
-//   2. /uniqaia/ pronta per il dominio uniquaia.com (Cloudflare Pages con cartella di output "uniqaia", oppure un repository a sé)
+//   2. /uniqaia/ pronta per il dominio uniqaia.com (Cloudflare Pages con cartella di output "uniqaia", oppure un repository a sé)
 // Uso:  node show/_src/build.mjs            usa i dati salvati in _src/data.json
 //       node show/_src/build.mjs --fetch    prima scarica i dati pubblici da Supabase (venditori, dirette, pezzi, foto) e li salva
 // Le pagine di ogni diretta e la vetrina vengono generate con il contenuto già nell'HTML (condivisione social, motori di ricerca);
@@ -25,7 +25,7 @@ const common = {
 };
 const TARGETS = [
   { out: path.join(ROOT, "show"), notFound: path.join(ROOT, "404.html"), site: "https://live.gemsandjewelrytechlab.com", prefix: "/show" },
-  { out: path.join(ROOT, "uniqaia"), notFound: path.join(ROOT, "uniqaia", "404.html"), site: "https://uniquaia.com", prefix: "" },
+  { out: path.join(ROOT, "uniqaia"), notFound: path.join(ROOT, "uniqaia", "404.html"), site: "https://uniqaia.com", prefix: "" },
 ];
 const LOC = { it: "it-IT", en: "en-GB", fr: "fr-FR", ar: "ar-AE-u-nu-latn", ru: "ru-RU" };
 

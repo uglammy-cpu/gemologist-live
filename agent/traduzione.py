@@ -153,6 +153,12 @@ async def entrypoint(ctx: JobContext):
     session = AgentSession(
         # Una sola trascrizione per tutta la stanza, qualunque sia il pubblico.
         stt=inference.STT(model="deepgram/nova-3-general", language="it"),
+        # Un assistente vocale aspetta fino a 2,5 secondi di silenzio prima di
+        # dare per finita una frase, per non interrompere chi parla. Un
+        # sottotitolo non interrompe nessuno: meglio consegnarlo prima, anche
+        # spezzato a meta'.
+        min_endpointing_delay=0.2,
+        max_endpointing_delay=0.8,
     )
 
     @session.on("user_input_transcribed")

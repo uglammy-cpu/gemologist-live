@@ -79,10 +79,17 @@ def istruzioni(lingua: str, glossario: str) -> str:
         "sottotitolo che qualcuno legge mentre guarda.\n"
         "Lascia invariati i nomi propri, i marchi, le sigle (GIA, IGI) e i numeri "
         "con la loro unità (carati, millimetri).\n"
-        "Se una frase è troncata a metà, traduci quel che c'è senza completarla."
+        "Se una frase è troncata a metà, traduci quel che c'è senza completarla.\n"
+        "Non aggiungere NULLA che non sia stato detto: nessun luogo, nessun nome di "
+        "giacimento, nessun dato tecnico. Tradurre è riportare, non completare."
     )
     if glossario:
-        testo += "\n\nUsa obbligatoriamente queste rese per i termini tecnici:\n" + glossario
+        testo += (
+            "\n\nGlossario. Quando uno di questi termini italiani compare DAVVERO nel "
+            "testo, rendilo così e non altrimenti. Se non compare, non introdurlo: "
+            "\"smeraldo colombiano\" resta \"smeraldo colombiano\", non diventa "
+            "\"smeraldo Muzo\".\n" + glossario
+        )
     return testo
 
 

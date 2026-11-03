@@ -461,7 +461,9 @@ function LkTiles(container, opts){
     wrap.setAttribute("data-inserto", inserto ? "1" : "0");
     self.tiles[id] = wrap;
     var cur = self.main.firstChild;
-    if (!inserto && (!cur || cur.getAttribute("data-inserto") === "1")){
+    // Chi è solo in stanza prende lo schermo grande, anche la gemmologa:
+    // un riquadro grande vuoto con un francobollo nell'angolo non si guarda.
+    if (!cur || (!inserto && cur.getAttribute("data-inserto") === "1")){
       if (cur){ cur.className = "pip"; self.pips.insertBefore(cur, self.pips.firstChild); }
       wrap.className = ""; self.main.appendChild(wrap);
     } else {

@@ -42,7 +42,7 @@ SUPABASE_KEY = os.environ["SUPABASE_ANON_KEY"]
 
 # Traduzione e trascrizione passano dai modelli fatturati da LiveKit:
 # nessun secondo contratto, tutto sulla bolletta che c'è già.
-traduttore = inference.LLM(model="openai/gpt-5-nano")
+traduttore = inference.LLM(model="openai/gpt-4.1-nano")
 server = AgentServer()
 
 
@@ -133,6 +133,7 @@ async def entrypoint(ctx: JobContext):
             return
         try:
             await ctx.room.local_participant.send_text(testo, topic=f"sub.{lingua}")
+            log.info("[%s] %s", lingua, testo)
         except Exception as e:
             log.warning("invio %s fallito: %s", lingua, e)
 

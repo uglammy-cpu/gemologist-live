@@ -121,6 +121,21 @@ body.dark{background:#0E0B07;color:#F7EBCB;padding:0}
 .gate .fine{font-size:11.5px;line-height:1.5;color:rgba(255,255,255,.52)}
 .gate button{width:100%;min-height:48px;border-radius:999px;border:0;background:var(--gold);color:var(--gold-ink);font:inherit;font-size:16px;font-weight:500;cursor:pointer}
 .gate[dir="rtl"] .cons{flex-direction:row-reverse;text-align:right}
+.ag.night{grid-template-columns:52px minmax(0,1fr) auto;cursor:default}
+.ag.night .agt small{white-space:normal}
+.ag.night .agt b{font-size:20px}
+.ag.night .agt span{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;white-space:normal;text-overflow:clip;line-height:1.4}
+.agn{text-align:center;min-width:68px;max-width:96px}
+.agn b{display:block;font-family:var(--display);font-size:22px;font-weight:400;line-height:1}
+.agn small{display:block;font-size:10.5px;line-height:1.3;color:var(--muted);margin-top:2px}
+.clock{display:flex;align-items:baseline;gap:9px;margin:0 0 10px;padding:8px 14px;border-radius:12px;background:var(--soft);border:1px solid var(--line)}
+.clock b{font-family:var(--display);font-size:28px;font-weight:400;font-variant-numeric:tabular-nums;line-height:1}
+.clock span{font-size:12.5px;color:var(--muted)}
+.clock.warn{background:#FFF7E6;border-color:#E8C87A}
+.clock.red{background:#FDEEEE;border-color:#E39A9A}
+.clock.red b{color:#B3261E}
+.clock.over{background:#B3261E;border-color:#B3261E}
+.clock.over b,.clock.over span{color:#fff}
 .waitv{position:absolute;inset:0;z-index:3;display:grid;place-items:center;text-align:center;padding:24px;background:rgba(10,10,12,.55);color:#fff;font-size:16px;line-height:1.5}
 .waitv b{display:block;font-family:var(--display);font-size:26px;font-weight:400;margin-bottom:6px}
 .rail{position:absolute;right:10px;bottom:calc(120px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;gap:14px;align-items:center;z-index:5}
@@ -490,6 +505,7 @@ label input,label select,label textarea{width:100%}
       <div class="share"><span>La tua scheda</span><input id="profileUrl" readonly><button class="btn sm" type="button" id="copyProfile">Copia</button></div>
       <p class="eyebrow" style="margin-top:6px">La tua camera</p>
       <div class="cam" id="cam"><span class="hintv" id="camHint">Camera spenta. Accendila per trasmettere: i clienti vedono il video quando la diretta è «In diretta».</span><div class="videos" id="camVideos"></div></div>
+      <div class="clock" id="clock" hidden><b id="clockT">60:00</b><span id="clockS"></span></div>
       <div class="cam-actions"><button class="btn dark sm" type="button" id="camBtn">Accendi la camera</button><button class="btn sm" type="button" id="micBtn" hidden>Microfono: on</button><button class="btn sm" type="button" id="flipBtn" hidden>Cambia camera</button></div>
       <p class="hint" id="camWho"></p>
       <p class="eyebrow" style="margin-top:6px">Pezzo in primo piano</p>
@@ -660,6 +676,44 @@ function lkAttachRemote(room, tiles, LK){
   function closeModal(){ modal.hidden = true; modal.innerHTML = ""; }
   modal.addEventListener("click", function(e){ if (e.target === modal) closeModal(); });
 
+  // ---- il tempo in onda ----
+  // Un'ora a testa: nelle serate a tema le dirette partono in parallelo e chi
+  // sfora tiene in ballo tutti. Il tempo si conta da quando si e' andati in
+  // onda davvero, non dall'orario a palinsesto, se no chi parte in ritardo
+  // viene punito due volte. Allo scadere non si spegne niente: suonare la
+  // campana a un venditore che sta chiudendo una vendita sarebbe assurdo.
+  var clock = { timer:null, avvisati:{} };
+  function minutiConcessi(){
+    return (state.show && state.show.duration_min) || 60;
+  }
+  function renderClock(){
+    var s = state.show, box = $("clock");
+    if (!s || s.status !== "live" || !s.started_at){ box.hidden = true; return; }
+    box.hidden = false;
+    var tot = minutiConcessi() * 60000;
+    var passati = Date.now() - new Date(s.started_at).getTime();
+    var restano = tot - passati;
+    var oltre = restano < 0;
+    var sec = Math.floor(Math.abs(restano) / 1000);
+    var mm = Math.floor(sec / 60), ss = sec % 60;
+    $("clockT").textContent = (oltre ? "+" : "") + mm + ":" + (ss < 10 ? "0" : "") + ss;
+    box.className = "clock" + (oltre ? " over" : restano < 5 * 60000 ? " red" : restano < 10 * 60000 ? " warn" : "");
+    $("clockS").textContent = oltre ? "oltre l’ora" : "alla fine dell’ora";
+    var m = Math.ceil(restano / 60000);
+    [10, 5, 1].forEach(function(k){
+      if (!oltre && m === k && !clock.avvisati[k]){
+        clock.avvisati[k] = true;
+        toast(k === 1 ? "Ultimo minuto" : "Mancano " + k + " minuti alla fine dell’ora");
+      }
+    });
+    if (oltre && !clock.avvisati.fine){ clock.avvisati.fine = true; toast("L’ora è finita. Puoi continuare, ma la prossima diretta della serata sta partendo."); }
+  }
+  function startClock(){
+    if (clock.timer) clearInterval(clock.timer);
+    clock.avvisati = {};
+    renderClock();
+    clock.timer = setInterval(renderClock, 1000);
+  }
   function renderHeader(){
     $("brand").textContent = state.jeweler.name;
     $("who").textContent = state.name + " · " + (state.role === "gemologist" ? "gemmologa" : "gioielleria");
@@ -671,6 +725,7 @@ function lkAttachRemote(room, tiles, LK){
     var s = state.show;
     var sel = $("showSel"); sel.innerHTML = "";
     state.shows.forEach(function(x){ var o = document.createElement("option"); o.value = x.id; o.textContent = x.title + " · " + fmtShort(x.scheduled_at) + " · " + statusLabel(x.status); if (s && x.id === s.id) o.selected = true; sel.appendChild(o); });
+    startClock();
     $("title").textContent = s.title; $("when").textContent = fmtDate(s.scheduled_at) + " · " + LANGS[s.lang] + ((s.categories || []).length ? " · " + s.categories.map(catName).join(", ") : " · nessuna categoria");
     var t = $("toggle"); state.pendingStop = false;
     if (s.status === "scheduled"){ t.textContent = "Inizia la diretta"; t.className = "btn dark"; }

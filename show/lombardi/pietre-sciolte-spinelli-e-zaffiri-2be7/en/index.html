@@ -121,6 +121,21 @@ body.dark{background:#0E0B07;color:#F7EBCB;padding:0}
 .gate .fine{font-size:11.5px;line-height:1.5;color:rgba(255,255,255,.52)}
 .gate button{width:100%;min-height:48px;border-radius:999px;border:0;background:var(--gold);color:var(--gold-ink);font:inherit;font-size:16px;font-weight:500;cursor:pointer}
 .gate[dir="rtl"] .cons{flex-direction:row-reverse;text-align:right}
+.ag.night{grid-template-columns:52px minmax(0,1fr) auto;cursor:default}
+.ag.night .agt small{white-space:normal}
+.ag.night .agt b{font-size:20px}
+.ag.night .agt span{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;white-space:normal;text-overflow:clip;line-height:1.4}
+.agn{text-align:center;min-width:68px;max-width:96px}
+.agn b{display:block;font-family:var(--display);font-size:22px;font-weight:400;line-height:1}
+.agn small{display:block;font-size:10.5px;line-height:1.3;color:var(--muted);margin-top:2px}
+.clock{display:flex;align-items:baseline;gap:9px;margin:0 0 10px;padding:8px 14px;border-radius:12px;background:var(--soft);border:1px solid var(--line)}
+.clock b{font-family:var(--display);font-size:28px;font-weight:400;font-variant-numeric:tabular-nums;line-height:1}
+.clock span{font-size:12.5px;color:var(--muted)}
+.clock.warn{background:#FFF7E6;border-color:#E8C87A}
+.clock.red{background:#FDEEEE;border-color:#E39A9A}
+.clock.red b{color:#B3261E}
+.clock.over{background:#B3261E;border-color:#B3261E}
+.clock.over b,.clock.over span{color:#fff}
 .waitv{position:absolute;inset:0;z-index:3;display:grid;place-items:center;text-align:center;padding:24px;background:rgba(10,10,12,.55);color:#fff;font-size:16px;line-height:1.5}
 .waitv b{display:block;font-family:var(--display);font-size:26px;font-weight:400;margin-bottom:6px}
 .rail{position:absolute;right:10px;bottom:calc(120px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;gap:14px;align-items:center;z-index:5}

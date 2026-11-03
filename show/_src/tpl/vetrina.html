@@ -15,6 +15,7 @@
   <div class="cats" id="cats"></div>
   <div class="hero" id="hero"><div class="track" id="track"></div><button class="arr prev" type="button" id="prevSlide" aria-label="‹">‹</button><button class="arr next" type="button" id="nextSlide" aria-label="›">›</button><div class="dots" id="dots"></div></div>
   <div class="trust" id="trust"></div>
+  <section id="nights" hidden><div class="sh"><h2 data-t="hNights"></h2></div><div id="nightsBody"></div></section>
   <section id="week" class="week"><div class="sh"><h2 data-t="thisWeek"></h2></div><div id="weekBody"></div></section>
   <section id="live"><div class="sh"><h2 data-t="hLive"></h2></div><div class="grid" id="gridLive"></div><div class="empty" id="emptyLive" hidden></div></section>
   <section id="soon"><div class="sh"><h2 data-t="later"></h2></div><div class="grid" id="gridSoon"></div><div class="empty" id="emptySoon" hidden></div></section>
@@ -38,7 +39,7 @@
   try { lang = localStorage.getItem("vetrina-lang") || ""; } catch(e){}
   if (!TT[lang]) { var nav = (CFG.lang || navigator.language || "it").slice(0,2).toLowerCase(); lang = TT[nav] ? nav : "it"; }
   var t = TT[lang];
-  var state = { jewelers:{}, shows:[], covers:{}, photos:{}, viewers:{}, channels:{}, cats:[], cat:"", highlights:[], slide:0, timer:null };
+  var state = { jewelers:{}, shows:[], nights:[], covers:{}, photos:{}, viewers:{}, channels:{}, cats:[], cat:"", highlights:[], slide:0, timer:null };
   try { var c0 = new URLSearchParams(location.search).get("c") || ""; if (/^[a-z0-9-]{2,40}$/.test(c0)) state.cat = c0; } catch(e){}
   $("searchIc").innerHTML = ICON.search;
 
@@ -212,6 +213,36 @@
   $("nextSlide").addEventListener("click", function(){ goSlide(state.slide + 1, true); });
   $("track").addEventListener("scroll", function(){ var tr = $("track"), w = tr.clientWidth || 1, i = Math.round(Math.abs(tr.scrollLeft) / w); if (i !== state.slide && i >= 0 && i < tr.children.length){ state.slide = i; markSlide(); } });
   $("track").addEventListener("touchstart", function(){ if (state.timer) clearInterval(state.timer); }, { passive: true });
+  // Una serata a tema esiste prima dei venditori che ci saranno dentro:
+  // e' l'annuncio, ed e' quello che si fa vedere a chi deve candidarsi.
+  function renderNights(){
+    var sec = $("nights"), box = $("nightsBody"), now = Date.now();
+    var rows = (state.nights || []).filter(function(n){
+      return new Date(n.starts_at).getTime() + (n.duration_min || 60) * 60000 > now;
+    });
+    if (!rows.length){ sec.hidden = true; return; }
+    sec.hidden = false; box.innerHTML = "";
+    var i18n = function(o, dflt){ o = o || {}; return o[lang] || (lang !== "it" && o.en) || dflt || ""; };
+    var list = document.createElement("div"); list.className = "agenda";
+    rows.forEach(function(n){
+      var wd = "", dn = "", d0 = new Date(n.starts_at);
+      try {
+        wd = new Intl.DateTimeFormat(LOC[lang], { weekday:"short" }).format(d0);
+        dn = new Intl.DateTimeFormat(LOC[lang], { day:"numeric" }).format(d0);
+      } catch(e){}
+      var quante = state.shows.filter(function(x){ return x.night_id === n.id; }).length;
+      var el = document.createElement("div"); el.className = "ag night";
+      el.innerHTML = '<div class="agd"><small>' + esc(wd) + '</small><b>' + esc(dn) + '</b><span>' + esc(ftime(n.starts_at)) + '</span></div>' +
+        '<div class="agt"><small>' + esc(n.category ? catName(n.category) : "") + '</small>' +
+        '<b dir="auto">' + esc(i18n(n.title_i18n, n.title)) + '</b>' +
+        '<span dir="auto">' + esc(i18n(n.description_i18n, n.description)) + '</span></div>' +
+        '<div class="agn">' + (quante
+          ? '<b>' + quante + '</b><small>' + esc(quante === 1 ? t.nightOne : t.nightMany) + '</small>'
+          : (n.applications_open ? '<small>' + esc(t.nightOpen) + '</small>' : '')) + '</div>';
+      list.appendChild(el);
+    });
+    box.appendChild(list);
+  }
   function renderWeek(){
     var box = $("weekBody"); box.innerHTML = "";
     var rows = weekShows();
@@ -251,7 +282,7 @@
   $("installX").addEventListener("click", function(){ try { localStorage.setItem("uniqaia-install", "no"); } catch(e){} $("install").hidden = true; });
   if (/iphone|ipad|ipod/i.test(navigator.userAgent) && !standalone()) setTimeout(function(){ if (!installEv) showInstall(true); }, 3000);
 
-  function renderAll(){ t = TT[lang]; renderStatic(); renderCats(); renderHero(); renderWeek(); renderTiles(); renderLive(); renderSoon(); renderShops(); armReveal(); }
+  function renderAll(){ t = TT[lang]; renderStatic(); renderCats(); renderHero(); renderNights(); renderWeek(); renderTiles(); renderLive(); renderSoon(); renderShops(); armReveal(); }
 
   // benvenuto (prima visita)
   function renderWelcome(){
@@ -286,7 +317,7 @@
 
   function loadShows(){
     var since = new Date(Date.now() - 12 * 3600 * 1000).toISOString();
-    return sb.from("shows").select("id,jeweler_id,slug,title,title_i18n,scheduled_at,status,lang,likes,current_piece_id,categories,price_range").eq("visibility", "public").in("status", ["live","scheduled"]).gte("scheduled_at", since).order("scheduled_at").then(function(r){
+    return sb.from("shows").select("id,jeweler_id,slug,title,title_i18n,scheduled_at,status,lang,likes,current_piece_id,categories,price_range,night_id").eq("visibility", "public").in("status", ["live","scheduled"]).gte("scheduled_at", since).order("scheduled_at").then(function(r){
       state.shows = r.data || [];
       var ids = state.shows.map(function(s){ return s.id; });
       if (!ids.length) return;
@@ -304,15 +335,17 @@
       });
     });
   }
-  function refresh(){ return loadShows().then(function(){ renderCats(); renderHero(); renderWeek(); renderTiles(); renderLive(); renderSoon(); renderShops(); watchPresence(); armReveal(); }); }
+  function refresh(){ return loadShows().then(function(){ renderCats(); renderHero(); renderNights(); renderWeek(); renderTiles(); renderLive(); renderSoon(); renderShops(); watchPresence(); armReveal(); }); }
 
   function boot(){
     Promise.all([
       sb.from("jewelers").select("id,slug,name,city,country,kind,tagline,tagline_i18n,categories").eq("is_public", true),
-      sb.from("categories").select("slug,position,name_i18n,art").eq("active", true).order("position")
+      sb.from("categories").select("slug,position,name_i18n,art").eq("active", true).order("position"),
+      sb.rpc("list_nights", { p_from: null })
     ]).then(function(r){
       (r[0].data || []).forEach(function(j){ state.jewelers[j.id] = j; });
       state.cats = r[1].data || [];
+      state.nights = (r[2] && r[2].data) || [];
       return refresh();
     }).then(function(){
       renderStatic();

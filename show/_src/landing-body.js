@@ -39,7 +39,25 @@ function landingBody(d) {
     '<a class="btn" href="https://wa.me/?text=' + waText + '" target="_blank" rel="noopener">' + esc(t.share2) + ' · WhatsApp</a></div>';
   if (ended) html += '<p class="hint" style="margin-top:10px">' + esc(t.endedLead) + '</p>';
   var desc = tr(s.description_i18n, s.description); if (desc) html += '<p class="eyebrow" style="margin-top:24px">' + esc(t.descH) + '</p><p class="ldesc" dir="auto">' + esc(desc) + '</p>';
-  if (d.pieces.length) html += '<p class="eyebrow" style="margin-top:24px">' + esc(t.piecesH) + '</p><div class="lpieces">' + d.pieces.map(function(pc){ var ph = d.photoUrls[pc.id]; var pn = tr(pc.name_i18n, pc.name), pcap = tr(pc.caption_i18n, pc.caption); return '<div class="lpiece"><div class="ph">' + (ph ? '<img src="' + esc(ph) + '" alt="' + esc(pn) + '">' : (d.art[pc.art] || d.art.none)) + '</div><b dir="auto">' + esc(pn) + '</b><small dir="auto">' + esc(pcap) + '</small></div>'; }).join("") + '</div>';
+  // Le caratteristiche le dichiara il venditore, non la gemmologa: vanno
+  // mostrate come sue, con l'attribuzione accanto. Senza questa riga la
+  // piattaforma sembrerebbe garantire quello che si limita a riportare.
+  function dichiarazione(id){
+    var x = d.declarations && d.declarations[id];
+    if (!x) return "";
+    var voci = [];
+    var L = t.decl || {};
+    // Le etichette seguono la lingua di chi legge; il testo del venditore no:
+    // una dichiarazione tradotta non e' piu' la sua dichiarazione.
+    if (x.stones) voci.push(L[x.stones] || x.stones);
+    if (x.treatments) voci.push((L.tr || "trattamenti") + ": " + x.treatments);
+    if (x.origin) voci.push((L.or || "provenienza") + ": " + x.origin);
+    if (x.metal) voci.push(x.metal);
+    if (x.certificate) voci.push((L.ce || "certificato") + " " + x.certificate);
+    if (!voci.length) return "";
+    return '<small class="decl" dir="auto">' + esc(voci.join(" \u00b7 ")) + '<i>' + esc(t.declaredBy) + '</i></small>';
+  }
+  if (d.pieces.length) html += '<p class="eyebrow" style="margin-top:24px">' + esc(t.piecesH) + '</p><div class="lpieces">' + d.pieces.map(function(pc){ var ph = d.photoUrls[pc.id]; var pn = tr(pc.name_i18n, pc.name), pcap = tr(pc.caption_i18n, pc.caption); return '<div class="lpiece"><div class="ph">' + (ph ? '<img src="' + esc(ph) + '" alt="' + esc(pn) + '">' : (d.art[pc.art] || d.art.none)) + '</div><b dir="auto">' + esc(pn) + '</b><small dir="auto">' + esc(pcap) + '</small>' + dichiarazione(pc.id) + '</div>'; }).join("") + '</div>';
   html += '<a class="lseller" href="' + esc(profileUrl) + '"><span class="av">' + esc((j.name || "?").charAt(0).toUpperCase()) + '</span><span><b>' + esc(j.name) + ' <span class="chk">✓</span></b><small>' + esc([j.city, country(j.country || "IT"), kindLabel()].filter(Boolean).join(" · ")) + (tr(j.tagline_i18n, j.tagline) ? ' — ' + esc(tr(j.tagline_i18n, j.tagline)) : '') + '</small></span></a>';
   html += '<div class="howbox"><p class="eyebrow">' + esc(t.howTitle) + '</p><p>' + esc(t.howInterest) + '</p><p>' + esc(t.howBook) + '</p><p>' + esc(t.howBuy) + '</p></div>';
   html += '<p style="margin-top:22px"><a class="btn sm" href="' + d.site + d.prefix + '/?lang=' + lang + '">← ' + esc(t.backTo) + '</a></p>';

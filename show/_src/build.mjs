@@ -54,12 +54,14 @@ async function fetchData() {
     covers: await get("show_covers?select=show_id,data"),
     photos: await get("piece_photos?select=piece_id,data"),
     highlights: await get("highlights?select=id,position,title_i18n,subtitle_i18n,link,image,video_url&order=position"),
+    // Dichiarazioni del venditore: vanno mostrate accanto al gioiello, attribuite a lui.
+    declarations: await get("piece_declaration_current?select=piece_id,stones,treatments,origin,metal,certificate"),
   };
   fs.writeFileSync(DATA_FILE, JSON.stringify(data));
   console.log("dati scaricati:", data.jewelers.length, "venditori,", data.shows.length, "dirette,", data.pieces.length, "pezzi,", data.photos.length, "foto");
   return data;
 }
-let DATA = { jewelers: [], categories: [], shows: [], pieces: [], covers: [], photos: [], highlights: [] };
+let DATA = { jewelers: [], categories: [], shows: [], pieces: [], covers: [], photos: [], highlights: [], declarations: [] };
 if (process.argv.includes("--fetch")) DATA = await fetchData();
 else if (fs.existsSync(DATA_FILE)) DATA = JSON.parse(fs.readFileSync(DATA_FILE, "utf8"));
 const sellers = DATA.jewelers.map((j) => j.slug).filter((s) => /^[a-z0-9-]{2,40}$/.test(s));
@@ -190,7 +192,8 @@ function landingFor(t, s, lang = "it") {
   const home = `${t.site}${P}/${j.slug}/${s.slug}/`;
   const self = lang === "it" ? home : `${home}${lang}/`;
   const alt = LANGS.map((l) => `<link rel="alternate" hreflang="${l}" href="${l === "it" ? home : home + l + "/"}">`).join("") + `<link rel="alternate" hreflang="x-default" href="${home}">`;
-  const body = landingBody({ site: t.site, prefix: P, lang, show: s, jeweler: j, pieces: piecesByShow[s.id] || [], cats: DATA.categories, coverUrl: coverSrc(t, P, s.id), photoUrls, art: ART, t: T[lang], loc: LOC[lang] });
+  const declMap = {}; for (const x of DATA.declarations || []) declMap[x.piece_id] = x;
+  const body = landingBody({ site: t.site, prefix: P, lang, show: s, jeweler: j, pieces: piecesByShow[s.id] || [], cats: DATA.categories, coverUrl: coverSrc(t, P, s.id), photoUrls, declarations: declMap, art: ART, t: T[lang], loc: LOC[lang] });
   const image = body.image || t.site + P + "/img/uniqaia-og.jpg";
   const ld = { "@context": "https://schema.org", "@type": "Event", name: body.title, description: body.desc, startDate: body.start, endDate: new Date(new Date(body.start).getTime() + 3600000).toISOString(), eventAttendanceMode: "https://schema.org/OnlineEventAttendanceMode", eventStatus: body.ended ? "https://schema.org/EventScheduled" : "https://schema.org/EventScheduled", location: { "@type": "VirtualLocation", url: body.viewerUrl }, organizer: { "@type": "Organization", name: j.name, url: t.site + P + "/" + j.slug + "/profile/" }, image: [image], inLanguage: lang, isAccessibleForFree: true, url: body.url };
   body.url = self;

@@ -113,7 +113,7 @@ label input,label select,label textarea{width:100%}
   var CFG = {"url":"{{URL}}","key":"{{KEY}}","slug":"{{SLUG}}","token":"{{TOKEN}}","base":"{{BASE}}","tokenUrl":"{{TOKENURL}}","art":{{ART}}};
   var sb = window.supabase.createClient(CFG.url, CFG.key);
   var $ = function(id){ return document.getElementById(id); };
-  var state = { jeweler:null, shows:[], show:null, pieces:[], photos:{}, role:"", name:"", seen:0, firstReq:true, pendingStop:false, timer:null };
+  var state = { jeweler:null, shows:[], show:null, pieces:[], photos:{}, decl:{}, role:"", name:"", seen:0, firstReq:true, pendingStop:false, timer:null };
   var LANGS = { it:"Italiano", en:"Inglese", fr:"Francese" };
   var ARTS = { ring:"Anello solitario", sapphire:"Anello con pietra colorata", earrings:"Orecchini", necklace:"Collana / pendente", bracelet:"Bracciale", diamond:"Diamante sciolto", labgrown:"Diamante lab grown", loose:"Pietre sciolte", blister:"Pietra in blister", mounting:"Montatura", pearls:"Perle", bands:"Fedi", brooch:"Spilla / vintage", tiara:"Alta gioielleria", gold18:"Oro 18 kt", gold14:"Oro 14 kt", gold9:"Oro 9 kt", platinum:"Platino", silver:"Argento 925", bespoke:"Su misura", hammer:"Fatto a mano", sparkle:"Nuovi talenti", italy:"Made in Italy", none:"Nessuna immagine" };
   var CATS = [];
@@ -178,7 +178,14 @@ label input,label select,label textarea{width:100%}
       b.addEventListener("click", function(){ sb.rpc("set_current_piece", { p_show: state.show.id, p_token: CFG.token, p_piece: p.id }).then(function(r){ if (!err(r)){ state.show.current_piece_id = p.id; renderPieces(); toast("In primo piano: " + p.short); } }); });
       var lab = document.createElement("label"); lab.className = "btn sm"; lab.style.cssText = "min-height:0;padding:0 10px;cursor:pointer;flex:none"; lab.title = state.photos[p.id] ? "Cambia foto" : "Aggiungi una foto"; lab.textContent = "📷";
       var inp = document.createElement("input"); inp.type = "file"; inp.accept = "image/*"; inp.hidden = true; inp.addEventListener("change", function(){ savePhoto(p.id, inp.files && inp.files[0]); }); lab.appendChild(inp);
-      row.appendChild(b); row.appendChild(lab); box.appendChild(row);
+      var dich = document.createElement("button"); dich.type = "button";
+      var fatta = !!state.decl[p.id];
+      dich.className = "btn sm" + (fatta ? "" : " dark");
+      dich.style.cssText = "min-height:0;padding:0 10px;cursor:pointer;flex:none";
+      dich.textContent = fatta ? "Scheda ✓" : "Scheda !";
+      dich.title = fatta ? "Dichiarazione del venditore: compilata" : "Manca la dichiarazione: senza non va in onda";
+      dich.addEventListener("click", function(){ apriDichiarazione(p); });
+      row.appendChild(b); row.appendChild(lab); row.appendChild(dich); box.appendChild(row);
     });
   }
   // Video (LiveKit): lo staff trasmette camera e microfono e vede gli altri presentatori
@@ -298,6 +305,54 @@ label input,label select,label textarea{width:100%}
       box.appendChild(d);
     });
   }
+  // ---- dichiarazione del venditore, pezzo per pezzo ----
+  // Non si corregge una dichiarazione: se ne firma una nuova, e restano tutte.
+  // È quello che le dà valore di prova il giorno in cui serve.
+  var PIETRE = [
+    ["naturali", "Pietre naturali"],
+    ["lab", "Create in laboratorio"],
+    ["sintetiche", "Sintetiche o imitazioni"],
+    ["nessuna", "Nessuna pietra"],
+    ["non_dichiarato", "Non sono in grado di dichiararlo"]
+  ];
+  function loadDeclarations(){
+    return sb.rpc("list_declarations", { p_show: state.show.id, p_token: CFG.token }).then(function(r){
+      state.decl = {};
+      (r.data || []).forEach(function(d){ state.decl[d.piece_id] = d; });
+    });
+  }
+  function apriDichiarazione(p){
+    var d = state.decl[p.id] || {};
+    openModal('<p class="eyebrow">Dichiarazione del venditore</p><h3 style="margin:.2em 0 .1em">' + esc(p.name) + '</h3>' +
+      '<p class="hint" style="margin-bottom:12px">Quello che scrivi qui viene mostrato al pubblico come dichiarato da te, e resta registrato con data e nome. Senza questa scheda il pezzo non può andare in onda.</p>' +
+      '<form class="jform" id="dForm">' +
+        '<label class="full">Natura delle pietre<select id="dStones">' +
+          PIETRE.map(function(x){ return '<option value="' + x[0] + '"' + (d.stones === x[0] ? " selected" : "") + '>' + esc(x[1]) + '</option>'; }).join("") +
+        '</select></label>' +
+        '<label class="full">Trattamenti<input id="dTreat" type="text" maxlength="200" placeholder="es. nessuno, riscaldata, oliata" value="' + esc(d.treatments || "") + '"></label>' +
+        '<label>Provenienza<input id="dOrigin" type="text" maxlength="120" placeholder="es. Colombia" value="' + esc(d.origin || "") + '"></label>' +
+        '<label>Metallo e titolo<input id="dMetal" type="text" maxlength="120" placeholder="es. oro bianco 18 kt" value="' + esc(d.metal || "") + '"></label>' +
+        '<label class="full">Certificato<input id="dCert" type="text" maxlength="160" placeholder="es. GIA 2235487961" value="' + esc(d.certificate || "") + '"></label>' +
+        '<label class="full">Note<textarea id="dNotes" maxlength="400"></textarea></label>' +
+        '<button class="submit" type="submit" id="dSave">Firma la dichiarazione</button>' +
+      '</form>' +
+      (d.declared_at ? '<p class="hint" style="margin-top:10px">Ultima firma: ' + esc(d.declared_by || "") + ' · ' + fmtDate(d.declared_at) + '</p>' : ""));
+    $("dForm").addEventListener("submit", function(e){
+      e.preventDefault();
+      $("dSave").disabled = true;
+      sb.rpc("declare_piece", {
+        p_token: CFG.token, p_piece: p.id,
+        p_stones: $("dStones").value, p_treatments: $("dTreat").value,
+        p_origin: $("dOrigin").value, p_metal: $("dMetal").value,
+        p_certificate: $("dCert").value, p_notes: $("dNotes").value
+      }).then(function(r){
+        if (err(r)){ $("dSave").disabled = false; return; }
+        closeModal();
+        loadDeclarations().then(function(){ renderPieces(); toast("Dichiarazione registrata"); });
+      });
+    });
+  }
+
   function loadRequests(){ sb.rpc("list_requests", { p_show: state.show.id, p_token: CFG.token }).then(function(r){ if (!r.error) renderRequests(r.data || []); }); }
   function loadInvites(){ sb.rpc("list_invites", { p_show: state.show.id, p_token: CFG.token }).then(function(r){ if (!r.error) renderInvites((r.data || []).sort(function(a,b){ return a.client_name.localeCompare(b.client_name); })); }); }
   function loadPieces(){ return sb.from("pieces").select("*").eq("show_id", state.show.id).order("position").then(function(r){ state.pieces = r.data || []; renderPieces(); var ids = state.pieces.map(function(p){ return p.id; }); if (ids.length) return sb.from("piece_photos").select("piece_id,data").in("piece_id", ids).then(function(ph){ (ph.data || []).forEach(function(x){ state.photos[x.piece_id] = x.data; }); renderPieces(); }); }); }
@@ -539,7 +594,7 @@ label input,label select,label textarea{width:100%}
           return Promise.all([
             loadPieces(),
             sb.from("messages").select("*").eq("show_id", state.show.id).order("created_at").limit(300).then(function(m){ (m.data || []).forEach(addMsg); })
-          ]).then(function(){ loadRequests(); loadInvites(); subscribe(); if (state.role === "gemologist") loadAdmin(); });
+          ]).then(function(){ loadRequests(); loadInvites(); loadDeclarations().then(renderPieces); subscribe(); if (state.role === "gemologist") loadAdmin(); });
         });
       });
     });

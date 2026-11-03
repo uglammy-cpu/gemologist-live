@@ -219,14 +219,23 @@
   $("track").addEventListener("touchstart", function(){ if (state.timer) clearInterval(state.timer); }, { passive: true });
   // Una serata a tema esiste prima dei venditori che ci saranno dentro:
   // e' l'annuncio, ed e' quello che si fa vedere a chi deve candidarsi.
+  var MID = "·";
   function renderNights(){
     var sec = $("nights"), box = $("nightsBody"), now = Date.now();
     var rows = (state.nights || []).filter(function(n){
       return new Date(n.starts_at).getTime() + (n.duration_min || 60) * 60000 > now;
     });
     if (!rows.length){ sec.hidden = true; return; }
+    rows = rows.slice(0, 7);   // una settimana: oltre non si legge piu'
     sec.hidden = false; box.innerHTML = "";
     var i18n = function(o, dflt){ o = o || {}; return o[lang] || (lang !== "it" && o.en) || dflt || ""; };
+    // Tre dirette da un'ora nella stessa sera: le fasce vanno scritte, se no
+    // uno crede che ce ne sia una sola e arriva all'ora sbagliata.
+    var fasce = function(n){
+      var h = n.slot_hours || [];
+      if (!h.length) return "";
+      return h.map(function(x){ return (x < 10 ? "0" : "") + x + ":00"; }).join(" " + MID + " ");
+    };
     var list = document.createElement("div"); list.className = "agenda";
     rows.forEach(function(n){
       var wd = "", dn = "", d0 = new Date(n.starts_at);
@@ -235,11 +244,16 @@
         dn = new Intl.DateTimeFormat(LOC[lang], { day:"numeric" }).format(d0);
       } catch(e){}
       var quante = state.shows.filter(function(x){ return x.night_id === n.id; }).length;
+      var titolo = i18n(n.title_i18n, n.title);
+      // La domenica il tema E' la categoria: scriverla due volte fa sciatto.
+      var tl = titolo.toLowerCase();
+      var cats = (n.categories || []).map(catName).filter(function(c){ return c.toLowerCase() !== tl; });
+      var etichetta = cats.join(" " + MID + " ");
       var el = document.createElement("div"); el.className = "ag night";
-      el.innerHTML = '<div class="agd"><small>' + esc(wd) + '</small><b>' + esc(dn) + '</b><span>' + esc(ftime(n.starts_at)) + '</span></div>' +
-        '<div class="agt"><small>' + esc(n.category ? catName(n.category) : "") + '</small>' +
-        '<b dir="auto">' + esc(i18n(n.title_i18n, n.title)) + '</b>' +
-        '<span dir="auto">' + esc(i18n(n.description_i18n, n.description)) + '</span></div>' +
+      el.innerHTML = '<div class="agd"><small>' + esc(wd) + '</small><b>' + esc(dn) + '</b></div>' +
+        '<div class="agt"><small>' + esc(etichetta) + '</small>' +
+        '<b dir="auto">' + esc(titolo) + '</b>' +
+        '<span dir="auto">' + esc(i18n(n.description_i18n, n.description) || fasce(n)) + '</span></div>' +
         '<div class="agn">' + (quante
           ? '<b>' + quante + '</b><small>' + esc(quante === 1 ? t.nightOne : t.nightMany) + '</small>'
           : (n.applications_open ? '<small>' + esc(t.nightOpen) + '</small>' : '')) + '</div>';

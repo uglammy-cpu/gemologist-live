@@ -456,12 +456,22 @@ function LkTiles(container, opts){
   this.main = document.createElement("div"); this.main.className = "main"; container.appendChild(this.main);
   this.pips = document.createElement("div"); this.pips.className = "pips"; container.appendChild(this.pips);
   this.onChange = opts.onChange || function(){};
-  this.add = function(id, el, label, mirror){
+  // inserto = questa immagine sta nel riquadro piccolo anche se arriva per
+  // prima: il gioiello del venditore tiene lo schermo grande, la gemmologa
+  // che commenta sta nell'angolo. Senza questo vince chi si collega prima.
+  this.add = function(id, el, label, mirror, inserto){
     if (self.tiles[id]) self.remove(id);
     if (mirror) el.className = (el.className || "") + " mirror";
     var wrap = document.createElement("div"); wrap.appendChild(el); wrap.title = label || "";
+    wrap.setAttribute("data-inserto", inserto ? "1" : "0");
     self.tiles[id] = wrap;
-    if (!self.main.firstChild){ wrap.className = ""; self.main.appendChild(wrap); } else { wrap.className = "pip"; self.pips.appendChild(wrap); }
+    var cur = self.main.firstChild;
+    if (!inserto && (!cur || cur.getAttribute("data-inserto") === "1")){
+      if (cur){ cur.className = "pip"; self.pips.insertBefore(cur, self.pips.firstChild); }
+      wrap.className = ""; self.main.appendChild(wrap);
+    } else {
+      wrap.className = "pip"; self.pips.appendChild(wrap);
+    }
     wrap.addEventListener("click", function(){ self.promote(id); });
     self.onChange(self.count());
   };
@@ -485,7 +495,7 @@ function LkTiles(container, opts){
 function lkAttachRemote(room, tiles, LK){
   function onTrack(track, pub, participant){
     var id = participant.identity + ":" + (pub.trackSid || track.sid);
-    if (track.kind === "video"){ var el = track.attach(); el.muted = true; el.setAttribute("playsinline", ""); tiles.add(id, el, participant.name || participant.identity, false); }
+    if (track.kind === "video"){ var el = track.attach(); el.muted = true; el.setAttribute("playsinline", ""); tiles.add(id, el, participant.name || participant.identity, false, participant.identity.indexOf("staff:gemologist:") === 0); }
     else if (track.kind === "audio"){ tiles.addAudio(id, track.attach()); }
   }
   function offTrack(track, pub, participant){
@@ -541,7 +551,17 @@ function lkAttachRemote(room, tiles, LK){
   }
 
   // ---- video (solo ricezione) ----
-  var video = { room:null, tiles:null, connecting:false, tries:0 };
+  var video = { room:null, tiles:null, connecting:false, tries:0, retry:null };
+  // Se la trasmissione cade e riparte, la stanza è nuova: senza riaggancio
+  // automatico lo spettatore resta sullo schermo nero e se ne va credendo
+  // che la diretta sia finita.
+  function riprova(ms){
+    if (video.retry || video.room) return;
+    video.retry = setTimeout(function(){
+      video.retry = null;
+      if (state.show && state.show.status === "live") connectVideo();
+    }, ms || 2000);
+  }
   function connectVideo(){
     var LK = window.LivekitClient;
     if (video.room || video.connecting) return;
@@ -555,9 +575,13 @@ function lkAttachRemote(room, tiles, LK){
       lkAttachRemote(room, video.tiles, LK);
       attachSubs(room);
       room.on(LK.RoomEvent.AudioPlaybackStatusChanged, function(){ $("audioBtn").hidden = room.canPlaybackAudio; });
-      room.on(LK.RoomEvent.Disconnected, function(){ video.room = null; $("audioBtn").hidden = true; });
+      room.on(LK.RoomEvent.Disconnected, function(){
+        video.room = null; $("audioBtn").hidden = true;
+        if (video.tiles) video.tiles.clear();
+        riprova(2000);
+      });
       return room.connect(j.url, j.token).then(function(){ video.room = room; $("audioBtn").hidden = room.canPlaybackAudio; });
-    }).catch(function(e){ console.warn("video", e); }).then(function(){ video.connecting = false; });
+    }).catch(function(e){ console.warn("video", e); riprova(3000); }).then(function(){ video.connecting = false; });
   }
   function disconnectVideo(){ if (video.room){ var r = video.room; video.room = null; r.disconnect(); } if (video.tiles) video.tiles.clear(); $("audioBtn").hidden = true; }
   $("audioBtn").addEventListener("click", function(){ if (video.room) video.room.startAudio().then(function(){ $("audioBtn").hidden = true; }); });

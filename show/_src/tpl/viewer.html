@@ -73,7 +73,17 @@
   }
 
   // ---- video (solo ricezione) ----
-  var video = { room:null, tiles:null, connecting:false, tries:0 };
+  var video = { room:null, tiles:null, connecting:false, tries:0, retry:null };
+  // Se la trasmissione cade e riparte, la stanza è nuova: senza riaggancio
+  // automatico lo spettatore resta sullo schermo nero e se ne va credendo
+  // che la diretta sia finita.
+  function riprova(ms){
+    if (video.retry || video.room) return;
+    video.retry = setTimeout(function(){
+      video.retry = null;
+      if (state.show && state.show.status === "live") connectVideo();
+    }, ms || 2000);
+  }
   function connectVideo(){
     var LK = window.LivekitClient;
     if (video.room || video.connecting) return;
@@ -87,9 +97,13 @@
       lkAttachRemote(room, video.tiles, LK);
       attachSubs(room);
       room.on(LK.RoomEvent.AudioPlaybackStatusChanged, function(){ $("audioBtn").hidden = room.canPlaybackAudio; });
-      room.on(LK.RoomEvent.Disconnected, function(){ video.room = null; $("audioBtn").hidden = true; });
+      room.on(LK.RoomEvent.Disconnected, function(){
+        video.room = null; $("audioBtn").hidden = true;
+        if (video.tiles) video.tiles.clear();
+        riprova(2000);
+      });
       return room.connect(j.url, j.token).then(function(){ video.room = room; $("audioBtn").hidden = room.canPlaybackAudio; });
-    }).catch(function(e){ console.warn("video", e); }).then(function(){ video.connecting = false; });
+    }).catch(function(e){ console.warn("video", e); riprova(3000); }).then(function(){ video.connecting = false; });
   }
   function disconnectVideo(){ if (video.room){ var r = video.room; video.room = null; r.disconnect(); } if (video.tiles) video.tiles.clear(); $("audioBtn").hidden = true; }
   $("audioBtn").addEventListener("click", function(){ if (video.room) video.room.startAudio().then(function(){ $("audioBtn").hidden = true; }); });

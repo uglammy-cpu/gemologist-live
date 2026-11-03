@@ -533,12 +533,22 @@ function LkTiles(container, opts){
   this.main = document.createElement("div"); this.main.className = "main"; container.appendChild(this.main);
   this.pips = document.createElement("div"); this.pips.className = "pips"; container.appendChild(this.pips);
   this.onChange = opts.onChange || function(){};
-  this.add = function(id, el, label, mirror){
+  // inserto = questa immagine sta nel riquadro piccolo anche se arriva per
+  // prima: il gioiello del venditore tiene lo schermo grande, la gemmologa
+  // che commenta sta nell'angolo. Senza questo vince chi si collega prima.
+  this.add = function(id, el, label, mirror, inserto){
     if (self.tiles[id]) self.remove(id);
     if (mirror) el.className = (el.className || "") + " mirror";
     var wrap = document.createElement("div"); wrap.appendChild(el); wrap.title = label || "";
+    wrap.setAttribute("data-inserto", inserto ? "1" : "0");
     self.tiles[id] = wrap;
-    if (!self.main.firstChild){ wrap.className = ""; self.main.appendChild(wrap); } else { wrap.className = "pip"; self.pips.appendChild(wrap); }
+    var cur = self.main.firstChild;
+    if (!inserto && (!cur || cur.getAttribute("data-inserto") === "1")){
+      if (cur){ cur.className = "pip"; self.pips.insertBefore(cur, self.pips.firstChild); }
+      wrap.className = ""; self.main.appendChild(wrap);
+    } else {
+      wrap.className = "pip"; self.pips.appendChild(wrap);
+    }
     wrap.addEventListener("click", function(){ self.promote(id); });
     self.onChange(self.count());
   };
@@ -562,7 +572,7 @@ function LkTiles(container, opts){
 function lkAttachRemote(room, tiles, LK){
   function onTrack(track, pub, participant){
     var id = participant.identity + ":" + (pub.trackSid || track.sid);
-    if (track.kind === "video"){ var el = track.attach(); el.muted = true; el.setAttribute("playsinline", ""); tiles.add(id, el, participant.name || participant.identity, false); }
+    if (track.kind === "video"){ var el = track.attach(); el.muted = true; el.setAttribute("playsinline", ""); tiles.add(id, el, participant.name || participant.identity, false, participant.identity.indexOf("staff:gemologist:") === 0); }
     else if (track.kind === "audio"){ tiles.addAudio(id, track.attach()); }
   }
   function offTrack(track, pub, participant){

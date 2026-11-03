@@ -19,10 +19,12 @@
       <button type="button" id="interest"><span class="ic goldbg" id="gemIc"></span><span id="interestTxt"></span></button>
       <button type="button" id="book"><span class="ic" id="calIc"></span><span id="bookTxt"></span></button>
       <button type="button" id="share"><span class="ic" id="shareIc"></span><span id="shareTxt"></span></button>
+      <button type="button" id="cc"><span class="ic" id="ccIc"></span><span id="ccTxt"></span></button>
       <button type="button" id="buy" hidden><span class="ic goldbg" id="bagIc"></span><span id="buyTxt"></span></button>
       <button type="button" id="how"><span class="ic" id="helpIc"></span><span id="howTxt"></span></button>
     </div>
     <form class="pin" id="form"><input id="msg" type="text" maxlength="500" autocomplete="off"><button type="submit" id="send"></button></form>
+    <div class="subsbar" id="subsbar"><span class="sl" id="subLang"></span><p class="st" id="subTxt" data-wait=""></p></div>
     <div class="waitv" id="notfound" hidden><div><b>404</b><span id="nfTxt">Pagina non trovata.</span></div></div>
   </div>
 </div>
@@ -61,6 +63,7 @@
     else { w.hidden = true; }
     $("likes").textContent = fmtK(s.likes, LOC[state.lang]); state.likes = s.likes || 0;
     $("interestTxt").textContent = t.interest; $("bookTxt").textContent = t.book; $("shareTxt").textContent = t.invite; $("buyTxt").textContent = t.buy; $("howTxt").textContent = t.how; $("send").textContent = t.send; $("msg").placeholder = t.ask; $("audioBtn").textContent = t.audio;
+    $("ccTxt").textContent = t.cc; $("subTxt").setAttribute("data-wait", t.subsWait); applySubs();
     $("buy").hidden = !j.shop_url; $("pill").href = CFG.base + "/live/" + CFG.slug + "/profile?lang=" + state.lang;
     $("interest").disabled = false; $("book").disabled = false; $("heart").disabled = !live; $("send").disabled = s.status === "ended"; $("msg").disabled = s.status === "ended";
     $("back").title = t.backTo; $("pill").title = t.profile;
@@ -82,6 +85,7 @@
       if (!j || !j.token) throw new Error(j && j.error || "token");
       var room = new LK.Room({ adaptiveStream:true, dynacast:true });
       lkAttachRemote(room, video.tiles, LK);
+      attachSubs(room);
       room.on(LK.RoomEvent.AudioPlaybackStatusChanged, function(){ $("audioBtn").hidden = room.canPlaybackAudio; });
       room.on(LK.RoomEvent.Disconnected, function(){ video.room = null; $("audioBtn").hidden = true; });
       return room.connect(j.url, j.token).then(function(){ video.room = room; $("audioBtn").hidden = room.canPlaybackAudio; });
@@ -120,6 +124,64 @@
   function openModal(html){ modal.innerHTML = '<div class="mcard">' + html + '<button class="x" type="button" aria-label="Chiudi">×</button></div>'; modal.hidden = false; modal.querySelector(".x").addEventListener("click", closeModal); }
   function closeModal(){ modal.hidden = true; modal.innerHTML = ""; }
   modal.addEventListener("click", function(e){ if (e.target === modal) closeModal(); });
+
+  // ---- sottotitoli tradotti: fascia dedicata sotto l'immagine ----
+  var SUBL = [{ k:"it", n:"Italiano", tag:"IT" }, { k:"en", n:"English", tag:"EN" }, { k:"fr", n:"Français", tag:"FR" }, { k:"ru", n:"Русский", tag:"RU" }, { k:"ar", n:"العربية", tag:"AR" }];
+  var subs = { lang:null, clear:null, demo:null };
+  try { subs.lang = localStorage.getItem("uniqaia-subs") || null; } catch(e){}
+  function applySubs(){
+    var on = !!subs.lang;
+    $("phone").classList.toggle("subs", on);
+    $("cc").classList.toggle("on", on);
+    $("subsbar").setAttribute("dir", subs.lang === "ar" ? "rtl" : "ltr");
+    var m = SUBL.filter(function(x){ return x.k === subs.lang; })[0];
+    $("subLang").textContent = m ? m.tag : "";
+    if (!on) $("subTxt").textContent = "";
+  }
+  function setSubs(lang){
+    subs.lang = lang || null;
+    try { if (subs.lang) localStorage.setItem("uniqaia-subs", subs.lang); else localStorage.removeItem("uniqaia-subs"); } catch(e){}
+    $("subTxt").textContent = ""; applySubs();
+    if (subs.demo && subs.lang) startDemo();
+  }
+  function showCaption(txt, final){
+    if (!subs.lang || !txt) return;
+    $("subTxt").textContent = txt;
+    if (subs.clear) clearTimeout(subs.clear);
+    if (final) subs.clear = setTimeout(function(){ $("subTxt").textContent = ""; }, 4500);
+  }
+  $("cc").addEventListener("click", function(){
+    var t = state.t;
+    openModal('<p class="eyebrow">' + esc(t.subsT) + '</p><div class="sublist">' +
+      '<button type="button" data-s="" class="' + (subs.lang ? "" : "on") + '"><span>' + esc(t.subsOff) + '</span><small>OFF</small></button>' +
+      SUBL.map(function(x){ return '<button type="button" data-s="' + x.k + '" class="' + (subs.lang === x.k ? "on" : "") + '"><span dir="auto">' + esc(x.k === "it" ? t.subsOrig : x.n) + '</span><small>' + x.tag + '</small></button>'; }).join("") + '</div>');
+    Array.prototype.forEach.call(modal.querySelectorAll("[data-s]"), function(b){ b.addEventListener("click", function(){ closeModal(); setSubs(b.getAttribute("data-s")); }); });
+  });
+  // l'agent di traduzione pubblica un flusso di testo per lingua: sub.en, sub.fr, sub.ru, sub.ar
+  function attachSubs(room){
+    if (!room || !room.registerTextStreamHandler) return;
+    SUBL.forEach(function(x){
+      try {
+        room.registerTextStreamHandler("sub." + x.k, function(reader){
+          var a = (reader.info && reader.info.attributes) || {};
+          var fin = a["lk.transcription_final"] !== "false";
+          reader.readAll().then(function(txt){ if (subs.lang === x.k) showCaption(txt, fin); });
+        });
+      } catch(e){}
+    });
+  }
+  var DEMO_SUBS = {
+    it:["Questo è uno zaffiro Ceylon non riscaldato, da 2,14 carati.","Guardate il taglio a cuscino: le faccette prendono la luce da ogni lato.","Il certificato GIA conferma l'assenza di trattamenti termici.","La montatura è in oro bianco 18 carati, con pavé di diamanti."],
+    en:["This is an unheated Ceylon sapphire, 2.14 carats.","Look at the cushion cut: the facets catch the light from every side.","The GIA report confirms there is no heat treatment.","The setting is 18 carat white gold, with a diamond pavé."],
+    fr:["Voici un saphir de Ceylan non chauffé, de 2,14 carats.","Regardez la taille coussin : les facettes captent la lumière de tous les côtés.","Le certificat GIA confirme l'absence de traitement thermique.","La monture est en or blanc 18 carats, avec un pavé de diamants."],
+    ru:["Это негретый цейлонский сапфир весом 2,14 карата.","Посмотрите на огранку «кушон»: грани ловят свет со всех сторон.","Сертификат GIA подтверждает отсутствие термической обработки.","Оправа — белое золото 750 пробы с паве из бриллиантов."],
+    ar:["هذا ياقوت سيلاني غير معالج حرارياً، وزنه 2.14 قيراط.","انظروا إلى القصّ الوسادي: الأوجه تلتقط الضوء من كل جانب.","تقرير GIA يؤكد عدم وجود معالجة حرارية.","الطوق من الذهب الأبيض عيار 18 قيراطاً، مرصّع بالألماس."]
+  };
+  function startDemo(){
+    if (subs.demo) clearInterval(subs.demo);
+    var i = 0;
+    subs.demo = setInterval(function(){ var a = DEMO_SUBS[subs.lang] || DEMO_SUBS.it; showCaption(a[i % a.length], true); i++; }, 4200);
+  }
 
   // ---- chat ----
   var pending = [];
@@ -259,6 +321,8 @@
     });
   }
   boot();
+  applySubs();
+  try { if (/[?&]subs=demo/.test(location.search)){ if (!subs.lang) subs.lang = "en"; applySubs(); startDemo(); } } catch(e){}
 })();
 </script>
 </body></html>

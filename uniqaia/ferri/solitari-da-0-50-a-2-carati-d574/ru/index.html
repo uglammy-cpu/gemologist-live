@@ -209,6 +209,12 @@ body.dark{background:#0E0B07;color:#F7EBCB;padding:0}
 .tab{flex:none;padding:10px 14px;font-size:15px;color:var(--muted);border:0;border-bottom:2px solid transparent;white-space:nowrap;background:none}
 .tab.on{color:var(--ink);border-color:var(--ink);font-weight:500}
 .tab .n{display:inline-grid;place-items:center;min-width:18px;height:18px;border-radius:999px;background:var(--live);color:#fff;font-size:11px;margin-left:5px;padding:0 5px;vertical-align:1px}
+.tab .livedot{display:none}
+.tab.haslive{color:var(--livered);font-weight:500;animation:liveblink 1.4s ease-in-out infinite}
+.tab.haslive.on{border-color:var(--livered)}
+.tab.haslive .livedot{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--livered);margin-inline-end:7px;vertical-align:1px}
+.tab.haslive .n{background:var(--livered)}
+@media (prefers-reduced-motion:reduce){.tab.haslive{animation:none}}
 .cats{display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;padding:12px 0 2px}.cats::-webkit-scrollbar{display:none}
 .cats button{flex:none;border:1px solid var(--line);background:var(--paper);border-radius:999px;padding:8px 14px;font-size:13px;color:var(--ink);white-space:nowrap;display:inline-flex;align-items:center;gap:6px}
 .cats button small{font-size:11px;color:var(--muted)}

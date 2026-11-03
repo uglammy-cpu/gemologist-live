@@ -7,7 +7,7 @@
 <main class="wrap"><div class="col">
   <div class="search" style="display:flex;align-items:center;gap:10px;background:var(--soft);border-radius:999px;padding:10px 16px;margin-top:14px;color:var(--muted);font-size:15px"><span id="searchIc" style="display:flex"></span><input id="q" type="search" style="flex:1;min-width:0;border:0;background:none;outline:none;color:var(--ink);min-height:0;padding:0"></div>
   <nav class="tabs" id="tabs">
-    <button class="tab on" type="button" data-to="live"><span data-t="tabLive"></span><span class="n" id="nLive" hidden>0</span></button>
+    <button class="tab on" type="button" data-to="live"><i class="livedot"></i><span data-t="tabLive"></span><span class="n" id="nLive" hidden>0</span></button>
     <button class="tab" type="button" data-to="soon" data-t="tabSoon"></button>
     <button class="tab" type="button" data-to="browse" data-t="tabCats"></button>
     <button class="tab" type="button" data-to="shops" data-t="tabShops"></button>
@@ -108,6 +108,10 @@
       g.appendChild(a);
     });
     $("emptyLive").hidden = true; $("live").hidden = rows.length === 0; $("nLive").hidden = !rows.length; $("nLive").textContent = rows.length;
+    // Rosso e lampeggiante solo quando qualcosa e' davvero in onda: una
+    // voce che pulsa a vuoto e' una bugia, e dopo due volte non la guarda piu' nessuno.
+    var tLive = document.querySelector('.tab[data-to="live"]');
+    if (tLive) tLive.classList.toggle("haslive", rows.length > 0);
     $("emptyLive").innerHTML = state.cat ? '<b>' + esc(catName(state.cat)) + '</b>' + esc(t.noneCat) : '<b>' + esc(t.emptyLiveT) + '</b>' + esc(t.emptyLive);
   }
   function renderSoon(){

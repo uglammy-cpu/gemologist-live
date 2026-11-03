@@ -16,7 +16,15 @@ import os
 
 import httpx
 from dotenv import load_dotenv
-from livekit.agents import Agent, AgentServer, AgentSession, JobContext, cli, inference
+from livekit.agents import (
+    Agent,
+    AgentServer,
+    AgentSession,
+    JobContext,
+    RoomInputOptions,
+    cli,
+    inference,
+)
 from livekit.agents.llm import ChatContext
 
 load_dotenv(".env.local")
@@ -89,6 +97,30 @@ async def traduci(testo: str, lingua: str, glossario: str) -> str:
     return fuori.strip()
 
 
+async def attendi_regia(ctx: JobContext) -> str:
+    """Aspetta chi conduce la diretta, ignorando gli spettatori."""
+
+    def cerca():
+        for p in ctx.room.remote_participants.values():
+            if p.identity.startswith("staff:"):
+                return p.identity
+        return None
+
+    trovato = cerca()
+    if trovato:
+        return trovato
+
+    atteso: asyncio.Future = asyncio.get_running_loop().create_future()
+
+    @ctx.room.on("participant_connected")
+    def _(p):
+        if p.identity.startswith("staff:") and not atteso.done():
+            atteso.set_result(p.identity)
+
+    log.info("in attesa che la regia entri nella stanza")
+    return await atteso
+
+
 # Senza agent_name l'agent entra da solo in ogni diretta che si apre:
 # nessuna configurazione da ricordare quando si va in onda.
 @server.rtc_session()
@@ -125,8 +157,23 @@ async def entrypoint(ctx: JobContext):
         for lingua in LINGUE:
             asyncio.create_task(traduci_e_pubblica(lingua, testo))
 
-    await session.start(agent=Agent(instructions=""), room=ctx.room)
     await ctx.connect()
+
+    # Chi conduce entra con identità "staff:...", il pubblico con "viewer:...".
+    # Senza questa scelta l'agent si aggancia al primo che trova — di solito uno
+    # spettatore, che non ha microfono — e resta in ascolto del nulla.
+    regia = await attendi_regia(ctx)
+    log.info("ascolto la regia: %s", regia)
+
+    await session.start(
+        agent=Agent(instructions=""),
+        room=ctx.room,
+        room_input_options=RoomInputOptions(
+            participant_identity=regia,
+            # Uno spettatore che chiude la pagina non deve spegnere i sottotitoli.
+            close_on_disconnect=False,
+        ),
+    )
 
 
 if __name__ == "__main__":

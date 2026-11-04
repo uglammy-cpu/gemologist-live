@@ -6,66 +6,508 @@
 </div></header>
 <main class="wrap"><div class="jpage" id="page"></div></main>
 <footer class="wrap" id="foot"></footer>
+
 <script>
 {{LKJS}}
+// Pagina /join (4 novembre 2026): presentazione, account seller, candidatura, stato della pratica.
+// Percorso: ruota → premio → registrazione → candidatura → approvazione → link di pagamento → abbonamento attivo.
+// Account con Supabase Auth (email e password, chiamate REST dirette); i dati passano solo da funzioni del database
+// che riconoscono l'account (account_me, account_claim_spin, account_submit_application).
 (function(){
   var CFG = {"url":"{{URL}}","key":"{{KEY}}","base":"{{BASE}}","name":"{{NAME}}","lang":"{{LANG}}"};
   var TT = {{T}};
-  var sb = window.supabase.createClient(CFG.url, CFG.key);
+  var CATS = {{CATS}};
   var $ = function(id){ return document.getElementById(id); };
+  var QS = new URLSearchParams(location.search);
+  var PFX = location.pathname.replace(/\/join\/?.*$/, "");
   var lang = CFG.lang;
   if (!TT[lang]) { try { lang = localStorage.getItem("vetrina-lang") || ""; } catch(e){} }
   if (!TT[lang]) { var nav = (navigator.language || "it").slice(0,2).toLowerCase(); lang = TT[nav] ? nav : "it"; }
   var t = TT[lang];
+
+  // ---------------------------------------------------------------- testi dell'area account (russo e arabo da rivedere con un madrelingua)
+  var J = {
+    it: {
+      acctEyebrow: "Registrazione e candidatura", acctH: "Crea il tuo account e candidati",
+      acctLead: "Con l'account ritrovi la candidatura, l'esito e il tuo regalo di benvenuto da qualunque dispositivo.",
+      tabReg: "Crea un account", tabLogin: "Accedi", fEmail: "Email", fPass: "Password (almeno 8 caratteri)",
+      btnReg: "Crea l'account e continua", btnLogin: "Accedi", forgot: "Password dimenticata?",
+      forgotSent: "Se l'indirizzo è registrato, riceverai un'email per scegliere una nuova password.",
+      confirmMail: "Ti abbiamo mandato un'email per confermare l'indirizzo: aprila, poi torna qui e accedi.",
+      errAuth: "Email o password non corrette.", errExists: "Questa email ha già un account: accedi con la tua password.",
+      errWeak: "La password deve avere almeno 8 caratteri.", errConfirm: "Conferma prima il tuo indirizzo dall'email che ti abbiamo mandato.",
+      errGeneric: "Qualcosa non ha funzionato. Riprova tra poco.", loading: "Un attimo…",
+      loggedAs: "Accesso come {email}", logout: "Esci",
+      offer: "Il tuo regalo di benvenuto: {prize}.", offerKeep: "Il tuo regalo di benvenuto è riservato: {prize}. Registrati per non perderlo.",
+      offerFirst: "{name} — primo mese {p}, poi {s} al mese", demoTag: "demo",
+      formEyebrow: "Passo 2 di 2", fBrand: "Nome del brand o dell'attività", fLegal: "Ragione sociale", fVat: "Partita IVA",
+      fContact: "Referente", fCountry: "Paese", fIg: "Instagram", fCats: "Categorie (da una a tre)",
+      fDesc: "Chi siete e cosa fate", fDescHint: "Fino a 1.500 caratteri", fLogo: "Logo", fPhoto1: "Foto di un prodotto", fPhoto2: "Foto di un secondo prodotto",
+      fileHint: "PNG, JPG o WebP, al massimo 10 MB", uploading: "Caricamento…", uploaded: "Caricato", fileKept: "Già caricato: puoi lasciarlo così",
+      errFileType: "Formato non accettato: usa PNG, JPG o WebP.", errFileSize: "Il file supera 10 MB.",
+      consPrivacy: "Ho letto l'{link}", consPrivacyLink: "informativa privacy", consTerms: "Accetto le {link}", consTermsLink: "condizioni di partecipazione",
+      legalMissing: "Il modulo si attiva appena sono pubblicate l'informativa privacy e le condizioni di partecipazione.",
+      errRequired: "Compila i campi obbligatori segnati con *.", errCats: "Scegli da una a tre categorie.", errFiles: "Carica il logo e due fotografie dei prodotti.",
+      errConsents: "Per inviare la candidatura vanno accettate informativa e condizioni.",
+      needsH: "Ti chiediamo alcune integrazioni", inviteH: "Completa la candidatura che abbiamo preparato con te",
+      recv1: "Grazie per esserti candidato a Uniqaia. Il nostro team valuterà il tuo brand entro 24 ore.",
+      recv2: "Se approvato, riceverai un link di pagamento sicuro con l'offerta di benvenuto già applicata.",
+      recv2b: "Se approvato, riceverai un link di pagamento sicuro per attivare l'abbonamento.",
+      apprH: "Il tuo brand è stato approvato", apprFirst: "Primo mese: {p}", apprNext: "Mesi successivi: {s} al mese",
+      plan: "{n} dirette al mese, fino a {m} minuti ciascuna.", apprWait: "Riceverai a breve per email il link di pagamento sicuro.",
+      apprNote: "Nessun addebito prima che tu confermi il pagamento con carta su Stripe.",
+      actH: "Abbonamento attivo", actText: "Il tuo abbonamento è attivo: {n} dirette al mese, fino a {m} minuti ciascuna. Si rinnova a {s} al mese.",
+      openPanel: "Apri il tuo pannello", pdH: "Rinnovo non riuscito", pdText: "Il pagamento del rinnovo non è andato a buon fine: aggiorna la carta dal link che ti ha mandato Stripe oppure scrivici a seller@uniqaia.com.",
+      cancH: "Abbonamento non attivo", cancText: "Per riattivarlo scrivici a seller@uniqaia.com.",
+      rejH: "Candidatura non accolta", rejText: "Grazie per l'interesse verso Uniqaia. Al momento non possiamo inserire il tuo brand nel palinsesto."
+    },
+    en: {
+      acctEyebrow: "Registration and application", acctH: "Create your account and apply",
+      acctLead: "Your account keeps your application, its outcome and your welcome gift, on any device.",
+      tabReg: "Create an account", tabLogin: "Log in", fEmail: "Email", fPass: "Password (at least 8 characters)",
+      btnReg: "Create account and continue", btnLogin: "Log in", forgot: "Forgot your password?",
+      forgotSent: "If this address is registered, you will receive an email to choose a new password.",
+      confirmMail: "We have sent you an email to confirm your address: open it, then come back here and log in.",
+      errAuth: "Incorrect email or password.", errExists: "This email already has an account: please log in with your password.",
+      errWeak: "The password must be at least 8 characters long.", errConfirm: "Please confirm your address first, from the email we sent you.",
+      errGeneric: "Something went wrong. Please try again shortly.", loading: "One moment…",
+      loggedAs: "Logged in as {email}", logout: "Log out",
+      offer: "Your welcome gift: {prize}.", offerKeep: "Your welcome gift is reserved: {prize}. Register to keep it.",
+      offerFirst: "{name} — first month {p}, then {s}/month", demoTag: "demo",
+      formEyebrow: "Step 2 of 2", fBrand: "Brand or business name", fLegal: "Registered company name", fVat: "VAT number",
+      fContact: "Contact person", fCountry: "Country", fIg: "Instagram", fCats: "Categories (one to three)",
+      fDesc: "Who you are and what you do", fDescHint: "Up to 1,500 characters", fLogo: "Logo", fPhoto1: "Photo of a product", fPhoto2: "Photo of a second product",
+      fileHint: "PNG, JPG or WebP, 10 MB max", uploading: "Uploading…", uploaded: "Uploaded", fileKept: "Already uploaded: you can keep it",
+      errFileType: "Format not accepted: please use PNG, JPG or WebP.", errFileSize: "The file is larger than 10 MB.",
+      consPrivacy: "I have read the {link}", consPrivacyLink: "privacy notice", consTerms: "I accept the {link}", consTermsLink: "terms of participation",
+      legalMissing: "The form will open as soon as the privacy notice and the terms of participation are published.",
+      errRequired: "Please fill in the required fields marked *.", errCats: "Please choose one to three categories.", errFiles: "Please upload your logo and two product photographs.",
+      errConsents: "To send the application, please accept the privacy notice and the terms.",
+      needsH: "We need a few more details", inviteH: "Complete the application we prepared with you",
+      recv1: "Thank you for applying to Uniqaia. Our team will review your brand within 24 hours.",
+      recv2: "If approved, you will receive a secure payment link with your welcome offer applied.",
+      recv2b: "If approved, you will receive a secure payment link to activate your subscription.",
+      apprH: "Your brand has been approved", apprFirst: "First month: {p}", apprNext: "Following months: {s}/month",
+      plan: "{n} live shows per month, each lasting up to {m} minutes.", apprWait: "Your secure payment link will reach you by email shortly.",
+      apprNote: "Nothing is charged until you confirm the card payment on Stripe.",
+      actH: "Subscription active", actText: "Your subscription is active: {n} live shows per month, each lasting up to {m} minutes. It renews at {s}/month.",
+      openPanel: "Open your panel", pdH: "Renewal payment failed", pdText: "The renewal payment did not go through: please update your card from the link Stripe sent you, or write to seller@uniqaia.com.",
+      cancH: "Subscription not active", cancText: "To reactivate it, please write to seller@uniqaia.com.",
+      rejH: "Application not accepted", rejText: "Thank you for your interest in Uniqaia. We are unable to include your brand in our schedule at this time."
+    },
+    fr: {
+      acctEyebrow: "Inscription et candidature", acctH: "Créez votre compte et posez votre candidature",
+      acctLead: "Votre compte conserve votre candidature, sa réponse et votre cadeau de bienvenue, sur tous vos appareils.",
+      tabReg: "Créer un compte", tabLogin: "Se connecter", fEmail: "E-mail", fPass: "Mot de passe (8 caractères minimum)",
+      btnReg: "Créer le compte et continuer", btnLogin: "Se connecter", forgot: "Mot de passe oublié ?",
+      forgotSent: "Si cette adresse est enregistrée, vous recevrez un e-mail pour choisir un nouveau mot de passe.",
+      confirmMail: "Nous vous avons envoyé un e-mail pour confirmer votre adresse : ouvrez-le, puis revenez ici pour vous connecter.",
+      errAuth: "E-mail ou mot de passe incorrect.", errExists: "Cette adresse a déjà un compte : connectez-vous avec votre mot de passe.",
+      errWeak: "Le mot de passe doit comporter au moins 8 caractères.", errConfirm: "Confirmez d'abord votre adresse depuis l'e-mail que nous vous avons envoyé.",
+      errGeneric: "Une erreur est survenue. Veuillez réessayer dans un instant.", loading: "Un instant…",
+      loggedAs: "Connecté en tant que {email}", logout: "Se déconnecter",
+      offer: "Votre cadeau de bienvenue : {prize}.", offerKeep: "Votre cadeau de bienvenue est réservé : {prize}. Inscrivez-vous pour le conserver.",
+      offerFirst: "{name} — premier mois {p}, puis {s} par mois", demoTag: "démo",
+      formEyebrow: "Étape 2 sur 2", fBrand: "Nom de la marque ou de l'entreprise", fLegal: "Raison sociale", fVat: "Numéro de TVA",
+      fContact: "Personne de contact", fCountry: "Pays", fIg: "Instagram", fCats: "Catégories (une à trois)",
+      fDesc: "Qui vous êtes et ce que vous faites", fDescHint: "Jusqu'à 1 500 caractères", fLogo: "Logo", fPhoto1: "Photo d'un produit", fPhoto2: "Photo d'un second produit",
+      fileHint: "PNG, JPG ou WebP, 10 Mo maximum", uploading: "Envoi…", uploaded: "Envoyé", fileKept: "Déjà envoyé : vous pouvez le garder",
+      errFileType: "Format non accepté : utilisez PNG, JPG ou WebP.", errFileSize: "Le fichier dépasse 10 Mo.",
+      consPrivacy: "J'ai lu la {link}", consPrivacyLink: "politique de confidentialité", consTerms: "J'accepte les {link}", consTermsLink: "conditions de participation",
+      legalMissing: "Le formulaire s'ouvrira dès la publication de la politique de confidentialité et des conditions de participation.",
+      errRequired: "Veuillez remplir les champs obligatoires marqués *.", errCats: "Choisissez une à trois catégories.", errFiles: "Envoyez votre logo et deux photographies de produits.",
+      errConsents: "Pour envoyer la candidature, acceptez la politique de confidentialité et les conditions.",
+      needsH: "Nous avons besoin de quelques compléments", inviteH: "Complétez la candidature préparée avec vous",
+      recv1: "Merci d'avoir posé votre candidature à Uniqaia. Notre équipe examinera votre marque sous 24 heures.",
+      recv2: "En cas d'approbation, vous recevrez un lien de paiement sécurisé avec votre offre de bienvenue déjà appliquée.",
+      recv2b: "En cas d'approbation, vous recevrez un lien de paiement sécurisé pour activer votre abonnement.",
+      apprH: "Votre marque a été approuvée", apprFirst: "Premier mois : {p}", apprNext: "Mois suivants : {s} par mois",
+      plan: "{n} directs par mois, de {m} minutes maximum chacun.", apprWait: "Votre lien de paiement sécurisé vous parviendra très bientôt par e-mail.",
+      apprNote: "Aucun prélèvement avant que vous ne confirmiez le paiement par carte sur Stripe.",
+      actH: "Abonnement actif", actText: "Votre abonnement est actif : {n} directs par mois, de {m} minutes maximum chacun. Il se renouvelle à {s} par mois.",
+      openPanel: "Ouvrir votre espace", pdH: "Échec du paiement de renouvellement", pdText: "Le paiement du renouvellement n'a pas abouti : mettez à jour votre carte depuis le lien envoyé par Stripe ou écrivez-nous à seller@uniqaia.com.",
+      cancH: "Abonnement inactif", cancText: "Pour le réactiver, écrivez-nous à seller@uniqaia.com.",
+      rejH: "Candidature non retenue", rejText: "Merci de l'intérêt que vous portez à Uniqaia. Nous ne pouvons pas intégrer votre marque à notre programmation pour le moment."
+    },
+    ru: {
+      acctEyebrow: "Регистрация и заявка", acctH: "Создайте аккаунт и подайте заявку",
+      acctLead: "В аккаунте сохраняются ваша заявка, её результат и приветственный подарок — на любом устройстве.",
+      tabReg: "Создать аккаунт", tabLogin: "Войти", fEmail: "Эл. почта", fPass: "Пароль (не менее 8 символов)",
+      btnReg: "Создать аккаунт и продолжить", btnLogin: "Войти", forgot: "Забыли пароль?",
+      forgotSent: "Если этот адрес зарегистрирован, вы получите письмо для выбора нового пароля.",
+      confirmMail: "Мы отправили вам письмо для подтверждения адреса: откройте его, затем вернитесь сюда и войдите.",
+      errAuth: "Неверная почта или пароль.", errExists: "У этого адреса уже есть аккаунт: войдите со своим паролем.",
+      errWeak: "Пароль должен содержать не менее 8 символов.", errConfirm: "Сначала подтвердите адрес по ссылке из нашего письма.",
+      errGeneric: "Что-то пошло не так. Попробуйте ещё раз чуть позже.", loading: "Минуту…",
+      loggedAs: "Вы вошли как {email}", logout: "Выйти",
+      offer: "Ваш приветственный подарок: {prize}.", offerKeep: "Ваш приветственный подарок закреплён: {prize}. Зарегистрируйтесь, чтобы его сохранить.",
+      offerFirst: "{name} — первый месяц {p}, затем {s} в месяц", demoTag: "демо",
+      formEyebrow: "Шаг 2 из 2", fBrand: "Название бренда или компании", fLegal: "Юридическое название", fVat: "Номер НДС",
+      fContact: "Контактное лицо", fCountry: "Страна", fIg: "Instagram", fCats: "Категории (от одной до трёх)",
+      fDesc: "Кто вы и чем занимаетесь", fDescHint: "До 1500 символов", fLogo: "Логотип", fPhoto1: "Фото изделия", fPhoto2: "Фото второго изделия",
+      fileHint: "PNG, JPG или WebP, не более 10 МБ", uploading: "Загрузка…", uploaded: "Загружено", fileKept: "Уже загружено: можно оставить",
+      errFileType: "Формат не поддерживается: используйте PNG, JPG или WebP.", errFileSize: "Файл больше 10 МБ.",
+      consPrivacy: "Я ознакомился(ась) с {link}", consPrivacyLink: "политикой конфиденциальности", consTerms: "Я принимаю {link}", consTermsLink: "условия участия",
+      legalMissing: "Форма откроется, как только будут опубликованы политика конфиденциальности и условия участия.",
+      errRequired: "Заполните обязательные поля, отмеченные *.", errCats: "Выберите от одной до трёх категорий.", errFiles: "Загрузите логотип и две фотографии изделий.",
+      errConsents: "Чтобы отправить заявку, примите политику конфиденциальности и условия.",
+      needsH: "Нам нужны дополнительные сведения", inviteH: "Завершите заявку, подготовленную вместе с вами",
+      recv1: "Спасибо за заявку в Uniqaia. Наша команда рассмотрит ваш бренд в течение 24 часов.",
+      recv2: "В случае одобрения вы получите защищённую ссылку на оплату с уже применённым приветственным предложением.",
+      recv2b: "В случае одобрения вы получите защищённую ссылку на оплату для активации подписки.",
+      apprH: "Ваш бренд одобрен", apprFirst: "Первый месяц: {p}", apprNext: "Следующие месяцы: {s} в месяц",
+      plan: "{n} эфира в месяц продолжительностью до {m} минут каждый.", apprWait: "Защищённая ссылка на оплату скоро придёт вам на почту.",
+      apprNote: "Списание произойдёт только после подтверждения оплаты картой на Stripe.",
+      actH: "Подписка активна", actText: "Ваша подписка активна: {n} эфира в месяц продолжительностью до {m} минут каждый. Продление — {s} в месяц.",
+      openPanel: "Открыть панель", pdH: "Оплата продления не прошла", pdText: "Оплата продления не прошла: обновите карту по ссылке из письма Stripe или напишите нам на seller@uniqaia.com.",
+      cancH: "Подписка не активна", cancText: "Чтобы возобновить её, напишите нам на seller@uniqaia.com.",
+      rejH: "Заявка не принята", rejText: "Благодарим за интерес к Uniqaia. Сейчас мы не можем включить ваш бренд в программу эфиров."
+    },
+    ar: {
+      acctEyebrow: "التسجيل وتقديم الطلب", acctH: "أنشئ حسابك وقدّم طلبك",
+      acctLead: "يحفظ حسابك طلبك ونتيجته وهديتك الترحيبية على أي جهاز.",
+      tabReg: "إنشاء حساب", tabLogin: "تسجيل الدخول", fEmail: "البريد الإلكتروني", fPass: "كلمة المرور (8 أحرف على الأقل)",
+      btnReg: "أنشئ الحساب وتابع", btnLogin: "تسجيل الدخول", forgot: "نسيت كلمة المرور؟",
+      forgotSent: "إذا كان هذا العنوان مسجلاً، فستصلك رسالة لاختيار كلمة مرور جديدة.",
+      confirmMail: "أرسلنا إليك رسالة لتأكيد عنوانك: افتحها، ثم عد إلى هنا وسجّل الدخول.",
+      errAuth: "البريد الإلكتروني أو كلمة المرور غير صحيحة.", errExists: "لهذا البريد حساب بالفعل: سجّل الدخول بكلمة مرورك.",
+      errWeak: "يجب أن تتكون كلمة المرور من 8 أحرف على الأقل.", errConfirm: "يرجى أولاً تأكيد عنوانك من الرسالة التي أرسلناها إليك.",
+      errGeneric: "حدث خطأ ما. يرجى المحاولة بعد قليل.", loading: "لحظة…",
+      loggedAs: "تم تسجيل الدخول باسم {email}", logout: "تسجيل الخروج",
+      offer: "هديتك الترحيبية: {prize}.", offerKeep: "هديتك الترحيبية محجوزة: {prize}. سجّل لتحتفظ بها.",
+      offerFirst: "{name} — الشهر الأول {p}، ثم {s} شهريًا", demoTag: "تجريبي",
+      formEyebrow: "الخطوة 2 من 2", fBrand: "اسم العلامة التجارية أو النشاط", fLegal: "الاسم القانوني للشركة", fVat: "رقم ضريبة القيمة المضافة",
+      fContact: "الشخص المسؤول", fCountry: "البلد", fIg: "Instagram", fCats: "الفئات (من واحدة إلى ثلاث)",
+      fDesc: "من أنتم وماذا تفعلون", fDescHint: "حتى 1500 حرف", fLogo: "الشعار", fPhoto1: "صورة منتج", fPhoto2: "صورة منتج ثانٍ",
+      fileHint: "PNG أو JPG أو WebP، بحد أقصى 10 ميغابايت", uploading: "جارٍ التحميل…", uploaded: "تم التحميل", fileKept: "تم تحميله سابقًا: يمكنك الإبقاء عليه",
+      errFileType: "الصيغة غير مقبولة: استخدم PNG أو JPG أو WebP.", errFileSize: "حجم الملف أكبر من 10 ميغابايت.",
+      consPrivacy: "قرأت {link}", consPrivacyLink: "إشعار الخصوصية", consTerms: "أوافق على {link}", consTermsLink: "شروط المشاركة",
+      legalMissing: "سيُفتح النموذج فور نشر إشعار الخصوصية وشروط المشاركة.",
+      errRequired: "يرجى ملء الحقول الإلزامية المعلَّمة بـ *.", errCats: "اختر من فئة إلى ثلاث فئات.", errFiles: "حمّل الشعار وصورتين للمنتجات.",
+      errConsents: "لإرسال الطلب، يرجى الموافقة على إشعار الخصوصية والشروط.",
+      needsH: "نحتاج إلى بعض المعلومات الإضافية", inviteH: "أكمل الطلب الذي أعددناه معك",
+      recv1: "شكرًا لتقديم طلبك إلى Uniqaia. سيراجع فريقنا علامتك التجارية خلال 24 ساعة.",
+      recv2: "في حال الموافقة، ستتلقى رابط دفع آمنًا مع تطبيق عرضك الترحيبي.",
+      recv2b: "في حال الموافقة، ستتلقى رابط دفع آمنًا لتفعيل اشتراكك.",
+      apprH: "تمت الموافقة على علامتك التجارية", apprFirst: "الشهر الأول: {p}", apprNext: "الأشهر التالية: {s} شهريًا",
+      plan: "{n} بثوث مباشرة شهريًا، تصل مدة كل منها إلى {m} دقيقة.", apprWait: "سيصلك رابط الدفع الآمن عبر البريد الإلكتروني قريبًا.",
+      apprNote: "لن يُخصم أي مبلغ قبل أن تؤكد الدفع بالبطاقة على Stripe.",
+      actH: "الاشتراك مفعّل", actText: "اشتراكك مفعّل: {n} بثوث مباشرة شهريًا، تصل مدة كل منها إلى {m} دقيقة. يتجدد بسعر {s} شهريًا.",
+      openPanel: "افتح لوحتك", pdH: "فشل دفع التجديد", pdText: "لم يتم دفع التجديد: حدّث بطاقتك من الرابط الذي أرسلته Stripe أو راسلنا على seller@uniqaia.com.",
+      cancH: "الاشتراك غير مفعّل", cancText: "لإعادة تفعيله، راسلنا على seller@uniqaia.com.",
+      rejH: "لم يُقبل الطلب", rejText: "نشكرك على اهتمامك بـ Uniqaia. لا يمكننا إدراج علامتك التجارية في جدول البث في الوقت الحالي."
+    }
+  };
+  function j(k, v){ var s = (J[lang] && J[lang][k]) || J.en[k] || ""; return s.replace(/\{(\w+)\}/g, function(m, n){ return v && v[n] != null ? v[n] : m; }); }
+  function eur(c){ var loc = lang === "ar" ? "ar-AE-u-nu-latn" : lang; try { return new Intl.NumberFormat(loc, { style: "currency", currency: "EUR", minimumFractionDigits: c % 100 ? 2 : 0, maximumFractionDigits: 2 }).format(c / 100); } catch(e){ return "€" + (c / 100); } }
+  var COUNTRIES = ["IT","SM","VA","CH","FR","MC","DE","AT","ES","PT","BE","NL","LU","IE","GB","DK","SE","NO","FI","IS","PL","CZ","SK","HU","SI","HR","GR","CY","MT","RO","BG","EE","LV","LT","RS","AL","ME","US","CA","MX","BR","AE","SA","QA","KW","BH","OM","IL","TR","EG","MA","ZA","IN","LK","TH","SG","HK","JP","KR","CN","AU","RU","UA"];
+
+  // ---------------------------------------------------------------- account (Supabase Auth, REST)
+  var AUTH = "uq-auth", SESS = null, refreshing = null;
+  try { SESS = JSON.parse(localStorage.getItem(AUTH) || "null"); } catch(e){}
+  function saveSess(s){ SESS = s; try { if (s) localStorage.setItem(AUTH, JSON.stringify(s)); else localStorage.removeItem(AUTH); } catch(e){} }
+  function announce(){ try { document.dispatchEvent(new CustomEvent("uqauth:change")); } catch(e){} }
+  function http(url, body, tok, method){
+    return fetch(url, { method: method || "POST", headers: { "Content-Type": "application/json", apikey: CFG.key, Authorization: "Bearer " + (tok || CFG.key) }, body: body === undefined ? undefined : JSON.stringify(body) })
+      .then(function(r){ return r.text().then(function(x){ var d = null; try { d = x ? JSON.parse(x) : null; } catch(e){}
+        if (!r.ok) { var e = new Error((d && (d.msg || d.error_description || d.message || d.error)) || ("HTTP " + r.status)); e.code = d && (d.error_code || d.code || d.error); e.status = r.status; throw e; }
+        return d; }); });
+  }
+  function asSess(d){ if (!d || !d.access_token) return null; return { access_token: d.access_token, refresh_token: d.refresh_token, expires_at: d.expires_at || Math.floor(Date.now() / 1000) + (d.expires_in || 3600), user: { id: d.user && d.user.id, email: d.user && d.user.email } }; }
+  function fresh(){
+    if (!SESS) return Promise.resolve(null);
+    if (SESS.expires_at - 60 > Date.now() / 1000) return Promise.resolve(SESS.access_token);
+    if (!refreshing) refreshing = http(CFG.url + "/auth/v1/token?grant_type=refresh_token", { refresh_token: SESS.refresh_token })
+      .then(function(d){ saveSess(asSess(d)); return SESS && SESS.access_token; }, function(){ saveSess(null); ST.me = null; announce(); renderAcct(); return null; })
+      .then(function(x){ refreshing = null; return x; });
+    return refreshing;
+  }
+  window.UQAuth = { fresh: fresh, email: function(){ return SESS && SESS.user && SESS.user.email; } };
+  function rpc(fn, args){ return fresh().then(function(tok){ return http(CFG.url + "/rest/v1/rpc/" + fn, args || {}, tok); }); }
+
+  // ---------------------------------------------------------------- stato
+  var ST = { me: null, terms: null, nights: [], tab: "reg", msg: "", msgOk: false, busy: false, form: {}, cats: [],
+             files: { draft: null, logo: null, photo1: null, photo2: null }, fileMsg: {},
+             invite: (QS.get("t") || "").replace(/[^a-f0-9]/g, "").slice(0, 64) || null, inviteData: null };
+  if (ST.invite) ST.tab = "reg";
+
   function li(arr){ return '<ul>' + arr.map(function(x){ return '<li><i></i>' + esc(x) + '</li>'; }).join("") + '</ul>'; }
+  function wheelSpin(){ if (ST.me && ST.me.spin) return ST.me.spin; var w = window.UQWheel && UQWheel.state(); return w && w.spin && !SESS ? w.spin : null; }
+  function offerHtml(keep){
+    var s = wheelSpin(); if (!s || s.status === "void") return "";
+    var std = (ST.me && ST.me.plan && ST.me.plan.price_cents) || 14900;
+    var name = s.kind === "discount" ? j("offerFirst", { name: s.prize_name, p: eur(s.first_month_cents), s: eur(std) }) : s.prize_name;
+    if (s.mode === "demo") name += " (" + j("demoTag") + ")";
+    return '<p class="offer" role="note"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 8h14l-7 12.5z" stroke="#A9833A" stroke-width="1.4"/><path d="M8.5 3.5h7L19 8H5z" fill="#F8F1DF" stroke="#A9833A" stroke-width="1.4"/><circle cx="12" cy="9.6" r="1.6" fill="#D43F52"/></svg><span>' + esc(j(keep ? "offerKeep" : "offer", { prize: name })) + '</span></p>';
+  }
+
+  // ---------------------------------------------------------------- pagina
   function render(){
     t = TT[lang]; document.documentElement.lang = lang; document.documentElement.dir = lang === "ar" ? "rtl" : "ltr"; $("langCur").textContent = lang.toUpperCase();
     $("tag").textContent = t.tag; $("foot").textContent = t.foot; var dn = document.querySelector(".demo span"); if (dn && t.demoNote) dn.textContent = t.demoNote;
     Array.prototype.forEach.call(document.querySelectorAll("#langMenu button"), function(b){ b.classList.toggle("on", b.getAttribute("data-lang") === lang); });
+    collect();
     $("page").innerHTML = '<span class="eyebrow">' + esc(t.jEyebrow) + '</span><h1>' + esc(t.jTitle) + '</h1><p class="lead">' + esc(t.jLead) + '</p>' +
       '<h3>' + esc(t.jWhatH) + '</h3>' + li(t.jWhat) + '<h3>' + esc(t.jWhoH) + '</h3>' + li(t.jWho) +
-      '<div class="price"><b>149 €</b> ' + esc(t.jPrice) + '</div>' +
-      '<h3>' + esc(t.jFormH) + '</h3><form class="jform" id="jForm">' +
-        '<label>' + esc(t.fName) + '<input id="jName" type="text" maxlength="80" required></label><label>' + esc(t.fCity) + '<input id="jCity" type="text" maxlength="60" required></label>' +
-        '<label>' + esc(t.fKind) + '<select id="jKind"><option value="shop">' + esc(t.kShop) + '</option><option value="gems">' + esc(t.kGems) + '</option></select></label><label>' + esc(t.fSite) + '<input id="jSite" type="text" maxlength="160" placeholder="www…"></label>' +
-        '<label class="full">' + esc(t.fNight) + '<select id="jNight"><option value="">' + esc(t.nightAny) + '</option></select></label>' +
-        '<label class="full">' + esc(t.fShow) + '<textarea id="jShow" maxlength="600"></textarea></label>' +
-        '<label>' + esc(t.fEmail) + '<input id="jEmail" type="email" maxlength="120" required></label><label>' + esc(t.fPhone) + '<input id="jPhone" type="tel" maxlength="40"></label>' +
-        '<button class="submit" type="submit" id="jSend">' + esc(t.jSend) + '</button></form><p class="hint">' + esc(t.jFine) + '</p>';
-    // Le serate a tema sono il motivo per cui uno si candida adesso invece
-    // che un giorno qualunque: vanno messe davanti, non nascoste.
-    sb.rpc("list_nights", { p_from: null }).then(function(r){
-      var sel = $("jNight"); if (!sel || r.error) return;
-      (r.data || []).forEach(function(n){
-        if (!n.applications_open) return;
-        var o = document.createElement("option");
-        o.value = n.id;
-        var i18n = n.title_i18n || {};
-        var nome = i18n[lang] || (lang !== "it" && i18n.en) || n.title;
-        var quando = "";
-        try { quando = new Intl.DateTimeFormat(lang || "it", { weekday:"long", day:"numeric", month:"long", hour:"2-digit", minute:"2-digit" }).format(new Date(n.starts_at)); } catch(e){}
-        o.textContent = nome + (quando ? " · " + quando : "");
-        sel.appendChild(o);
-      });
+      '<div class="price"><b>' + esc(eur(((ST.terms && ST.terms.price_cents) || 14900))) + '</b> ' + esc(t.jPrice) + '</div>' +
+      '<section class="acct" id="acct" aria-live="polite"></section>';
+    renderAcct();
+  }
+
+  function renderAcct(){
+    var box = $("acct"); if (!box) return;
+    collect();
+    if (!SESS) { box.innerHTML = authCard(); bindAuth(); return; }
+    if (!ST.me) { box.innerHTML = '<div class="acard"><p class="hint">' + esc(j("loading")) + '</p></div>'; return; }
+    var a = ST.me.application, sub = ST.me.subscription, h = userBar();
+    if (sub && sub.status === "awaiting_payment") h += approvedCard(sub);
+    else if (sub) h += activeCard(sub);
+    else if (a && a.status === "new") h += receivedCard();
+    else if (a && a.status === "rejected") h += statusCard(j("rejH"), j("rejText"));
+    else if (a && a.status === "approved") h += statusCard(j("apprH"), j("apprWait"));
+    else h += formCard(a);
+    box.innerHTML = h; bindAcct();
+  }
+
+  function userBar(){ return '<p class="userbar">' + esc(j("loggedAs", { email: (ST.me && ST.me.email) || (SESS.user && SESS.user.email) || "" })) + ' · <button type="button" class="lnk" id="aOut">' + esc(j("logout")) + '</button></p>'; }
+
+  function authCard(){
+    var reg = ST.tab === "reg";
+    return '<div class="acard"><span class="eyebrow">' + esc(j("acctEyebrow")) + '</span><h2>' + esc(j("acctH")) + '</h2><p class="lead">' + esc(j("acctLead")) + '</p>' + offerHtml(true) +
+      '<div class="atabs" role="tablist"><button type="button" role="tab" data-tab="reg" aria-selected="' + reg + '" class="' + (reg ? "on" : "") + '">' + esc(j("tabReg")) + '</button>' +
+      '<button type="button" role="tab" data-tab="login" aria-selected="' + !reg + '" class="' + (reg ? "" : "on") + '">' + esc(j("tabLogin")) + '</button></div>' +
+      '<form class="jform" id="aForm" novalidate><label class="full">' + esc(j("fEmail")) + '<input id="aEmail" type="email" autocomplete="email" required maxlength="160" value="' + esc(ST.form.aEmail || "") + '"></label>' +
+      '<label class="full">' + esc(j("fPass")) + '<input id="aPass" type="password" minlength="8" required autocomplete="' + (reg ? "new-password" : "current-password") + '"></label>' +
+      '<button class="submit" type="submit" id="aSend"' + (ST.busy ? " disabled" : "") + '>' + esc(j(reg ? "btnReg" : "btnLogin")) + '</button></form>' +
+      (reg ? "" : '<p class="hint"><button type="button" class="lnk" id="aForgot">' + esc(j("forgot")) + '</button></p>') +
+      '<p class="amsg' + (ST.msgOk ? " ok" : "") + '" role="status">' + esc(ST.msg) + '</p></div>';
+  }
+
+  function field(id, label, value, opt){
+    opt = opt || {};
+    var req = opt.req ? ' required aria-required="true"' : "", star = opt.req ? " *" : "";
+    if (opt.area) return '<label class="full">' + esc(label + star) + (opt.hint ? ' <small>' + esc(opt.hint) + '</small>' : "") + '<textarea id="' + id + '" maxlength="' + opt.max + '"' + req + '>' + esc(value || "") + '</textarea></label>';
+    return '<label' + (opt.full ? ' class="full"' : "") + '>' + esc(label + star) + '<input id="' + id + '" type="' + (opt.type || "text") + '" maxlength="' + (opt.max || 160) + '"' + req + (opt.ro ? " readonly" : "") + (opt.ph ? ' placeholder="' + esc(opt.ph) + '"' : "") + ' value="' + esc(value || "") + '"></label>';
+  }
+  function formCard(a){
+    var F = ST.form, pre = (a && a.fields) || ST.inviteData || {}, v = function(k){ return F[k] != null ? F[k] : (pre[k] != null ? pre[k] : ""); };
+    if (!ST.cats.length && pre.categories) ST.cats = pre.categories.slice(0, 3);
+    var dn; try { dn = new Intl.DisplayNames([lang], { type: "region" }); } catch(e){ dn = null; }
+    var cc = v("country") || "IT", countries = COUNTRIES.map(function(c){ return { c: c, n: dn ? dn.of(c) : c }; }).sort(function(x, y){ return x.n.localeCompare(y.n, lang); });
+    var legal = ST.terms && ST.terms.legal_ready, keep = { logo: pre.has_logo, photo1: pre.has_photos, photo2: pre.has_photos };
+    function file(kind, label){
+      var m = ST.fileMsg[kind] || (ST.files[kind] ? "✓ " + j("uploaded") : keep[kind] ? "✓ " + j("fileKept") : j("fileHint"));
+      return '<label class="filebox">' + esc(label + (keep[kind] ? "" : " *")) + '<input type="file" id="f_' + kind + '" data-kind="' + kind + '" accept="image/png,image/jpeg,image/webp"><small id="m_' + kind + '">' + esc(m) + '</small></label>';
+    }
+    function link(key, url, lk){ return esc(j(key)).replace("{link}", url ? '<a href="' + esc(url) + '" target="_blank" rel="noopener">' + esc(j(lk)) + '</a>' : esc(j(lk))); }
+    var head = a && a.status === "needs_info" ? '<div class="notice"><b>' + esc(j("needsH")) + '</b><p>' + esc(a.info_request || "") + '</p></div>' : ST.inviteData ? '<div class="notice"><b>' + esc(j("inviteH")) + '</b></div>' : "";
+    return '<div class="acard"><span class="eyebrow">' + esc(j("formEyebrow")) + '</span><h2>' + esc(t.jFormH) + '</h2>' + head + offerHtml(false) +
+      '<form class="jform" id="jForm" novalidate>' +
+      field("jName", j("fBrand"), v("name"), { req: 1, max: 80 }) + field("jLegal", j("fLegal"), v("legal_name"), { req: 1 }) +
+      field("jVat", j("fVat"), v("vat_number"), { req: 1, max: 40 }) + field("jContact", j("fContact"), v("contact_name"), { req: 1, max: 120 }) +
+      field("jEmail", t.fEmail, (ST.me && ST.me.email) || "", { type: "email", ro: 1 }) + field("jPhone", t.fPhone, v("phone"), { type: "tel", max: 40 }) +
+      '<label>' + esc(j("fCountry") + " *") + '<select id="jCountry">' + countries.map(function(x){ return '<option value="' + x.c + '"' + (x.c === cc ? " selected" : "") + '>' + esc(x.n) + '</option>'; }).join("") + '</select></label>' +
+      field("jCity", t.fCity, v("city"), { req: 1, max: 60 }) +
+      field("jSite", t.fSite, v("site"), { ph: "www…" }) + field("jIg", j("fIg"), v("instagram"), { ph: "@…", max: 80 }) +
+      '<label>' + esc(t.fKind) + '<select id="jKind"><option value="shop">' + esc(t.kShop) + '</option><option value="gems"' + (v("kind") === "gems" ? " selected" : "") + '>' + esc(t.kGems) + '</option></select></label>' +
+      '<label>' + esc(t.fNight) + '<select id="jNight"><option value="">' + esc(t.nightAny) + '</option>' + ST.nights.map(function(n){
+        var i18n = n.title_i18n || {}, nome = i18n[lang] || (lang !== "it" && i18n.en) || n.title, q = "";
+        try { q = new Intl.DateTimeFormat(lang, { weekday: "long", day: "numeric", month: "long", hour: "2-digit", minute: "2-digit" }).format(new Date(n.starts_at)); } catch(e){}
+        return '<option value="' + n.id + '"' + (v("night_id") === n.id ? " selected" : "") + '>' + esc(nome + (q ? " · " + q : "")) + '</option>'; }).join("") + '</select></label>' +
+      '<fieldset class="full chips" id="jCats"><legend>' + esc(j("fCats") + " *") + '</legend>' + CATS.map(function(c){
+        var on = ST.cats.indexOf(c.slug) >= 0, nm = (c.name_i18n && (c.name_i18n[lang] || c.name_i18n.en || c.name_i18n.it)) || c.slug;
+        return '<button type="button" class="chip' + (on ? " on" : "") + '" aria-pressed="' + on + '" data-cat="' + esc(c.slug) + '">' + esc(nm) + '</button>'; }).join("") + '</fieldset>' +
+      field("jDesc", j("fDesc"), v("description"), { area: 1, req: 1, max: 1500, hint: j("fDescHint") }) +
+      field("jShow", t.fShow, v("show_what"), { area: 1, max: 600 }) +
+      '<div class="full files">' + file("logo", j("fLogo")) + file("photo1", j("fPhoto1")) + file("photo2", j("fPhoto2")) + '</div>' +
+      '<label class="full consent"><input type="checkbox" id="jPrivacy"' + (F.privacy ? " checked" : "") + '><span>' + link("consPrivacy", ST.terms && ST.terms.privacy_url, "consPrivacyLink") + ' *</span></label>' +
+      '<label class="full consent"><input type="checkbox" id="jTerms"' + (F.terms ? " checked" : "") + '><span>' + link("consTerms", ST.terms && ST.terms.terms_url, "consTermsLink") + ' *</span></label>' +
+      (legal ? "" : '<p class="full notice">' + esc(j("legalMissing")) + '</p>') +
+      '<button class="submit" type="submit" id="jSend"' + (legal && !ST.busy ? "" : " disabled") + '>' + esc(t.jSend) + '</button></form>' +
+      '<p class="amsg" role="status">' + esc(ST.msg) + '</p><p class="hint">' + esc(t.jFine) + '</p></div>';
+  }
+
+  function receivedCard(){
+    var s = ST.me.spin, offer = s && s.mode === "live" && s.kind === "discount" && s.status !== "void";
+    return '<div class="acard astat"><span class="okc" aria-hidden="true">✓</span><h2 class="brandh">APPLICATION RECEIVED</h2><p>' + esc(j("recv1")) + '</p><p>' + esc(j(offer ? "recv2" : "recv2b")) + '</p>' + offerHtml(false) + '</div>';
+  }
+  function planLine(){ var p = ST.me.plan || {}; return j("plan", { n: p.lives_per_month || 4, m: p.live_max_min || 60 }); }
+  function approvedCard(sub){
+    var pay = sub.pay_token ? '<a class="btn dark wide" id="aPay" href="' + PFX + '/pay/?t=' + encodeURIComponent(sub.pay_token) + '">ACTIVATE YOUR SUBSCRIPTION</a><p class="hint">' + esc(j("apprNote")) + '</p>' : '<p class="notice">' + esc(j("apprWait")) + '</p>';
+    return '<div class="acard astat"><span class="okc" aria-hidden="true">✓</span><h2>' + esc(j("apprH")) + '</h2><div class="plan"><p><b>' + esc(j("apprFirst", { p: eur(sub.first_month_cents) })) + '</b></p><p>' + esc(j("apprNext", { s: eur(sub.standard_cents) })) + '</p><p>' + esc(planLine()) + '</p></div>' + pay + '</div>';
+  }
+  function activeCard(sub){
+    var p = ST.me.plan || {}, panel = ST.me.panel;
+    if (sub.status === "active") return '<div class="acard astat"><span class="okc" aria-hidden="true">✓</span><h2>' + esc(j("actH")) + '</h2><p>' + esc(j("actText", { n: p.lives_per_month || 4, m: p.live_max_min || 60, s: eur(sub.standard_cents) })) + '</p>' +
+      (panel ? '<a class="btn dark wide" href="' + PFX + '/' + encodeURIComponent(panel.slug) + '/panel/?k=' + encodeURIComponent(panel.key) + '">' + esc(j("openPanel")) + '</a>' : "") + '</div>';
+    if (sub.status === "past_due") return statusCard(j("pdH"), j("pdText"));
+    return statusCard(j("cancH"), j("cancText"));
+  }
+  function statusCard(h, p){ return '<div class="acard astat"><h2>' + esc(h) + '</h2><p>' + esc(p) + '</p></div>'; }
+
+  // ---------------------------------------------------------------- comportamento
+  function say(m, ok){ ST.msg = m || ""; ST.msgOk = !!ok; var el = document.querySelector("#acct .amsg"); if (el) { el.textContent = ST.msg; el.classList.toggle("ok", !!ok); } }
+  function collect(){
+    var F = ST.form, val = function(id){ var e = $(id); return e ? e.value : undefined; }, chk = function(id){ var e = $(id); return e ? e.checked : undefined; };
+    var map = { aEmail: "aEmail", jName: "name", jLegal: "legal_name", jVat: "vat_number", jContact: "contact_name", jPhone: "phone", jCountry: "country", jCity: "city", jSite: "site", jIg: "instagram", jKind: "kind", jNight: "night_id", jDesc: "description", jShow: "show_what" };
+    Object.keys(map).forEach(function(id){ var x = val(id); if (x !== undefined) F[map[id]] = x; });
+    var p = chk("jPrivacy"), tm = chk("jTerms"); if (p !== undefined) F.privacy = p; if (tm !== undefined) F.terms = tm;
+  }
+  function authError(e, reg){
+    var c = String(e.code || "") + " " + String(e.message || "");
+    if (/already|exists|registered/i.test(c)) { ST.tab = "login"; renderAcct(); say(j("errExists")); return; }
+    if (/weak|password.*(short|characters)/i.test(c)) return say(j("errWeak"));
+    if (/not.?confirmed/i.test(c)) return say(j("errConfirm"));
+    if (/invalid|credentials|grant/i.test(c)) return say(j("errAuth"));
+    say(j("errGeneric"));
+  }
+  function bindAuth(){
+    Array.prototype.forEach.call(document.querySelectorAll("#acct [data-tab]"), function(b){ b.addEventListener("click", function(){ collect(); ST.tab = b.getAttribute("data-tab"); ST.msg = ""; renderAcct(); var e = $("aEmail"); if (e) e.focus(); }); });
+    var fg = $("aForgot"); if (fg) fg.addEventListener("click", function(){
+      var em = ($("aEmail").value || "").trim(); if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(em)) { $("aEmail").focus(); return; }
+      http(CFG.url + "/auth/v1/recover", { email: em }).then(function(){ say(j("forgotSent"), true); }, function(){ say(j("forgotSent"), true); });
     });
-    $("jForm").addEventListener("submit", function(e){
-      e.preventDefault();
-      var name = $("jName").value.trim(), city = $("jCity").value.trim(), email = $("jEmail").value.trim();
-      if (!name || !city || !email){ toast(t.need); return; }
-      $("jSend").disabled = true; $("jSend").textContent = t.sending;
-      sb.rpc("apply_seller", { p_name: name, p_city: city, p_kind: $("jKind").value, p_site: $("jSite").value.trim(), p_show_what: $("jShow").value.trim(), p_email: email, p_phone: $("jPhone").value.trim(), p_lang: lang, p_night: ($("jNight") && $("jNight").value) || null }).then(function(r){
-        if (r.error){ toast(r.error.message); $("jSend").disabled = false; $("jSend").textContent = t.jSend; return; }
-        $("page").innerHTML = '<div class="thanks"><span class="okc">✓</span><h2>' + esc(t.thTitle) + '</h2><p>' + esc(t.thText) + '</p><a class="btn dark" style="margin-top:8px" href="' + CFG.base + '/live">' + esc(t.thBtn) + '</a></div>';
-        window.scrollTo(0, 0);
-      });
+    $("aForm").addEventListener("submit", function(e){
+      e.preventDefault(); collect();
+      var em = ($("aEmail").value || "").trim().toLowerCase(), pw = $("aPass").value || "", reg = ST.tab === "reg";
+      if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(em)) { $("aEmail").focus(); return say(j("errAuth")); }
+      if (pw.length < 8) { $("aPass").focus(); return say(j("errWeak")); }
+      ST.busy = true; $("aSend").disabled = true; say(j("loading"), true);
+      var p = reg ? http(CFG.url + "/auth/v1/signup", { email: em, password: pw, data: { source: "join" } }) : http(CFG.url + "/auth/v1/token?grant_type=password", { email: em, password: pw });
+      p.then(function(d){
+        ST.busy = false; var s = asSess(d);
+        if (!s) { ST.tab = "login"; renderAcct(); say(j("confirmMail"), true); return; }   // conferma dell'indirizzo richiesta
+        saveSess(s); ST.msg = ""; announce(); afterLogin();
+      }, function(err){ ST.busy = false; var b = $("aSend"); if (b) b.disabled = false; authError(err, reg); });
     });
   }
+  function afterLogin(){
+    renderAcct();
+    var dev = (window.UQWheel && UQWheel.device && UQWheel.device()) || (function(){ try { return localStorage.getItem("uqw-device"); } catch(e){ return null; } })();
+    // il premio giocato da questo dispositivo passa all'account: da qui in poi non si perde più
+    (dev ? rpc("account_claim_spin", { p_device: dev }).catch(function(){}) : Promise.resolve()).then(loadMe);
+  }
+  function loadMe(){
+    return rpc("account_me", {}).then(function(me){
+      ST.me = me;
+      var needInvite = ST.invite && !me.application && !ST.inviteData;
+      return needInvite ? rpc("get_application_by_token", { p_token: ST.invite }).then(function(r){ ST.inviteData = (r && r[0]) || null; }, function(){}) : null;
+    }).then(function(){ renderAcct(); announce(); }, function(e){
+      if (/JWT|token|401|Accedi/i.test(String(e.message))) { saveSess(null); ST.me = null; announce(); }
+      renderAcct(); say(j("errGeneric"));
+    });
+  }
+  function bindAcct(){
+    var out = $("aOut"); if (out) out.addEventListener("click", function(){
+      var tok = SESS && SESS.access_token; saveSess(null); ST.me = null; ST.inviteData = null; ST.form = {}; ST.cats = []; ST.files = { draft: null, logo: null, photo1: null, photo2: null }; ST.fileMsg = {};
+      if (tok) http(CFG.url + "/auth/v1/logout", {}, tok).catch(function(){});
+      announce(); renderAcct();
+    });
+    var f = $("jForm"); if (!f) return;
+    Array.prototype.forEach.call(f.querySelectorAll(".chip"), function(b){ b.addEventListener("click", function(){
+      var c = b.getAttribute("data-cat"), i = ST.cats.indexOf(c);
+      if (i >= 0) ST.cats.splice(i, 1); else if (ST.cats.length < 3) ST.cats.push(c); else { say(j("errCats")); return; }
+      b.classList.toggle("on", i < 0); b.setAttribute("aria-pressed", String(i < 0)); say("");
+    }); });
+    Array.prototype.forEach.call(f.querySelectorAll('input[type="file"]'), function(inp){ inp.addEventListener("change", function(){ upload(inp); }); });
+    f.addEventListener("submit", function(e){ e.preventDefault(); submit(); });
+  }
+  function upload(inp){
+    var kind = inp.getAttribute("data-kind"), file = inp.files && inp.files[0], m = $("m_" + kind); if (!file) return;
+    var show = function(x){ ST.fileMsg[kind] = x; if ($("m_" + kind)) $("m_" + kind).textContent = x; };
+    if (["image/png", "image/jpeg", "image/webp"].indexOf(file.type) < 0) { inp.value = ""; return show(j("errFileType")); }
+    if (file.size > 10 * 1024 * 1024) { inp.value = ""; return show(j("errFileSize")); }
+    show(j("uploading")); ST.files[kind] = null;
+    http(CFG.url + "/functions/v1/seller-files", { action: "upload", kind: kind, type: file.type, size: file.size, draft: ST.files.draft }).then(function(d){
+      var fd = new FormData(); fd.append("cacheControl", "3600"); fd.append("", file);
+      return fetch(d.signedUrl, { method: "PUT", headers: { apikey: CFG.key, Authorization: "Bearer " + CFG.key, "x-upsert": "true" }, body: fd }).then(function(r){
+        if (!r.ok) throw new Error("upload " + r.status); ST.files.draft = d.draft; ST.files[kind] = d.path; show("✓ " + j("uploaded") + " · " + file.name);
+      });
+    }).catch(function(e){ show((e && e.message && !/HTTP|upload/.test(e.message)) ? e.message : j("errGeneric")); });
+  }
+  function submit(){
+    collect();
+    var F = ST.form, a = ST.me && ST.me.application, pre = (a && a.fields) || ST.inviteData || {};
+    if (!ST.terms || !ST.terms.legal_ready) return say(j("legalMissing"));
+    var req = ["name", "legal_name", "vat_number", "contact_name", "city", "description"];
+    for (var i = 0; i < req.length; i++) if (!String(F[req[i]] || "").trim()) { var map = { name: "jName", legal_name: "jLegal", vat_number: "jVat", contact_name: "jContact", city: "jCity", description: "jDesc" }; $(map[req[i]]).focus(); return say(j("errRequired")); }
+    if (!ST.cats.length) return say(j("errCats"));
+    var hasLogo = ST.files.logo || pre.has_logo, hasPhotos = (ST.files.photo1 && ST.files.photo2) || pre.has_photos;
+    if (!hasLogo || !hasPhotos) return say(j("errFiles"));
+    if (!F.privacy || !F.terms) return say(j("errConsents"));
+    var p = { name: F.name, legal_name: F.legal_name, vat_number: F.vat_number, contact_name: F.contact_name, phone: F.phone || "", country: F.country || "IT", city: F.city,
+      site: F.site || "", instagram: F.instagram || "", kind: F.kind || "shop", categories: ST.cats, description: F.description, show_what: F.show_what || "", night_id: F.night_id || null,
+      privacy: true, terms: true, privacy_version: "v1", terms_version: "v1", lang: lang, draft: ST.files.draft };
+    if (ST.files.logo) p.logo_path = ST.files.logo;
+    if (ST.files.photo1 && ST.files.photo2) p.photo_paths = [ST.files.photo1, ST.files.photo2];
+    if (ST.invite && !a) p.token = ST.invite;
+    ST.busy = true; var b = $("jSend"); if (b) { b.disabled = true; b.textContent = t.sending; }
+    rpc("account_submit_application", { p: p }).then(function(){
+      ST.busy = false; ST.form = {}; ST.cats = []; ST.files = { draft: null, logo: null, photo1: null, photo2: null }; ST.fileMsg = {}; ST.msg = "";
+      return loadMe();
+    }).then(function(){ var box = $("acct"); if (box) window.scrollTo({ top: box.getBoundingClientRect().top + window.pageYOffset - 70 }); }, function(e){
+      ST.busy = false; var b2 = $("jSend"); if (b2) { b2.disabled = false; b2.textContent = t.jSend; } say(e.message || j("errGeneric"));
+    });
+  }
+
+  // ---------------------------------------------------------------- avvio
   $("langCur").addEventListener("click", function(e){ e.stopPropagation(); $("langMenu").hidden = !$("langMenu").hidden; });
   document.addEventListener("click", function(){ $("langMenu").hidden = true; });
   Array.prototype.forEach.call(document.querySelectorAll("#langMenu button"), function(b){ b.addEventListener("click", function(){ lang = b.getAttribute("data-lang"); $("langMenu").hidden = true; try { localStorage.setItem("vetrina-lang", lang); } catch(e){} render(); }); });
+  // il premio giocato prima della registrazione compare nel riquadro dell'account, senza ridisegnare il modulo
+  document.addEventListener("uqw:change", function(){
+    if (SESS) return; var box = $("acct"); if (!box) return;
+    var old = box.querySelector(".offer"), html = offerHtml(true);
+    if (old) { if (html) old.outerHTML = html; else old.parentNode.removeChild(old); }
+    else if (html) { var lead = box.querySelector(".lead"); if (lead) lead.insertAdjacentHTML("afterend", html); }
+  });
   render();
+  rpc("site_terms", {}).then(function(x){ ST.terms = x; renderAcct(); }, function(){});
+  rpc("list_nights", { p_from: null }).then(function(r){ ST.nights = (r || []).filter(function(n){ return n.applications_open; }); if (SESS && ST.me) renderAcct(); }, function(){});
+  if (SESS) loadMe();
+  if (/#acct$/.test(location.hash)) setTimeout(function(){ var b = $("acct"); if (b) b.scrollIntoView(); }, 50);
 })();
 </script>
+<style>
+.acct{margin-top:18px;scroll-margin-top:80px}
+.jform .full{grid-column:1/-1}
+.acard{border:1px solid var(--line);border-radius:16px;padding:20px 18px;background:#FFFDF8;display:flex;flex-direction:column;gap:12px}
+.acard h2{font-family:var(--display);font-size:clamp(22px,5vw,28px);line-height:1.15}
+.acard h2.brandh{letter-spacing:.06em}
+.acard .lead{font-size:14.5px;color:var(--muted);line-height:1.5}
+.acard.astat{align-items:center;text-align:center;padding:28px 18px}
+.acard.astat p{max-width:46ch;line-height:1.55;font-size:15px}
+.acard .okc{width:50px;height:50px;border-radius:50%;background:var(--soft-2);color:var(--gold-edge);display:grid;place-items:center;font-size:24px;border:1px solid var(--gold-hi)}
+.atabs{display:flex;gap:6px;border-bottom:1px solid var(--line)}
+.atabs button{border:0;background:none;padding:10px 12px;font-size:14.5px;border-bottom:2px solid transparent;margin-bottom:-1px;color:var(--muted)}
+.atabs button.on{border-color:var(--gold);color:var(--ink);font-weight:500}
+.lnk{border:0;background:none;padding:4px;color:var(--gold-edge);text-decoration:underline;font-size:13.5px;cursor:pointer}
+.amsg{font-size:14px;color:#B42318;min-height:1em;margin:0}
+.amsg.ok{color:var(--gold-edge)}
+.amsg:empty{display:none}
+.userbar{font-size:13.5px;color:var(--muted);text-align:end;margin:0 0 8px}
+.offer{display:flex;gap:10px;align-items:flex-start;border:1px solid var(--gold-hi);background:var(--soft-2);border-radius:12px;padding:10px 14px;font-size:14px;line-height:1.45;text-align:start;margin:0}
+.offer svg{width:18px;height:18px;flex:none;margin-top:1px}
+.notice{background:#FFF6E5;border:1px solid var(--gold-hi);border-radius:12px;padding:10px 14px;font-size:14px;line-height:1.5;margin:0}
+.notice p{margin:4px 0 0}
+.chips{border:0;padding:0;margin:0;display:flex;flex-wrap:wrap;gap:6px}
+.chips legend{font-size:13px;color:var(--muted);margin-bottom:6px;padding:0}
+.chip{border:1px solid var(--line);background:var(--paper);border-radius:999px;padding:7px 12px;font-size:13.5px;min-height:36px}
+.chip.on{background:var(--gold-ink);color:var(--gold-hi);border-color:var(--gold-ink)}
+.jform textarea{min-height:96px;border-radius:12px;padding:10px 14px;resize:vertical}
+.jform label small{font-size:11.5px;color:var(--muted)}
+.files{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.filebox{border:1px dashed var(--gold-hi);border-radius:12px;padding:10px;background:var(--paper)}
+.filebox input{border:0;padding:4px 0;min-height:0;border-radius:0;font-size:13px;max-width:100%}
+.consent{flex-direction:row;align-items:flex-start;gap:10px;font-size:14px;color:var(--ink)}
+.consent input{min-height:0;width:20px;height:20px;margin-top:1px;flex:none}
+.consent a{color:var(--gold-edge)}
+.jform .submit:disabled{opacity:.45;cursor:not-allowed}
+.plan{display:flex;flex-direction:column;gap:2px;border:1px solid var(--gold-hi);background:var(--soft-2);border-radius:12px;padding:12px 16px;margin:4px 0}
+.plan p{margin:0;font-size:15px}
+.btn.wide{width:100%;max-width:360px;letter-spacing:.12em;font-size:14px;min-height:50px}
+@media (max-width:640px){.jform{grid-template-columns:1fr}.files{grid-template-columns:1fr}.userbar{text-align:start}}
+</style>
 <script>
 {{WHEEL}}
 </script>

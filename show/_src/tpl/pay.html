@@ -1,0 +1,80 @@
+<!doctype html><html lang="{{LANG}}"><head>{{HEAD}}<meta name="robots" content="noindex,nofollow"><title>{{NAME}} · Secure payment</title><style>{{CSS}}
+.pay{max-width:560px;margin:0 auto;padding:40px 16px 80px}
+.pay .pcard{border:1px solid var(--line);border-radius:18px;background:#FFFDF8;padding:30px 22px;display:flex;flex-direction:column;align-items:center;gap:12px;text-align:center}
+.pay h1{font-family:var(--display);font-weight:400;font-size:clamp(24px,6vw,30px);line-height:1.15}
+.pay p{font-size:15px;line-height:1.55;color:#3b3a36;max-width:44ch;margin:0}
+.pay .ring{width:44px;height:44px;border-radius:50%;border:3px solid var(--gold-hi);border-top-color:var(--gold-edge);animation:payspin 1s linear infinite}
+.pay .okc{width:50px;height:50px;border-radius:50%;background:var(--soft-2);color:var(--gold-edge);display:grid;place-items:center;font-size:24px;border:1px solid var(--gold-hi)}
+.pay .btn{min-width:240px;letter-spacing:.08em}
+.pay small{font-size:12px;color:var(--muted)}
+@keyframes payspin{to{transform:rotate(360deg)}}
+@media (prefers-reduced-motion:reduce){.pay .ring{animation:none}}
+</style></head>
+<body class="vetrina">
+<header class="topv wrap"><div class="col">
+  <div class="brand"><a class="logo" href="{{BASE}}/live" aria-label="{{NAME}}"><svg class="ulogo" xmlns="http://www.w3.org/2000/svg" viewBox="88 32 830 190" role="img" aria-label="Uniqaia"><g font-family="'Cormorant Garamond',Garamond,'Times New Roman',serif" font-weight="500" font-size="150" fill="currentColor" text-anchor="middle"><text x="151" y="160">U</text><text x="283" y="160">N</text><text x="386" y="160">I</text><text x="659" y="160">A</text><text x="756" y="160">I</text><text x="853" y="160">A</text></g><path fill="var(--logo-gold,#A47F3A)" fill-rule="evenodd" d="M 435 112.5 A 75 75 0 1 0 585 112.5 A 75 75 0 1 0 435 112.5 Z M 453 112.5 A 57 67 0 1 0 567 112.5 A 57 67 0 1 0 453 112.5 Z"/><path fill="var(--logo-gold,#A47F3A)" d="M 521.7 186.6 C 545 196 575 203 610 202 C 575 214 540 212 512 196 Z"/><path d="M 470.1 90.5 A 44 52 0 0 1 495 63.6" fill="none" stroke="var(--logo-gold,#A47F3A)" stroke-width="5" stroke-linecap="round"/><circle cx="510" cy="112.5" r="14" fill="var(--logo-gem,#D43F52)"/></svg></a><small id="tag"></small></div>
+  </div></header>
+<main class="wrap"><div class="pay"><div class="pcard" id="box" aria-live="polite"><span class="ring" aria-hidden="true"></span><h1 id="h"></h1><p id="p"></p></div></div></main>
+<footer class="wrap" id="foot"></footer>
+<script>
+{{LKJS}}
+// Pagina di pagamento sul dominio di Uniqaia: prepara la pagina sicura di Stripe e ci porta il seller.
+// Non conosce prezzi né sconti: li decide il server a partire dal link personale ricevuto all'approvazione.
+(function(){
+  var CFG = {"url":"{{URL}}","key":"{{KEY}}","base":"{{BASE}}","name":"{{NAME}}","lang":"{{LANG}}"};
+  var TT = {{T}};
+  var $ = function(id){ return document.getElementById(id); };
+  var QS = new URLSearchParams(location.search), PFX = location.pathname.replace(/\/pay\/?.*$/, "");
+  var lang = CFG.lang;
+  if (!TT[lang]) { try { lang = localStorage.getItem("vetrina-lang") || ""; } catch(e){} }
+  if (!TT[lang]) { var nav = (navigator.language || "en").slice(0,2).toLowerCase(); lang = TT[nav] ? nav : "en"; }
+  var P = {
+    it: { prep: "Pagamento sicuro", prepP: "Ti stiamo portando alla pagina di pagamento sicura di Stripe…", okH: "Pagamento ricevuto", okP: "Grazie! Stiamo ricevendo la conferma da Stripe: l'abbonamento si attiva entro pochi istanti e riceverai un'email con il link al tuo pannello.",
+          cancelH: "Pagamento non completato", cancelP: "Non è stato addebitato nulla. Puoi riprovare quando vuoi.", retry: "Riprova", account: "Vai al tuo account",
+          active: "Il tuo abbonamento è già attivo.", disabled: "Il pagamento online non è ancora disponibile: ti scriveremo appena lo sarà.", invalid: "Questo link non è valido. Accedi al tuo account per ritrovare quello giusto.",
+          closed: "Questo abbonamento non è più attivo: scrivici a seller@uniqaia.com.", error: "Non riusciamo a raggiungere il servizio di pagamento. Riprova tra qualche minuto.", note: "Pagamento con carta su Stripe. Uniqaia non vede né conserva i dati della carta." },
+    en: { prep: "Secure payment", prepP: "Taking you to Stripe's secure payment page…", okH: "Payment received", okP: "Thank you! We are receiving Stripe's confirmation: your subscription will be active in a few moments and you will receive an email with the link to your panel.",
+          cancelH: "Payment not completed", cancelP: "Nothing has been charged. You can try again whenever you like.", retry: "Try again", account: "Go to your account",
+          active: "Your subscription is already active.", disabled: "Online payment is not available yet: we will write to you as soon as it is.", invalid: "This link is not valid. Log in to your account to find the right one.",
+          closed: "This subscription is no longer active: please write to seller@uniqaia.com.", error: "We cannot reach the payment service right now. Please try again in a few minutes.", note: "Card payment on Stripe. Uniqaia never sees or stores your card details." },
+    fr: { prep: "Paiement sécurisé", prepP: "Nous vous dirigeons vers la page de paiement sécurisée de Stripe…", okH: "Paiement reçu", okP: "Merci ! Nous recevons la confirmation de Stripe : votre abonnement sera actif dans quelques instants et vous recevrez un e-mail avec le lien vers votre espace.",
+          cancelH: "Paiement non finalisé", cancelP: "Rien n'a été débité. Vous pouvez réessayer quand vous le souhaitez.", retry: "Réessayer", account: "Aller à votre compte",
+          active: "Votre abonnement est déjà actif.", disabled: "Le paiement en ligne n'est pas encore disponible : nous vous écrirons dès qu'il le sera.", invalid: "Ce lien n'est pas valide. Connectez-vous à votre compte pour retrouver le bon lien.",
+          closed: "Cet abonnement n'est plus actif : écrivez-nous à seller@uniqaia.com.", error: "Le service de paiement est momentanément injoignable. Veuillez réessayer dans quelques minutes.", note: "Paiement par carte sur Stripe. Uniqaia ne voit ni ne conserve les données de votre carte." },
+    ru: { prep: "Безопасная оплата", prepP: "Переходим на защищённую страницу оплаты Stripe…", okH: "Оплата получена", okP: "Спасибо! Мы получаем подтверждение от Stripe: подписка активируется через несколько мгновений, и вы получите письмо со ссылкой на свою панель.",
+          cancelH: "Оплата не завершена", cancelP: "Ничего не списано. Вы можете повторить попытку в любое время.", retry: "Повторить", account: "Перейти в аккаунт",
+          active: "Ваша подписка уже активна.", disabled: "Онлайн-оплата пока недоступна: мы напишем вам, как только она появится.", invalid: "Ссылка недействительна. Войдите в аккаунт, чтобы найти правильную.",
+          closed: "Эта подписка больше не активна: напишите нам на seller@uniqaia.com.", error: "Сервис оплаты сейчас недоступен. Попробуйте через несколько минут.", note: "Оплата картой на Stripe. Uniqaia не видит и не хранит данные вашей карты." },
+    ar: { prep: "دفع آمن", prepP: "نوجّهك إلى صفحة الدفع الآمنة في Stripe…", okH: "تم استلام الدفع", okP: "شكرًا! نتلقى الآن تأكيد Stripe: سيُفعَّل اشتراكك خلال لحظات وستصلك رسالة برابط لوحتك.",
+          cancelH: "لم يكتمل الدفع", cancelP: "لم يُخصم أي مبلغ. يمكنك المحاولة مجددًا متى شئت.", retry: "أعد المحاولة", account: "انتقل إلى حسابك",
+          active: "اشتراكك مفعّل بالفعل.", disabled: "الدفع عبر الإنترنت غير متاح بعد: سنراسلك فور توفره.", invalid: "هذا الرابط غير صالح. سجّل الدخول إلى حسابك للعثور على الرابط الصحيح.",
+          closed: "هذا الاشتراك لم يعد مفعّلًا: راسلنا على seller@uniqaia.com.", error: "تعذّر الوصول إلى خدمة الدفع حاليًا. يرجى المحاولة بعد بضع دقائق.", note: "الدفع بالبطاقة عبر Stripe. لا ترى Uniqaia بيانات بطاقتك ولا تحتفظ بها." }
+  };
+  var x = P[lang] || P.en;
+  document.documentElement.lang = lang; document.documentElement.dir = lang === "ar" ? "rtl" : "ltr";
+  if ($("tag")) $("tag").textContent = TT[lang].tag; $("foot").textContent = TT[lang].foot;
+  var token = (QS.get("t") || "").replace(/[^a-f0-9]/g, "").slice(0, 64), status = QS.get("status");
+  function view(h, p, btns, ok){
+    $("box").innerHTML = (ok ? '<span class="okc" aria-hidden="true">✓</span>' : '') + '<h1>' + esc(h) + '</h1><p>' + esc(p) + '</p>' +
+      (btns || []).map(function(b){ return '<a class="btn ' + (b.dark ? "dark" : "") + '" href="' + esc(b.href) + '">' + esc(b.label) + '</a>'; }).join("");
+  }
+  var acct = { label: x.account, href: PFX + "/join/#acct", dark: true }, again = { label: x.retry, href: PFX + "/pay/?t=" + token, dark: true };
+  $("h").textContent = x.prep; $("p").textContent = x.prepP;
+  if (status === "success") return view(x.okH, x.okP, [acct], true);
+  if (status === "cancel" && token) return view(x.cancelH, x.cancelP, [again, { label: x.account, href: PFX + "/join/#acct" }]);
+  if (!token) return view(x.prep, x.invalid, [acct]);
+  fetch(CFG.url + "/functions/v1/billing", { method: "POST", headers: { "Content-Type": "application/json", apikey: CFG.key, Authorization: "Bearer " + CFG.key }, body: JSON.stringify({ action: "checkout", token: token }) })
+    .then(function(r){ return r.json(); })
+    .then(function(d){
+      if (d && d.url && /^https:\/\/checkout\.stripe\.com\//.test(d.url)) { $("p").textContent = x.prepP; location.replace(d.url); return; }
+      var s = d && d.state;
+      if (s === "active") return view(x.prep, x.active, [acct], true);
+      if (s === "success") return view(x.okH, x.okP, [acct], true);   // pagato da un'altra scheda: conferma in arrivo
+      if (s === "disabled" || s === "not_configured") return view(x.prep, x.disabled, [acct]);
+      if (s === "closed") return view(x.prep, x.closed, [acct]);
+      if (s === "invalid") return view(x.prep, x.invalid, [acct]);
+      view(x.prep, x.error, [again]);
+    }, function(){ view(x.prep, x.error, [again]); });
+})();
+</script>
+</body></html>

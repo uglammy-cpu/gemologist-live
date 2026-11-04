@@ -3,7 +3,7 @@
 <body><script>
 (function(){
   var m = location.pathname.match(/^\/show\/([a-z0-9-]{2,40})(?:\/([a-z0-9-]{2,60}))?\/?$/);
-  if (!m || m[1] === "join" || m[1] === "img") return;
+  if (!m || m[1] === "join" || m[1] === "img" || m[1] === "pay" || m[1] === "admin" || m[1] === "wheel-admin") return;
   var f = !m[2] ? "/show/_viewer.html" : (m[2] === "panel" ? "/show/_panel.html" : (m[2] === "profile" ? "/show/_profile.html" : "/show/_landing.html"));
   fetch(f, { cache: "no-store" }).then(function(r){ return r.text(); }).then(function(h){ document.open(); document.write(h); document.close(); });
 })();

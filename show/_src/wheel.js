@@ -1,12 +1,14 @@
-/* THE JEWELER'S WHEEL — pop-up di benvenuto della pagina /join (4 novembre 2026)
+/* THE JEWELER'S WHEEL — pop-up di benvenuto della pagina /join (4 novembre 2026, percorso con account)
  *
- * Script autonomo: non tocca la logica della pagina, la affianca.
+ * Script autonomo accanto alla pagina /join.
  * - Il premio lo decide il server (wheel_spin); qui si disegna solo l'animazione.
  * - Modalità "demo": visibile solo con ?wheel=preview, con l'etichetta "demo" ben in vista.
  * - Modalità "live": compare a tutti appena si apre la pagina.
- * - Chiuso il pop-up, resta il pulsante YOUR WELCOME GIFT; nella stessa sessione non si riapre da solo.
- * - All'invio della candidatura il premio provvisorio si lega a email e partita IVA (wheel_link);
- *   diventa definitivo solo quando la gemmologa approva la candidatura.
+ * - Chiuso il pop-up resta il pulsante YOUR WELCOME GIFT; nella stessa sessione non si riapre da solo.
+ * - REGISTER & APPLY porta all'area account della pagina: dopo la registrazione o l'accesso il premio
+ *   passa all'account (account_claim_spin) e non si perde più. Lo sconto vale solo per il primo mese
+ *   e solo se Uniqaia approva il brand.
+ * - Con un account aperto (window.UQAuth) la ruota mostra il premio dell'account da qualunque dispositivo.
  */
 (function () {
   "use strict";
@@ -20,8 +22,8 @@
     title: "YOUR EXCLUSIVE WELCOME GIFT",
     spin: "SPIN & DISCOVER",
     congrats: "CONGRATULATIONS!",
-    unlocked: "YOU'VE UNLOCKED YOUR WELCOME GIFT",
-    claim: "CLAIM YOUR REWARD & JOIN",
+    reserved: "YOUR WELCOME OFFER IS RESERVED!",
+    apply: "REGISTER & APPLY",
     fab: "YOUR WELCOME GIFT"
   };
   var TX = {
@@ -31,18 +33,18 @@
       first: "Your first month: {p}", instead: "Instead of {s}.",
       renews: "Your subscription renews at {s}/month from the second month.",
       perkStd: "Your first month is at the standard price of {s}/month.",
-      setup: "One-off activation fee of {f}, as shown on this page.",
       golden_visibility: "7 days of extra visibility in the brands section.",
       golden_promotion: "A personalised promotional reel for your first live, created from our template.",
       golden_spotlight: "Enjoy 7 days of featured visibility for your jewelry brand.",
-      fine: "One welcome gift per business. It is confirmed when your application is approved. First month only; not combinable with other promotions.",
-      linked: "Application received: your gift will be confirmed when it is approved.",
-      confirmed: "Your welcome gift is confirmed.",
-      redeemed: "Your welcome gift has been applied to your subscription.",
+      res1: "Your welcome discount will be applied to your first monthly subscription, subject to Uniqaia's review and approval of your brand.",
+      res1perk: "Your welcome gift will be activated with your first monthly subscription, subject to Uniqaia's review and approval of your brand.",
+      res2: "All applications are reviewed within 24 hours.",
+      terms1: "Welcome offers are valid for the first month only and are subject to Uniqaia's approval of your brand.",
+      terms2: "Standard subscription: {s}/month for {n} live shows of up to {m} minutes each.",
+      linked: "Your offer is reserved for your account.",
+      confirmed: "Your brand has been approved: the secure payment link is on its way to your inbox.",
+      redeemed: "Your welcome offer has been applied to your subscription.",
       demo: "Preview · demo mode · no real prize", again: "Spin again (demo)",
-      banner: "Your welcome gift: {prize}. Complete the form to claim it — it will be confirmed when your application is approved.",
-      bannerFirst: "first month {p}, then {s}/month",
-      thanks: "Your welcome gift ({prize}) is reserved and will be confirmed together with your application.",
       error: "The welcome gift isn't available right now. Please try again later.", result: "Result: {prize}"
     },
     it: {
@@ -51,18 +53,18 @@
       first: "Il tuo primo mese: {p}", instead: "Invece di {s}.",
       renews: "Dal secondo mese l'abbonamento si rinnova a {s} al mese.",
       perkStd: "Il primo mese è al prezzo standard di {s} al mese.",
-      setup: "Attivazione una tantum di {f}, come indicato in questa pagina.",
       golden_visibility: "7 giorni di visibilità in più nella sezione dedicata ai brand.",
       golden_promotion: "Un reel promozionale personalizzato per la tua prima diretta, creato dal nostro modello.",
       golden_spotlight: "7 giorni in evidenza nella vetrina speciale della home page.",
-      fine: "Un solo regalo di benvenuto per attività. Viene confermato quando la candidatura è approvata. Vale solo per il primo mese e non è cumulabile con altre promozioni.",
-      linked: "Candidatura ricevuta: il regalo sarà confermato con l'approvazione.",
-      confirmed: "Il tuo regalo di benvenuto è confermato.",
-      redeemed: "Il tuo regalo di benvenuto è stato applicato all'abbonamento.",
+      res1: "Lo sconto di benvenuto sarà applicato al primo mese di abbonamento, dopo la valutazione e l'approvazione del tuo brand da parte di Uniqaia.",
+      res1perk: "Il regalo di benvenuto si attiva con il primo mese di abbonamento, dopo la valutazione e l'approvazione del tuo brand da parte di Uniqaia.",
+      res2: "Valutiamo ogni candidatura entro 24 ore.",
+      terms1: "Le offerte di benvenuto valgono solo per il primo mese e sono soggette all'approvazione del tuo brand da parte di Uniqaia.",
+      terms2: "Abbonamento standard: {s} al mese per {n} dirette fino a {m} minuti ciascuna.",
+      linked: "L'offerta è riservata al tuo account.",
+      confirmed: "Il tuo brand è stato approvato: il link di pagamento sicuro è in arrivo nella tua casella email.",
+      redeemed: "L'offerta di benvenuto è stata applicata al tuo abbonamento.",
       demo: "Anteprima · modalità demo · nessun premio reale", again: "Gira di nuovo (demo)",
-      banner: "Il tuo regalo di benvenuto: {prize}. Compila il modulo per riceverlo: sarà confermato con l'approvazione della candidatura.",
-      bannerFirst: "primo mese {p}, poi {s} al mese",
-      thanks: "Il tuo regalo di benvenuto ({prize}) è riservato e sarà confermato insieme alla candidatura.",
       error: "Il regalo di benvenuto non è disponibile in questo momento. Riprova più tardi.", result: "Risultato: {prize}"
     },
     fr: {
@@ -71,18 +73,18 @@
       first: "Votre premier mois : {p}", instead: "Au lieu de {s}.",
       renews: "À partir du deuxième mois, l'abonnement se renouvelle à {s} par mois.",
       perkStd: "Le premier mois est au tarif standard de {s} par mois.",
-      setup: "Frais d'activation uniques de {f}, comme indiqué sur cette page.",
       golden_visibility: "7 jours de visibilité supplémentaire dans la section des marques.",
       golden_promotion: "Un reel promotionnel personnalisé pour votre premier live, créé à partir de notre modèle.",
       golden_spotlight: "7 jours de mise en avant dans la vitrine spéciale de la page d'accueil.",
-      fine: "Un seul cadeau de bienvenue par entreprise. Il est confirmé lorsque votre candidature est approuvée. Valable uniquement le premier mois, non cumulable avec d'autres promotions.",
-      linked: "Candidature reçue : votre cadeau sera confirmé lors de l'approbation.",
-      confirmed: "Votre cadeau de bienvenue est confirmé.",
-      redeemed: "Votre cadeau de bienvenue a été appliqué à votre abonnement.",
+      res1: "Votre remise de bienvenue sera appliquée à votre premier mois d'abonnement, sous réserve de l'examen et de l'approbation de votre marque par Uniqaia.",
+      res1perk: "Votre cadeau de bienvenue sera activé avec votre premier mois d'abonnement, sous réserve de l'examen et de l'approbation de votre marque par Uniqaia.",
+      res2: "Toutes les candidatures sont examinées sous 24 heures.",
+      terms1: "Les offres de bienvenue ne valent que pour le premier mois et sont soumises à l'approbation de votre marque par Uniqaia.",
+      terms2: "Abonnement standard : {s} par mois pour {n} directs de {m} minutes maximum chacun.",
+      linked: "Votre offre est réservée à votre compte.",
+      confirmed: "Votre marque a été approuvée : le lien de paiement sécurisé arrive dans votre boîte e-mail.",
+      redeemed: "Votre offre de bienvenue a été appliquée à votre abonnement.",
       demo: "Aperçu · mode démo · aucun cadeau réel", again: "Tourner à nouveau (démo)",
-      banner: "Votre cadeau de bienvenue : {prize}. Remplissez le formulaire pour en bénéficier : il sera confirmé lors de l'approbation de votre candidature.",
-      bannerFirst: "premier mois {p}, puis {s} par mois",
-      thanks: "Votre cadeau de bienvenue ({prize}) est réservé et sera confirmé avec votre candidature.",
       error: "Le cadeau de bienvenue n'est pas disponible pour le moment. Veuillez réessayer plus tard.", result: "Résultat : {prize}"
     },
     ru: {
@@ -91,18 +93,18 @@
       first: "Ваш первый месяц: {p}", instead: "Вместо {s}.",
       renews: "Со второго месяца подписка продлевается по цене {s} в месяц.",
       perkStd: "Первый месяц — по стандартной цене {s} в месяц.",
-      setup: "Единоразовая плата за подключение {f}, как указано на этой странице.",
       golden_visibility: "7 дней дополнительной видимости в разделе брендов.",
       golden_promotion: "Персональный промо-ролик для вашего первого эфира, созданный по нашему шаблону.",
       golden_spotlight: "7 дней в специальной витрине на главной странице.",
-      fine: "Один приветственный подарок на компанию. Подарок подтверждается после одобрения заявки. Действует только на первый месяц и не суммируется с другими акциями.",
-      linked: "Заявка получена: подарок будет подтверждён после её одобрения.",
-      confirmed: "Ваш приветственный подарок подтверждён.",
-      redeemed: "Ваш приветственный подарок применён к подписке.",
+      res1: "Приветственная скидка будет применена к первому месяцу подписки после рассмотрения и одобрения вашего бренда командой Uniqaia.",
+      res1perk: "Приветственный подарок будет активирован с первым месяцем подписки после рассмотрения и одобрения вашего бренда командой Uniqaia.",
+      res2: "Все заявки рассматриваются в течение 24 часов.",
+      terms1: "Приветственные предложения действуют только на первый месяц и при условии одобрения вашего бренда командой Uniqaia.",
+      terms2: "Стандартная подписка: {s} в месяц за {n} эфира продолжительностью до {m} минут каждый.",
+      linked: "Предложение закреплено за вашим аккаунтом.",
+      confirmed: "Ваш бренд одобрен: защищённая ссылка на оплату уже отправлена на вашу почту.",
+      redeemed: "Приветственное предложение применено к вашей подписке.",
       demo: "Предпросмотр · демо-режим · без реальных подарков", again: "Крутить снова (демо)",
-      banner: "Ваш приветственный подарок: {prize}. Заполните форму, чтобы получить его: он будет подтверждён после одобрения заявки.",
-      bannerFirst: "первый месяц {p}, затем {s} в месяц",
-      thanks: "Ваш приветственный подарок ({prize}) зарезервирован и будет подтверждён вместе с заявкой.",
       error: "Приветственный подарок сейчас недоступен. Попробуйте позже.", result: "Результат: {prize}"
     },
     ar: {
@@ -111,18 +113,18 @@
       first: "شهرك الأول: {p}", instead: "بدلاً من {s}.",
       renews: "يتجدد اشتراكك بسعر {s} شهريًا ابتداءً من الشهر الثاني.",
       perkStd: "الشهر الأول بالسعر المعتاد {s} شهريًا.",
-      setup: "رسوم تفعيل لمرة واحدة بقيمة {f}، كما هو موضح في هذه الصفحة.",
       golden_visibility: "7 أيام من الظهور الإضافي في قسم العلامات التجارية.",
       golden_promotion: "مقطع ترويجي مخصص لأول بث مباشر لك، يُنشأ من قالبنا.",
       golden_spotlight: "7 أيام من الظهور المميز في واجهة خاصة على الصفحة الرئيسية.",
-      fine: "هدية ترحيبية واحدة لكل نشاط تجاري. تُؤكَّد عند الموافقة على طلبك. صالحة للشهر الأول فقط ولا تُجمع مع عروض أخرى.",
-      linked: "تم استلام طلبك: ستُؤكَّد هديتك عند الموافقة عليه.",
-      confirmed: "تم تأكيد هديتك الترحيبية.",
-      redeemed: "تم تطبيق هديتك الترحيبية على اشتراكك.",
+      res1: "سيُطبَّق خصم الترحيب على الشهر الأول من اشتراكك، بعد مراجعة Uniqaia لعلامتك التجارية والموافقة عليها.",
+      res1perk: "ستُفعَّل هديتك الترحيبية مع الشهر الأول من اشتراكك، بعد مراجعة Uniqaia لعلامتك التجارية والموافقة عليها.",
+      res2: "نراجع جميع الطلبات خلال 24 ساعة.",
+      terms1: "عروض الترحيب صالحة للشهر الأول فقط وتخضع لموافقة Uniqaia على علامتك التجارية.",
+      terms2: "الاشتراك المعتاد: {s} شهريًا مقابل {n} بثوث مباشرة تصل مدة كل منها إلى {m} دقيقة.",
+      linked: "العرض محجوز لحسابك.",
+      confirmed: "تمت الموافقة على علامتك التجارية: رابط الدفع الآمن في طريقه إلى بريدك الإلكتروني.",
+      redeemed: "تم تطبيق عرض الترحيب على اشتراكك.",
       demo: "معاينة · وضع تجريبي · لا توجد جوائز حقيقية", again: "أدر العجلة مرة أخرى (تجريبي)",
-      banner: "هديتك الترحيبية: {prize}. املأ النموذج للحصول عليها، وستُؤكَّد عند الموافقة على طلبك.",
-      bannerFirst: "الشهر الأول {p}، ثم {s} شهريًا",
-      thanks: "هديتك الترحيبية ({prize}) محجوزة وستُؤكَّد مع طلبك.",
       error: "الهدية الترحيبية غير متاحة حاليًا. يرجى المحاولة لاحقًا.", result: "النتيجة: {prize}"
     }
   };
@@ -153,17 +155,20 @@
   var preview = get(SS, "uqw-preview") === "1";
 
   // ---------------------------------------------------------------- server
+  function bearer() { return window.UQAuth && UQAuth.fresh ? UQAuth.fresh().catch(function () { return null; }) : Promise.resolve(null); }
   function rpc(fn, body, keep) {
-    return fetch(W.url + "/rest/v1/rpc/" + fn, {
-      method: "POST", keepalive: !!keep,
-      headers: { "Content-Type": "application/json", apikey: W.key, Authorization: "Bearer " + W.key },
-      body: JSON.stringify(body)
+    return bearer().then(function (tok) {
+      return fetch(W.url + "/rest/v1/rpc/" + fn, {
+        method: "POST", keepalive: !!keep,
+        headers: { "Content-Type": "application/json", apikey: W.key, Authorization: "Bearer " + (tok || W.key) },
+        body: JSON.stringify(body)
+      });
     }).then(function (r) { return r.json().then(function (j) { if (!r.ok) throw new Error((j && j.message) || r.status); return j; }); });
   }
   function track(ev) { rpc("wheel_track", { p_session: session(), p_device: device(), p_event: ev, p_lang: lang() }, true).catch(function () {}); }
 
   // ---------------------------------------------------------------- stato
-  var S = { mode: "off", prizes: [], spin: null, std: 14900, setup: 0, open: false, view: "wheel", spinning: false, rot: 0, interacted: false };
+  var S = { mode: "off", prizes: [], spin: null, std: 14900, lives: 4, maxMin: 60, open: false, view: "wheel", spinning: false, rot: 0, interacted: false };
   var els = {};
 
   // ---------------------------------------------------------------- stile
@@ -181,13 +186,13 @@
     ".uqw-eyebrow{font-size:11.5px;letter-spacing:.2em;text-transform:uppercase;color:var(--gold-edge,#8C6A2B);font-weight:500;margin:0}",
     ".uqw-h{font-family:var(--display,'Bodoni Moda',Didot,Georgia,serif);font-weight:400;font-size:clamp(21px,5.6vw,26px);line-height:1.15;letter-spacing:.06em;margin:6px 0 8px;padding:0 26px}",
     ".uqw-sub{font-size:14px;line-height:1.5;color:var(--muted,#5B606A);font-style:italic;margin:0 auto;max-width:34ch}",
-    ".uqw-stage{position:relative;width:min(72vw,300px,44dvh);aspect-ratio:1;margin:18px auto 18px}",
+    ".uqw-stage{position:relative;width:min(70vw,290px,40dvh);aspect-ratio:1;margin:16px auto 16px}",
     ".uqw-rot{position:absolute;inset:0;will-change:transform}",
     ".uqw-rot svg,.uqw-pin svg{display:block;width:100%;height:100%;overflow:visible}",
     ".uqw-pin{position:absolute;left:50%;top:-6%;width:13%;height:17%;transform:translateX(-50%);filter:drop-shadow(0 2px 3px rgba(28,20,6,.35));z-index:1}",
     ".uqw-rot text{font-family:var(--display,'Bodoni Moda',Didot,Georgia,serif);fill:#1C1406}",
     ".uqw-rot text.s{font-family:var(--body,'Jost',system-ui,sans-serif);font-size:8.6px;letter-spacing:.16em;fill:#8C6A2B;font-weight:500}",
-    ".uqw-rot path.win{fill:#F3DFA9}",
+    ".uqw-rot .win{fill:#F3DFA9}",
     ".uqw-btn{display:inline-flex;align-items:center;justify-content:center;min-height:50px;padding:0 28px;border-radius:999px;border:1px solid #1C1406;background:#1C1406;color:#EDD596;font:500 14px/1 var(--body,'Jost',system-ui,sans-serif);letter-spacing:.16em;text-transform:uppercase;cursor:pointer;width:100%;max-width:320px;transition:background .2s,color .2s,transform .1s}",
     ".uqw-btn:hover{background:#2a2010}",
     ".uqw-btn:active{transform:scale(.99)}",
@@ -198,7 +203,13 @@
     ".uqw-prize .p{font-family:var(--display,'Bodoni Moda',Didot,Georgia,serif);font-size:clamp(22px,6vw,27px);line-height:1.15;color:#1C1406;margin:0 0 8px}",
     ".uqw-prize .l{font-size:13.5px;line-height:1.5;color:#3b3a36;margin:0}",
     ".uqw-prize .l + .l{margin-top:2px}",
-    ".uqw-fine{font-size:11.5px;line-height:1.45;color:var(--muted,#5B606A);margin:12px auto 0;max-width:36ch}",
+    ".uqw-fine{font-size:12px;line-height:1.45;color:var(--muted,#5B606A);margin:12px auto 0;max-width:38ch}",
+    ".uqw-terms{font-size:12px;line-height:1.45;color:#4a4740;margin:12px auto 0;max-width:40ch}",
+    ".uqw-terms p{margin:0}",
+    ".uqw-terms p + p{margin-top:3px}",
+    ".uqw-res{font-size:13.5px;line-height:1.5;color:#2b2a26;margin:0 auto 14px;max-width:38ch}",
+    ".uqw-res p{margin:0}",
+    ".uqw-res p + p{margin-top:4px;color:#8C6A2B}",
     ".uqw-note{font-size:13.5px;line-height:1.45;margin:4px auto 0;color:#1E7A4F;max-width:34ch}",
     ".uqw-link{display:inline-block;margin-top:10px;background:none;border:0;color:#8C6A2B;text-decoration:underline;font-size:12.5px;cursor:pointer;padding:6px}",
     ".uqw-sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}",
@@ -208,9 +219,6 @@
     "[dir=rtl] .uqw-fab{right:auto;left:max(16px,env(safe-area-inset-left,0px))}",
     ".uqw-fab svg{width:18px;height:18px;flex:none}",
     ".uqw-fab.off{opacity:0;transform:translateY(12px);pointer-events:none}",
-    ".uqw-banner{display:flex;gap:10px;align-items:flex-start;border:1px solid #EDD596;background:#FBF3E0;border-radius:12px;padding:10px 14px;font-size:13.5px;line-height:1.45;color:#1C1406;text-align:start}",
-    ".uqw-banner svg{width:18px;height:18px;flex:none;margin-top:1px}",
-    ".uqw-thanks{margin-top:10px;font-size:14px;color:#8C6A2B}",
     "html.uqw-lock,html.uqw-lock body{overflow:hidden}",
     "@media (max-width:380px){.uqw-card{padding:26px 16px 18px}.uqw-h{padding:0 30px}}",
     "@media (prefers-reduced-motion:reduce){.uqw-scrim,.uqw-card,.uqw-fab{transition:none}.uqw-in{animation:none}}"
@@ -235,8 +243,10 @@
     for (var i = 0; i < n; i++) {
       var a0 = i * seg, a1 = a0 + seg, fill = tones[i % 2];
       if (n % 2 && i === n - 1) fill = "#FBF4E4";
-      out.push('<path data-i="' + i + '" d="M0 0 L' + pt(R, a0) + ' A' + R + ' ' + R + ' 0 ' + (seg > 180 ? 1 : 0) + ' 1 ' + pt(R, a1) + ' Z" fill="' + fill + '" stroke="#CBA44F" stroke-width=".8"/>');
-      var L = labels(S.prizes[i]), mid = a0 + seg / 2;
+      // un solo premio: disco intero (un arco da 360° non si disegna), con la scritta in alto
+      if (n === 1) out.push('<circle data-i="0" r="' + R + '" fill="' + fill + '"/>');
+      else out.push('<path data-i="' + i + '" d="M0 0 L' + pt(R, a0) + ' A' + R + ' ' + R + ' 0 ' + (seg > 180 ? 1 : 0) + ' 1 ' + pt(R, a1) + ' Z" fill="' + fill + '" stroke="#CBA44F" stroke-width=".8"/>');
+      var L = labels(S.prizes[i]), mid = n === 1 ? 0 : a0 + seg / 2;
       out.push('<g transform="rotate(' + mid.toFixed(2) + ')"><text class="s" x="0" y="-116" text-anchor="middle">' + esc(L.s) + '</text>' +
         '<text x="0" y="' + (L.big ? -86 : -92) + '" text-anchor="middle" font-size="' + (L.big ? 23 : 12.5) + '"' + (L.big ? '' : ' letter-spacing="1.2"') + '>' + esc(L.b) + '</text></g>');
     }
@@ -289,13 +299,17 @@
   function prizeIndex(code) { for (var i = 0; i < S.prizes.length; i++) if (S.prizes[i].code === code) return i; return -1; }
   function demoTag() { return S.mode === "demo" ? '<p class="uqw-demo">' + esc(tx("demo")) + "</p>" : ""; }
 
+  function termsBlock() {
+    return '<div class="uqw-terms"><p>' + esc(tx("terms1")) + "</p><p>" + esc(tx("terms2", { s: eur(S.std), n: S.lives, m: S.maxMin })) + "</p></div>";
+  }
+
   function viewWheel() {
     var names = S.prizes.map(function (p) { return p.name; }).join(", ");
     els.body.innerHTML = demoTag() +
       '<p class="uqw-h" id="uqw-title">' + esc(BRAND.title) + "</p>" +
       '<p class="uqw-sub">' + esc(tx("sub")) + "</p>" +
       '<div class="uqw-stage" dir="ltr" role="img" aria-label="' + esc(tx("wheel", { list: names })) + '"><div class="uqw-rot">' + wheelSVG() + '</div><div class="uqw-pin">' + PIN + "</div></div>" +
-      '<button type="button" class="uqw-btn" id="uqw-spin">' + esc(BRAND.spin) + "</button>";
+      '<button type="button" class="uqw-btn" id="uqw-spin">' + esc(BRAND.spin) + "</button>" + termsBlock();
     els.rot = els.body.querySelector(".uqw-rot"); setRot(S.rot);
     els.body.querySelector("#uqw-spin").addEventListener("click", spin);
   }
@@ -311,20 +325,25 @@
       l.push('<p class="l">' + esc(tx(s.prize_code)) + "</p>");
       l.push('<p class="l">' + esc(tx("perkStd", { s: std })) + "</p>");
     }
-    if (S.setup > 0) l.push('<p class="l">' + esc(tx("setup", { f: eur(S.setup) })) + "</p>");
-    var st = s.status, foot;
-    if (st === "provisional") foot = '<button type="button" class="uqw-btn" id="uqw-claim">' + esc(BRAND.claim) + '</button><p class="uqw-fine">' + esc(tx("fine")) + "</p>";
-    else foot = '<p class="uqw-note">' + esc(tx(st === "linked" ? "linked" : st === "confirmed" ? "confirmed" : "redeemed")) + '</p><p class="uqw-fine">' + esc(tx("fine")) + "</p>";
+    var st = s.status, foot = "";
+    if (st === "provisional" || st === "linked") {
+      foot = '<div class="uqw-res"><p>' + esc(tx(s.kind === "discount" ? "res1" : "res1perk")) + "</p><p>" + esc(tx("res2")) + "</p></div>" +
+        (st === "linked" ? '<p class="uqw-note">' + esc(tx("linked")) + "</p>" : "") +
+        '<button type="button" class="uqw-btn" id="uqw-apply">' + esc(BRAND.apply) + "</button>";
+    } else {
+      foot = '<p class="uqw-note">' + esc(tx(st === "confirmed" ? "confirmed" : "redeemed")) + "</p>";
+    }
+    foot += termsBlock();
     if (S.mode === "demo") foot += '<button type="button" class="uqw-link" id="uqw-again">' + esc(tx("again")) + "</button>";
     els.body.innerHTML = demoTag() +
       '<div class="' + (fresh ? "uqw-in" : "") + '"><p class="uqw-eyebrow">' + esc(BRAND.congrats) + "</p>" +
-      '<p class="uqw-h" id="uqw-title">' + esc(BRAND.unlocked) + "</p>" +
+      '<p class="uqw-h" id="uqw-title">' + esc(BRAND.reserved) + "</p>" +
       '<div class="uqw-prize">' + (s.kind === "discount" ? '<p class="n">' + esc(s.prize_name) + "</p>" : "") + l.join("") + "</div>" + foot + "</div>";
     els.rot = null;
-    var c = els.body.querySelector("#uqw-claim"); if (c) c.addEventListener("click", claim);
+    var c = els.body.querySelector("#uqw-apply"); if (c) c.addEventListener("click", apply);
     var g = els.body.querySelector("#uqw-again"); if (g) g.addEventListener("click", again);
     if (fresh) els.live.textContent = tx("result", { prize: s.prize_name });
-    if (fresh && S.open) { var f = els.body.querySelector("#uqw-claim") || els.x; f.focus({ preventScroll: true }); }
+    if (fresh && S.open) { var f = els.body.querySelector("#uqw-apply") || els.x; f.focus({ preventScroll: true }); }
   }
 
   function viewError() {
@@ -350,8 +369,8 @@
     animate(res, function () {
       res.then(function (i) {
         S.spinning = false;
-        var path = els.rot && els.rot.querySelector('path[data-i="' + i + '"]'); if (path) path.classList.add("win");
-        setTimeout(function () { S.view = "result"; viewResult(true); track("prize_shown"); syncFab(); }, path ? 650 : 0);
+        var path = els.rot && els.rot.querySelector('[data-i="' + i + '"]'); if (path) path.classList.add("win");
+        setTimeout(function () { S.view = "result"; viewResult(true); track("prize_shown"); syncFab(); changed(); }, path ? 650 : 0);
       }, function () { S.spinning = false; S.view = "error"; viewError(); });
     });
   }
@@ -359,18 +378,18 @@
   function again() {
     // solo in demo: nuovo dispositivo, nuovo giro, per provare gli esiti
     if (S.mode !== "demo") return;
-    set(LS, "uqw-device", uuid()); set(LS, "uqw-claimed", ""); S.spin = null; S.view = "wheel"; S.rot = 0; removeBanner(); render();
+    set(LS, "uqw-device", uuid()); S.spin = null; S.view = "wheel"; S.rot = 0; render(); changed();
     var b = els.body.querySelector("#uqw-spin"); if (b) b.focus();
   }
 
-  function claim() {
-    track("claim_click"); set(LS, "uqw-claimed", "1"); close(true);
-    var form = findForm();
-    if (!form) { location.href = location.pathname.replace(/[^/]*$/, "") || "/"; return; }
-    banner();
-    var top = (els.banner || form).getBoundingClientRect().top + window.pageYOffset - 16;
+  // REGISTER & APPLY: si chiude il pop-up e si va all'area account della pagina (registrazione, accesso o candidatura)
+  function apply() {
+    track("claim_click"); close(true);
+    var box = document.getElementById("acct");
+    if (!box) { location.href = (location.pathname.replace(/[^/]*$/, "") || "/") + "#acct"; return; }
+    var top = box.getBoundingClientRect().top + window.pageYOffset - 12;
     window.scrollTo({ top: top, behavior: window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" });
-    var first = form.querySelector("input,select,textarea"); if (first) setTimeout(function () { first.focus({ preventScroll: true }); }, 450);
+    setTimeout(function () { var f = box.querySelector("input:not([type=hidden]):not([disabled]),select,textarea,button.btn"); if (f) f.focus({ preventScroll: true }); }, 450);
   }
 
   // ---------------------------------------------------------------- pop-up
@@ -441,66 +460,42 @@
     els.fab.setAttribute("aria-hidden", show ? "false" : "true");
   }
 
-  // ---------------------------------------------------------------- modulo di candidatura
-  function findForm() { return document.querySelector("#jForm") || document.querySelector("main form"); }
-  function prizeLine() {
-    var s = S.spin; if (!s) return "";
-    return s.kind === "discount" ? s.prize_name + " — " + tx("bannerFirst", { p: eur(s.first_month_cents), s: eur(S.std) }) : s.prize_name;
+  // ---------------------------------------------------------------- dialogo con la pagina
+  // La pagina /join legge lo stato della ruota (premio del dispositivo prima della registrazione)
+  // e avvisa quando si entra o si esce dall'account: allora la ruota ricarica il premio dell'account.
+  function changed() { try { document.dispatchEvent(new CustomEvent("uqw:change")); } catch (e) {} }
+  window.UQWheel = {
+    state: function () { return { mode: S.mode, spin: S.spin, std: S.std, lives: S.lives, maxMin: S.maxMin }; },
+    device: device,
+    open: function () { if (S.mode !== "off") open(); }
+  };
+  function reload() {
+    return rpc("wheel_state", { p_device: device() }).then(function (st) {
+      if (!st || st.mode === "off") return;
+      S.spin = st.spin || null; if (S.open && !S.spinning) { S.view = S.spin ? "result" : "wheel"; render(); }
+      syncFab(); changed();
+    }).catch(function () {});
   }
-  function removeBanner() { if (els.banner && els.banner.parentNode) els.banner.parentNode.removeChild(els.banner); els.banner = null; }
-  function banner() {
-    var form = findForm(), s = S.spin;
-    if (!form || !s || s.status !== "provisional" || get(LS, "uqw-claimed") !== "1") { removeBanner(); return; }
-    var txt = tx("banner", { prize: prizeLine() });
-    if (els.banner && els.banner.parentNode && els.banner.nextSibling === form) { if (els.banner.lastChild.textContent !== txt) els.banner.lastChild.textContent = txt; return; }
-    removeBanner();
-    var b = document.createElement("div"); b.className = "uqw-banner"; b.setAttribute("role", "note");
-    b.innerHTML = GIFT + "<span></span>"; b.lastChild.textContent = txt;
-    form.parentNode.insertBefore(b, form); els.banner = b;
-  }
-  function thanks() {
-    var t = document.querySelector(".thanks"); if (!t || !S.spin || S.spin.status !== "linked" || t.querySelector(".uqw-thanks")) return;
-    var p = document.createElement("p"); p.className = "uqw-thanks"; p.textContent = tx("thanks", { prize: S.spin.prize_name });
-    var h = t.querySelector("p") || t.lastChild; t.insertBefore(p, h ? h.nextSibling : null);
-  }
-  // la candidatura parte: il premio provvisorio si lega a email e partita IVA dichiarate
-  document.addEventListener("submit", function (e) {
-    var f = e.target; if (!S.spin || S.spin.status === "void" || !f || !f.querySelector) return;
-    var em = f.querySelector('input[type="email"]'); if (!em || !em.value) return;
-    var vat = f.querySelector('#jVat,[name="vat_number"],[name="vat"],input[id*="Vat"],input[id*="vat"]');
-    rpc("wheel_link", { p_device: device(), p_session: session(), p_email: em.value, p_vat: vat ? vat.value : null }, true)
-      .then(function (sp) { if (sp) { S.spin = sp; thanks(); syncFab(); } }).catch(function () {});
-  }, true);
+  document.addEventListener("uqauth:change", reload);
 
-  // la pagina si ridisegna da sola quando cambia lingua: testi e banner vanno rimessi al loro posto
-  function onPageChange() { if (S.mode === "off") return; banner(); thanks(); watchSubmit(); syncFab(); }
   function observe() {
-    var page = document.querySelector("main") || document.body;
-    new MutationObserver(function (ms) {
-      // si ignorano i cambiamenti fatti da questo script (pop-up, banner, pulsante), altrimenti si rincorrerebbe da solo
-      function mine(n) { return n === els.scrim || n === els.banner || n === els.fab || (n.className && /^uqw-/.test(n.className)); }
-      for (var i = 0; i < ms.length; i++) {
-        var t = ms[i].target;
-        if ([els.scrim, els.banner, els.fab].some(function (x) { return x && (x === t || x.contains(t)); })) continue;
-        var other = Array.prototype.some.call(ms[i].addedNodes, function (n) { return !mine(n); }) ||
-                    Array.prototype.some.call(ms[i].removedNodes, function (n) { return !mine(n); });
-        if (other) { onPageChange(); break; }
-      }
-    }).observe(page, { childList: true, subtree: true });
+    // il tasto di invio del modulo cambia quando la pagina si ridisegna: il pulsante flottante lo segue
+    var page = document.querySelector("main") || document.body, t = null;
+    new MutationObserver(function () { clearTimeout(t); t = setTimeout(function () { watchSubmit(); syncFab(); }, 60); }).observe(page, { childList: true, subtree: true });
     new MutationObserver(function () {
       if (els.x) els.x.setAttribute("aria-label", tx("close"));
       if (S.open && !S.spinning) render();
-      onPageChange();
     }).observe(document.documentElement, { attributes: true, attributeFilter: ["lang"] });
   }
 
   // ---------------------------------------------------------------- avvio: subito, senza ritardi
   rpc("wheel_state", { p_device: device() }).then(function (st) {
     if (!st || st.mode === "off" || (st.mode === "demo" && !preview) || !st.prizes || !st.prizes.length) return;
-    S.mode = st.mode; S.prizes = st.prizes; S.spin = st.spin || null; S.std = st.standard_cents || 14900; S.setup = st.setup_fee_cents || 0;
-    build(); observe(); banner();
+    S.mode = st.mode; S.prizes = st.prizes; S.spin = st.spin || null;
+    S.std = st.standard_cents || 14900; S.lives = st.lives_per_month || 4; S.maxMin = st.live_max_min || 60;
+    build(); observe(); changed();
     var dead = S.spin && (S.spin.status === "void" || S.spin.status === "redeemed");
     // chiuso in questa sessione: non si riapre da solo; nuova sessione: si riapre, con il premio già assegnato
-    if (get(SS, "uqw-closed") !== "1" && !dead) open(true); else syncFab();
+    if (get(SS, "uqw-closed") !== "1" && !dead && !/#acct$/.test(location.hash)) open(true); else syncFab();
   }).catch(function () {});
 })();

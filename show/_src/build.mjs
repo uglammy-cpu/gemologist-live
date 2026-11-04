@@ -67,6 +67,8 @@ let DATA = { jewelers: [], categories: [], shows: [], pieces: [], covers: [], ph
 if (process.argv.includes("--fetch")) DATA = await fetchData();
 else if (fs.existsSync(DATA_FILE)) DATA = JSON.parse(fs.readFileSync(DATA_FILE, "utf8"));
 const sellers = DATA.jewelers.map((j) => j.slug).filter((s) => /^[a-z0-9-]{2,40}$/.test(s));
+// categorie attive per il modulo di candidatura (solo slug e nomi)
+parts.CATS = JSON.stringify((DATA.categories || []).map((c) => ({ slug: c.slug, name_i18n: c.name_i18n })));
 const jById = Object.fromEntries(DATA.jewelers.map((j) => [j.id, j]));
 const piecesByShow = {}; for (const p of DATA.pieces) (piecesByShow[p.show_id] = piecesByShow[p.show_id] || []).push(p);
 const coverByShow = Object.fromEntries(DATA.covers.map((c) => [c.show_id, c.data]));
@@ -338,6 +340,8 @@ self.addEventListener("fetch", function(e){
   write("index.html", prerenderVetrina(t, render(t, "vetrina", {})));
   write("join/index.html", render(t, "join", {}));
   write("wheel-admin/index.html", render(t, "wheel-admin", { tokenParam: "k" }));
+  write("admin/index.html", render(t, "seller-admin", { tokenParam: "k" }));
+  write("pay/index.html", render(t, "pay", {}));
   const viewer = render(t, "viewer", { tokenParam: "t" });
   const panel = render(t, "panel", { tokenParam: "k" });
   const profile = render(t, "profile", {});
@@ -360,7 +364,7 @@ self.addEventListener("fetch", function(e){
     }
   }
   write("sitemap.xml", `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls.map((u) => `  <url><loc>${H(u)}</loc></url>`).join("\n")}\n</urlset>\n`);
-  if (P === "") write("robots.txt", DEMO ? `User-agent: *\nAllow: /\nDisallow: /*/panel/\nDisallow: /wheel-admin/\n` : `User-agent: *\nAllow: /\nDisallow: /*/panel/\nDisallow: /wheel-admin/\nSitemap: ${t.site}/sitemap.xml\n`);
+  if (P === "") write("robots.txt", DEMO ? `User-agent: *\nAllow: /\nDisallow: /*/panel/\nDisallow: /wheel-admin/\nDisallow: /admin/\nDisallow: /pay/\n` : `User-agent: *\nAllow: /\nDisallow: /*/panel/\nDisallow: /wheel-admin/\nDisallow: /admin/\nDisallow: /pay/\nSitemap: ${t.site}/sitemap.xml\n`);
   // Immagini (logo, icona, anteprima, copertine, foto) condivise tra le due versioni
   if (P === "") { fs.cpSync(IMG, path.join(t.out, "img"), { recursive: true }); }
   // 404.html: instrada <prefix>/<slug>, /panel, /profile e <prefix>/<slug>/<diretta> verso le pagine giuste
@@ -369,7 +373,7 @@ self.addEventListener("fetch", function(e){
 <body><script>
 (function(){
   var m = location.pathname.match(/^${esc(P)}\\/([a-z0-9-]{2,40})(?:\\/([a-z0-9-]{2,60}))?\\/?$/);
-  if (!m || m[1] === "join" || m[1] === "img") return;
+  if (!m || m[1] === "join" || m[1] === "img" || m[1] === "pay" || m[1] === "admin" || m[1] === "wheel-admin") return;
   var f = !m[2] ? "${P}/_viewer.html" : (m[2] === "panel" ? "${P}/_panel.html" : (m[2] === "profile" ? "${P}/_profile.html" : "${P}/_landing.html"));
   fetch(f, { cache: "no-store" }).then(function(r){ return r.text(); }).then(function(h){ document.open(); document.write(h); document.close(); });
 })();

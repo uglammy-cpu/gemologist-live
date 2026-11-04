@@ -2,3 +2,5 @@ User-agent: *
 Allow: /
 Disallow: /*/panel/
 Disallow: /wheel-admin/
+Disallow: /admin/
+Disallow: /pay/

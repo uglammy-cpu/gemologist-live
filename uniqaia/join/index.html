@@ -451,6 +451,7 @@ body.dark .demo{color:rgba(247,235,203,.55)}body.dark .demo b{color:var(--gold-h
 </div></header>
 <main class="wrap"><div class="jpage" id="page"></div></main>
 <footer class="wrap" id="foot"></footer><p class="demo"><b>Demo</b><span data-t="demoNote">Vetrina dimostrativa: gioiellieri, dirette e prezzi sono esempi. Le dirette vere partono con i gioiellieri selezionati.</span></p>
+
 <script>
 
 var ICON = {
@@ -532,75 +533,518 @@ function lkAttachRemote(room, tiles, LK){
   room.on(LK.RoomEvent.Disconnected, function(){ tiles.clear(); });
 }
 
+// Pagina /join (4 novembre 2026): presentazione, account seller, candidatura, stato della pratica.
+// Percorso: ruota → premio → registrazione → candidatura → approvazione → link di pagamento → abbonamento attivo.
+// Account con Supabase Auth (email e password, chiamate REST dirette); i dati passano solo da funzioni del database
+// che riconoscono l'account (account_me, account_claim_spin, account_submit_application).
 (function(){
   var Q = new URLSearchParams(location.search), SLUG = (location.pathname.match(/^\/([a-z0-9-]{2,40})(?:\/|$)/) || [])[1] || "";
   var CFG = {"url":"https://itoxzepuukyvdxxtfetf.supabase.co","key":"sb_publishable_Y6m8EWUZt97nSTmYBsRwYg_Fnzidatk","base":"https://uniqaia.com","name":"Uniqaia","lang":(Q.get("lang")||"").toLowerCase()};
-  var TT = {"it":{"thisWeek":"Questa settimana","later":"Più avanti","discover":"Scopri","enter":"Entra","liveOn":"Live {day} alle {time}","heroLive":"Live adesso","noWeek":"Nessuna diretta in programma questa settimana: guarda le prossime qui sotto.","join2":"Partecipa alla diretta","liveNow":"In diretta ora: entra","piecesH":"I pezzi presentati","share2":"Condividi","langShow":"Lingua","by":"di","endedLead":"Questa diretta è terminata: puoi comunque chiedere informazioni sui pezzi.","localTime":"nel tuo fuso orario","descH":"Di cosa parliamo","follow":"Segui","following":"Lo segui ✓","followLead":"Lascia la tua email: ti scriviamo quando {name} va in diretta. Nient'altro.","followOk":"Fatto: ti avviseremo","enterLive":"Entra nella diretta","nextShow":"Prossima diretta","upcomingP":"Dirette in programma","pastShows":"Dirette passate","noShowsP":"Nessuna diretta in programma al momento.","website":"Sito","shopLink":"Negozio online","specialties":"Specialità","buy":"Acquista","how":"Come funziona","howTitle":"Come funziona","howInterest":"Mi interessa: la gioielleria riceve nome e contatto e ti risponde sul pezzo.","howBook":"Prenota: trenta minuti in video privato con la gioielleria, nell'orario che scegli.","howBuy":"Acquisto: direttamente con la gioielleria, dal suo negozio online quando c'è il link, altrimenti tramite «Mi interessa». Nessuna asta.","contact":"Email o telefono","contactLead":"Serve alla gioielleria per risponderti sul pezzo.","price":"Fascia di prezzo","whichPiece":"Quale pezzo ti interessa?","profile":"Scheda","ok":"OK","tabCats":"Categorie","hCats":"Esplora per categoria","catAll":"Tutte","catOne":"1 diretta","catMany":"{n} dirette","catSoon":"Prossimamente","noneCat":"Nessuna diretta in questa categoria per ora.","catsOf":"Categorie","tag":"Fine jewelry & gemstones · Live","search":"Cerca gioiellerie, gemme, pezzi","tabLive":"Live adesso","tabSoon":"In programma","tabShops":"Chi trasmette","trust":["Fine jewelry & gemstones","Gioiellerie e gem dealer selezionati","Gemmologa GIA in diretta"],"hLive":"In diretta ora","hSoon":"Prossime dirette","hShops":"Gioiellerie e gem dealer","join":"Come entrare","withGem":"con la gemmologa GIA","live":"Live adesso","soon":"In programma","ended":"Terminata","gems":"Gem dealer","shop":"Gioielleria","emptyLiveT":"Nessuna diretta in questo momento","emptyLive":"Le prossime sono qui sotto: tocca «Ricordamelo» e ti avvisiamo.","emptySoonT":"Programma in arrivo","emptySoon":"Le gioiellerie stanno fissando le prossime date.","remind":"Ricordamelo","reminded":"✓ Ti avviseremo","remindToast":"Promemoria salvato su questo telefono: ","about":"Che cos’è","wTitle":"Gioielli e gemme <em>dal vivo</em>, con una gemmologa accanto.","wLead":"Dirette private di gioiellerie e gem dealer selezionati. Fai domande, chiedi di vedere un pezzo da vicino, prenota un incontro: senza aste e senza fretta.","wPoints":["Solo fine jewelry e gemme naturali, da chi le vende davvero","Una gemmologa GIA in collegamento che risponde a tutti","Sottotitoli in più lingue"],"wGo":"Entra","wSellers":"Hai una gioielleria o sei un gem dealer? Trasmetti con noi →","wSig":"Un progetto di Elena Goglio · Gemmologa GIA","ctaTitle":"Hai una gioielleria o sei un gem dealer?","ctaText":"Porta i tuoi clienti in diretta. Entrano solo venditori selezionati.","ctaBtn":"Candidati","foot":"Uniqaia · Gems & Jewelry Live","footJoin":"Gioiellerie e gem dealer entrano su invito, dopo verifica.","demoNote":"Vetrina dimostrativa: gioiellieri, dirette e prezzi sono esempi. Le dirette vere partono con i gioiellieri selezionati.","installT":"Metti Uniqaia sul telefono","installText":"Si apre a tutto schermo, come un’app.","installIos":"Tocca Condividi e poi «Aggiungi a schermata Home».","installB":"Installa","eyebrow":"Diretta privata su invito","declaredBy":"caratteristiche dichiarate dal venditore","fNight":"Per quale serata","nightAny":"Nessuna preferenza","hNights":"Il palinsesto fisso della settimana","nRot":"a rotazione","nAlways":"Ogni settimana, sempre gli stessi giorni.","nSlots":"Tre dirette da un'ora:","nightOpen":"Candidature aperte","nightOne":"diretta in programma","nightMany":"dirette in programma","takeIt":"Lo prendo","takenOk":"Richiesta inviata. Il venditore ti manda il link per pagare.","takenMsg":"Lo prendo: ","gateTitle":"Entra in diretta","gateLead":"Lascia la tua email per entrare.","gateEmail":"La tua email","gateName":"Il tuo nome","gateGo":"Entra","gateConsent":"Voglio ricevere il calendario delle dirette e le novità di Uniqaia","gatePrivacy":"L’email serve per farti entrare e per metterti in contatto con il venditore. Nessuna newsletter se non spunti la casella.","gateBadEmail":"Controlla l’indirizzo email","payNow":"Paga ora","payTitle":"Pagamento","payOn":"Paghi su","payBy":"Link inviato da","payOpen":"Apri il pagamento","buyPiece":"Acquista questo pezzo","payArrived":"Il venditore ti ha mandato il link per pagare.","payOutside":"Il pagamento avviene sul sistema del venditore. Uniqaia non incassa nulla e non è parte della vendita.","decl":{"naturali":"pietre naturali","lab":"pietre create in laboratorio","sintetiche":"pietre sintetiche o imitazioni","nessuna":"senza pietre","non_dichiarato":"natura delle pietre non dichiarata","tr":"trattamenti","or":"provenienza","ce":"certificato"},"cc":"Sottotitoli","subsT":"Sottotitoli","subsOff":"Nessuno","subsWait":"In attesa dell'audio…","subsOrig":"Italiano (originale)","interest":"Mi interessa","book":"Prenota","invite":"Invita","ask":"Scrivi una domanda…","send":"Invia","me":"Tu","guest":"Ospite","yourName":"Il tuo nome","nameLead":"Per scrivere e fare richieste serve il tuo nome: lo vede solo la gioielleria.","cont":"Continua","waitSoon":"La diretta inizia","waitEnded":"La diretta è terminata","waitEndedSub":"Grazie per aver partecipato. Le richieste inviate sono arrivate alla gioielleria.","sentInterest":"Richiesta inviata a ","when":"Quando preferisci?","book2":"Trenta minuti in video con ","confirmed":"Appuntamento richiesto","back":"Torna alla diretta","booked":"Ho prenotato l’incontro privato: ","interestMsg":"Mi interessa: ","audio":"Attiva l’audio","copied":"Link copiato: mandalo a chi vuoi invitare","backTo":"Vetrina","askName":"Scrivi prima il tuo nome","jEyebrow":"Per gioiellerie e gem dealer","jTitle":"Trasmetti con noi","jLead":"La piattaforma per fare dirette private con i tuoi clienti, con la gemmologa in collegamento se vuoi. Tu porti il pubblico, noi la tecnologia e la competenza.","jWhatH":"Cosa ricevi","jWhat":["La pagina della diretta con il tuo marchio, privata su invito o in vetrina","Chat, «Mi interessa» e prenotazioni: ogni richiesta arriva a te con il nome del cliente","Video in alta definizione dal telefono, senza app da installare","Gemmologa GIA in collegamento quando vuoi, replay e sottotitoli in più lingue"],"jWhoH":"Chi può candidarsi","jWho":["Gioiellerie e gem dealer con sede e partita IVA","Solo fine jewelry e gemme naturali","Disponibili a mostrare i pezzi dal vivo, con i certificati quando ci sono"],"jPrice":"al mese per la piattaforma · attivazione 290 € · opzioni con la gemmologa su preventivo","jFormH":"Candidatura","fName":"Nome dell’attività","fCity":"Città","fKind":"Tipo","kShop":"Gioielleria","kGems":"Gem dealer","fSite":"Sito o profilo","fShow":"Cosa vorresti mostrare in diretta","fEmail":"Email","fPhone":"Telefono","jSend":"Invia la candidatura","jFine":"Ti risponde Elena personalmente. Nessun impegno fino al primo contratto.","thTitle":"Candidatura ricevuta","thText":"Grazie. Elena guarda ogni candidatura di persona e ti ricontatta per una videochiamata di conoscenza.","thBtn":"Torna alla vetrina","need":"Compila nome, città ed email","sending":"Invio…"},"en":{"thisWeek":"This week","later":"Later on","discover":"Discover","enter":"Enter","liveOn":"Live {day} at {time}","heroLive":"Live now","noWeek":"No shows scheduled this week: see the next ones below.","join2":"Join the live show","liveNow":"Live now: enter","piecesH":"Pieces on show","share2":"Share","langShow":"Language","by":"by","endedLead":"This show has ended: you can still ask about the pieces.","localTime":"in your time zone","descH":"What it's about","follow":"Follow","following":"Following ✓","followLead":"Leave your email: we'll write when {name} goes live. Nothing else.","followOk":"Done: we'll let you know","enterLive":"Enter the live show","nextShow":"Next show","upcomingP":"Upcoming shows","pastShows":"Past shows","noShowsP":"No shows scheduled right now.","website":"Website","shopLink":"Online shop","specialties":"Specialities","buy":"Buy","how":"How it works","howTitle":"How it works","howInterest":"I'm interested: the jeweller gets your name and contact and replies about the piece.","howBook":"Book: thirty minutes on private video with the jeweller, at the time you choose.","howBuy":"Buying: directly with the jeweller, from their online shop when there is a link, otherwise via “I'm interested”. No auctions.","contact":"Email or phone","contactLead":"So the jeweller can get back to you about the piece.","price":"Price range","whichPiece":"Which piece are you interested in?","profile":"Profile","ok":"OK","tabCats":"Categories","hCats":"Browse by category","catAll":"All","catOne":"1 show","catMany":"{n} shows","catSoon":"Coming soon","noneCat":"No shows in this category yet.","catsOf":"Categories","tag":"Fine jewelry & gemstones · Live","search":"Search jewellers, gems, pieces","tabLive":"Live now","tabSoon":"Upcoming","tabShops":"Sellers","trust":["Fine jewelry & gemstones","Selected jewellers and gem dealers","GIA gemologist live"],"hLive":"Live now","hSoon":"Upcoming shows","hShops":"Jewellers and gem dealers","join":"How to join","withGem":"with the GIA gemologist","live":"Live now","soon":"Scheduled","ended":"Ended","gems":"Gem dealer","shop":"Jeweller","emptyLiveT":"No live show right now","emptyLive":"The next ones are below: tap “Remind me” and we'll let you know.","emptySoonT":"Programme coming soon","emptySoon":"The jewellers are setting their next dates.","remind":"Remind me","reminded":"✓ We'll remind you","remindToast":"Reminder saved on this phone: ","about":"What is this","wTitle":"Jewellery and gems <em>live</em>, with a gemologist at your side.","wLead":"Private live shows from selected jewellers and gem dealers. Ask questions, see a piece up close, book a private appointment: no auctions, no rush.","wPoints":["Only fine jewellery and natural gems, from the people who actually sell them","A GIA gemologist joining in and answering everyone","Subtitles in several languages"],"wGo":"Enter","wSellers":"Jeweller or gem dealer? Go live with us →","wSig":"A project by Elena Goglio · GIA gemologist","ctaTitle":"Jeweller or gem dealer?","ctaText":"Bring your clients live. Selected sellers only.","ctaBtn":"Apply","foot":"Uniqaia · Gems & Jewelry Live","footJoin":"Jewellers and gem dealers join by invitation, after vetting.","demoNote":"Demo showcase: jewellers, live shows and prices are examples. Real shows start with the selected jewellers.","installT":"Add Uniqaia to your phone","installText":"It opens full screen, like an app.","installIos":"Tap Share, then “Add to Home Screen”.","installB":"Install","eyebrow":"Private live show, by invitation","declaredBy":"characteristics as declared by the seller","fNight":"Which evening","nightAny":"No preference","hNights":"The fixed weekly schedule","nRot":"rotating themes","nAlways":"Every week, always the same days.","nSlots":"Three one-hour shows:","nightOpen":"Applications open","nightOne":"show scheduled","nightMany":"shows scheduled","takeIt":"I'll take it","takenOk":"Sent. The seller will send you the payment link.","takenMsg":"I'll take it: ","gateTitle":"Join the live show","gateLead":"Leave your email to come in.","gateEmail":"Your email","gateName":"Your name","gateGo":"Come in","gateConsent":"I'd like to receive Uniqaia's show calendar and news","gatePrivacy":"Your email is used to let you in and to put you in touch with the seller. No newsletter unless you tick the box.","gateBadEmail":"Check the email address","payNow":"Pay now","payTitle":"Payment","payOn":"You pay on","payBy":"Link sent by","payOpen":"Open the payment","buyPiece":"Buy this piece","payArrived":"The seller has sent you a payment link.","payOutside":"Payment is taken on the seller's own system. Uniqaia receives no money and is not a party to the sale.","decl":{"naturali":"natural stones","lab":"lab-grown stones","sintetiche":"synthetic stones or imitations","nessuna":"no stones","non_dichiarato":"nature of stones not declared","tr":"treatments","or":"origin","ce":"report"},"cc":"Subtitles","subsT":"Subtitles","subsOff":"None","subsWait":"Waiting for audio…","subsOrig":"Italian (original)","interest":"I'm interested","book":"Book","invite":"Invite","ask":"Ask a question…","send":"Send","me":"You","guest":"Guest","yourName":"Your name","nameLead":"We need your name to chat and send requests: only the jeweller sees it.","cont":"Continue","waitSoon":"The live show starts","waitEnded":"The live show has ended","waitEndedSub":"Thank you for joining. Your requests have reached the jeweller.","sentInterest":"Request sent to ","when":"When suits you?","book2":"Thirty minutes on video with ","confirmed":"Appointment requested","back":"Back to the live show","booked":"I've booked a private appointment: ","interestMsg":"I'm interested: ","audio":"Turn on sound","copied":"Link copied: send it to whoever you'd like to invite","backTo":"Showcase","askName":"Please enter your name first","jEyebrow":"For jewellers and gem dealers","jTitle":"Go live with us","jLead":"The platform for private live shows with your own clients, with the gemologist joining in if you wish. You bring the audience, we bring the technology and the expertise.","jWhatH":"What you get","jWhat":["Your branded live page, private by invitation or in the showcase","Chat, “I'm interested” and bookings: every request reaches you with the client's name","HD video from a phone, no app to install","GIA gemologist on call, replays and subtitles in several languages"],"jWhoH":"Who can apply","jWho":["Jewellers and gem dealers with premises and a VAT number","Fine jewellery and natural gems only","Willing to show pieces live, with certificates where available"],"jPrice":"per month for the platform · €290 setup · gemologist options on quotation","jFormH":"Application","fName":"Business name","fCity":"City","fKind":"Type","kShop":"Jeweller","kGems":"Gem dealer","fSite":"Website or profile","fShow":"What you'd like to show live","fEmail":"Email","fPhone":"Phone","jSend":"Send application","jFine":"Elena replies personally. No commitment before the first contract.","thTitle":"Application received","thText":"Thank you. Elena reviews every application herself and will get back to you for an introductory video call.","thBtn":"Back to the showcase","need":"Please fill in name, city and email","sending":"Sending…"},"fr":{"thisWeek":"Cette semaine","later":"Plus tard","discover":"Découvrir","enter":"Entrer","liveOn":"En direct {day} à {time}","heroLive":"Live maintenant","noWeek":"Aucun direct cette semaine : voyez les prochains ci-dessous.","join2":"Participer au direct","liveNow":"En direct maintenant : entrer","piecesH":"Les pièces présentées","share2":"Partager","langShow":"Langue","by":"par","endedLead":"Ce direct est terminé : vous pouvez encore poser des questions sur les pièces.","localTime":"dans votre fuseau horaire","descH":"De quoi il s'agit","follow":"Suivre","following":"Suivi ✓","followLead":"Laissez votre e-mail : nous vous écrivons quand {name} passe en direct. Rien d'autre.","followOk":"C'est noté : nous vous préviendrons","enterLive":"Entrer dans le direct","nextShow":"Prochain direct","upcomingP":"Directs à venir","pastShows":"Directs passés","noShowsP":"Aucun direct programmé pour le moment.","website":"Site","shopLink":"Boutique en ligne","specialties":"Spécialités","buy":"Acheter","how":"Comment ça marche","howTitle":"Comment ça marche","howInterest":"Ça m'intéresse : la bijouterie reçoit votre nom et votre contact et vous répond sur la pièce.","howBook":"Réserver : trente minutes en vidéo privée avec la bijouterie, à l'heure de votre choix.","howBuy":"Achat : directement auprès de la bijouterie, via sa boutique en ligne s'il y a un lien, sinon via « Ça m'intéresse ». Pas d'enchères.","contact":"E-mail ou téléphone","contactLead":"Pour que la bijouterie puisse vous répondre sur la pièce.","price":"Fourchette de prix","whichPiece":"Quelle pièce vous intéresse ?","profile":"Fiche","ok":"OK","tabCats":"Catégories","hCats":"Explorer par catégorie","catAll":"Toutes","catOne":"1 direct","catMany":"{n} directs","catSoon":"Bientôt","noneCat":"Pas encore de direct dans cette catégorie.","catsOf":"Catégories","tag":"Fine jewelry & gemstones · Live","search":"Chercher bijouteries, gemmes, pièces","tabLive":"Live maintenant","tabSoon":"À venir","tabShops":"Vendeurs","trust":["Fine jewelry & gemstones","Bijouteries et négociants sélectionnés","Gemmologue GIA en direct"],"hLive":"En direct maintenant","hSoon":"Prochains directs","hShops":"Bijouteries et négociants en gemmes","join":"Comment rejoindre","withGem":"avec la gemmologue GIA","live":"Live maintenant","soon":"Programmé","ended":"Terminé","gems":"Négociant en gemmes","shop":"Bijouterie","emptyLiveT":"Aucun direct en ce moment","emptyLive":"Les prochains sont ci-dessous : touchez « Me le rappeler » et nous vous préviendrons.","emptySoonT":"Programme à venir","emptySoon":"Les bijouteries fixent leurs prochaines dates.","remind":"Me le rappeler","reminded":"✓ Nous vous préviendrons","remindToast":"Rappel enregistré sur ce téléphone : ","about":"Qu’est-ce que c’est","wTitle":"Bijoux et gemmes <em>en direct</em>, avec une gemmologue à vos côtés.","wLead":"Directs privés de bijouteries et négociants sélectionnés. Posez vos questions, voyez une pièce de près, réservez un rendez-vous : sans enchères, sans précipitation.","wPoints":["Uniquement de la haute joaillerie et des gemmes naturelles, par ceux qui les vendent vraiment","Une gemmologue GIA en liaison qui répond à tous","Sous-titres en plusieurs langues"],"wGo":"Entrer","wSellers":"Bijoutier ou négociant en gemmes ? Diffusez avec nous →","wSig":"Un projet d’Elena Goglio · Gemmologue GIA","ctaTitle":"Bijoutier ou négociant en gemmes ?","ctaText":"Faites venir vos clients en direct. Vendeurs sélectionnés uniquement.","ctaBtn":"Candidater","foot":"Uniqaia · Gems & Jewelry Live","footJoin":"Bijouteries et négociants entrent sur invitation, après vérification.","demoNote":"Vitrine de démonstration : bijoutiers, directs et prix sont des exemples. Les vrais directs commenceront avec les bijoutiers sélectionnés.","installT":"Ajoutez Uniqaia à votre téléphone","installText":"Elle s’ouvre en plein écran, comme une application.","installIos":"Touchez Partager, puis « Sur l’écran d’accueil ».","installB":"Installer","eyebrow":"Direct privé, sur invitation","declaredBy":"caractéristiques déclarées par le vendeur","fNight":"Pour quelle soirée","nightAny":"Sans préférence","hNights":"Le programme fixe de la semaine","nRot":"thèmes en rotation","nAlways":"Chaque semaine, toujours les mêmes jours.","nSlots":"Trois directs d'une heure :","nightOpen":"Candidatures ouvertes","nightOne":"direct programmé","nightMany":"directs programmés","takeIt":"Je le prends","takenOk":"Envoyé. Le vendeur vous enverra le lien de paiement.","takenMsg":"Je le prends : ","gateTitle":"Entrer dans le direct","gateLead":"Laissez votre e-mail pour entrer.","gateEmail":"Votre e-mail","gateName":"Votre nom","gateGo":"Entrer","gateConsent":"Je souhaite recevoir le calendrier des directs et les actualités d'Uniqaia","gatePrivacy":"Votre e-mail sert à vous faire entrer et à vous mettre en contact avec le vendeur. Pas de newsletter sans cocher la case.","gateBadEmail":"Vérifiez l'adresse e-mail","payNow":"Payer","payTitle":"Paiement","payOn":"Vous payez sur","payBy":"Lien envoyé par","payOpen":"Ouvrir le paiement","buyPiece":"Acheter cette pièce","payArrived":"Le vendeur vous a envoyé un lien de paiement.","payOutside":"Le paiement se fait sur le système du vendeur. Uniqaia ne perçoit rien et n'est pas partie à la vente.","decl":{"naturali":"pierres naturelles","lab":"pierres de laboratoire","sintetiche":"pierres synthétiques ou imitations","nessuna":"sans pierres","non_dichiarato":"nature des pierres non déclarée","tr":"traitements","or":"provenance","ce":"certificat"},"cc":"Sous-titres","subsT":"Sous-titres","subsOff":"Aucun","subsWait":"En attente du son…","subsOrig":"Italien (original)","interest":"Ça m’intéresse","book":"Réserver","invite":"Inviter","ask":"Posez une question…","send":"Envoyer","me":"Vous","guest":"Invité","yourName":"Votre nom","nameLead":"Votre nom est nécessaire pour écrire et faire des demandes : seule la bijouterie le voit.","cont":"Continuer","waitSoon":"Le direct commence","waitEnded":"Le direct est terminé","waitEndedSub":"Merci d’avoir participé. Vos demandes sont bien arrivées à la bijouterie.","sentInterest":"Demande envoyée à ","when":"Quand préférez-vous ?","book2":"Trente minutes en vidéo avec ","confirmed":"Rendez-vous demandé","back":"Retour au direct","booked":"J’ai réservé le rendez-vous privé : ","interestMsg":"Ça m’intéresse : ","audio":"Activer le son","copied":"Lien copié : envoyez-le à qui vous voulez inviter","backTo":"Vitrine","askName":"Indiquez d’abord votre nom","jEyebrow":"Pour bijouteries et négociants","jTitle":"Diffusez avec nous","jLead":"La plateforme pour des directs privés avec vos propres clients, avec la gemmologue en liaison si vous le souhaitez. Vous apportez le public, nous la technologie et l’expertise.","jWhatH":"Ce que vous recevez","jWhat":["Votre page de direct à votre marque, privée sur invitation ou en vitrine","Chat, « Ça m’intéresse » et réservations : chaque demande vous arrive avec le nom du client","Vidéo HD depuis un téléphone, sans application à installer","Gemmologue GIA à la demande, replays et sous-titres en plusieurs langues"],"jWhoH":"Qui peut candidater","jWho":["Bijouteries et négociants avec un local et un numéro de TVA","Uniquement haute joaillerie et gemmes naturelles","Prêts à montrer les pièces en direct, avec les certificats quand ils existent"],"jPrice":"par mois pour la plateforme · activation 290 € · options avec la gemmologue sur devis","jFormH":"Candidature","fName":"Nom de l’entreprise","fCity":"Ville","fKind":"Type","kShop":"Bijouterie","kGems":"Négociant en gemmes","fSite":"Site ou profil","fShow":"Ce que vous aimeriez montrer en direct","fEmail":"E-mail","fPhone":"Téléphone","jSend":"Envoyer la candidature","jFine":"Elena vous répond personnellement. Aucun engagement avant le premier contrat.","thTitle":"Candidature reçue","thText":"Merci. Elena examine chaque candidature elle-même et vous recontacte pour un appel vidéo de présentation.","thBtn":"Retour à la vitrine","need":"Merci d’indiquer le nom, la ville et l’e-mail","sending":"Envoi…"},"ar":{"thisWeek":"هذا الأسبوع","later":"لاحقًا","discover":"اكتشف","enter":"ادخل","liveOn":"بث مباشر {day} الساعة {time}","heroLive":"مباشر الآن","noWeek":"لا توجد بثوث هذا الأسبوع: انظر البثوث القادمة أدناه.","join2":"شارك في البث","liveNow":"مباشر الآن: ادخل","piecesH":"القطع المعروضة","share2":"مشاركة","langShow":"اللغة","by":"من","endedLead":"انتهى هذا البث: لا يزال بإمكانك السؤال عن القطع.","localTime":"بتوقيتك المحلي","descH":"عن ماذا نتحدث","follow":"متابعة","following":"تتابعه ✓","followLead":"اترك بريدك الإلكتروني: نراسلك عندما يبدأ {name} البث. لا شيء آخر.","followOk":"تم: سنخبرك","enterLive":"ادخل إلى البث","nextShow":"البث القادم","upcomingP":"البثوث المجدولة","pastShows":"البثوث السابقة","noShowsP":"لا توجد بثوث مجدولة حاليًا.","website":"الموقع","shopLink":"المتجر الإلكتروني","specialties":"التخصصات","buy":"اشترِ","how":"كيف يعمل","howTitle":"كيف يعمل","howInterest":"يهمّني: يتلقى الصائغ اسمك وبيانات التواصل ويردّ عليك بخصوص القطعة.","howBook":"احجز: ثلاثون دقيقة بالفيديو الخاص مع الصائغ في الوقت الذي تختاره.","howBuy":"الشراء: مباشرة مع الصائغ، من متجره الإلكتروني إن وُجد الرابط، وإلا عبر «يهمّني». لا مزادات.","contact":"البريد الإلكتروني أو الهاتف","contactLead":"ليتمكن الصائغ من الرد عليك بخصوص القطعة.","price":"نطاق السعر","whichPiece":"أي قطعة تهمّك؟","profile":"الملف","ok":"حسنًا","tabCats":"الفئات","hCats":"تصفّح حسب الفئة","catAll":"الكل","catOne":"بث واحد","catMany":"{n} بثوث","catSoon":"قريبًا","noneCat":"لا توجد بثوث في هذه الفئة بعد.","catsOf":"الفئات","tag":"مجوهرات راقية وأحجار كريمة · بث مباشر","search":"ابحث عن صاغة وأحجار وقطع","tabLive":"مباشر الآن","tabSoon":"القادمة","tabShops":"البائعون","trust":["مجوهرات راقية وأحجار كريمة","صاغة وتجّار أحجار مختارون","خبيرة أحجار كريمة GIA على الهواء"],"hLive":"مباشر الآن","hSoon":"البثوث القادمة","hShops":"الصاغة وتجّار الأحجار","join":"كيف تنضم","withGem":"مع خبيرة الأحجار الكريمة GIA","live":"مباشر الآن","soon":"مجدول","ended":"انتهى","gems":"تاجر أحجار كريمة","shop":"صائغ","emptyLiveT":"لا يوجد بث مباشر الآن","emptyLive":"البثوث القادمة في الأسفل: اضغط «ذكّرني» وسنخبرك.","emptySoonT":"البرنامج قريبًا","emptySoon":"الصاغة يحددون مواعيدهم القادمة.","remind":"ذكّرني","reminded":"✓ سنذكّرك","remindToast":"تم حفظ التذكير على هذا الهاتف: ","about":"ما هذا؟","wTitle":"مجوهرات وأحجار كريمة <em>على الهواء</em>، مع خبيرة أحجار إلى جانبك.","wLead":"بثوث مباشرة خاصة من صاغة وتجّار أحجار مختارين. اطرح أسئلتك، اطلب رؤية القطعة عن قرب، واحجز موعدًا خاصًا: بلا مزادات وبلا عجلة.","wPoints":["مجوهرات راقية وأحجار طبيعية فقط، من بائعيها الحقيقيين","خبيرة أحجار كريمة GIA تنضم وتجيب عن أسئلة الجميع","ترجمة بعدة لغات"],"wGo":"ادخل","wSellers":"هل أنت صائغ أو تاجر أحجار كريمة؟ ابثّ معنا ←","wSig":"مشروع من إيلينا غوليو · خبيرة أحجار كريمة GIA","ctaTitle":"هل أنت صائغ أو تاجر أحجار كريمة؟","ctaText":"اصطحب عملاءك إلى البث المباشر. للبائعين المختارين فقط.","ctaBtn":"قدّم طلبك","foot":"Uniqaia · Gems & Jewelry Live","footJoin":"ينضم الصاغة وتجّار الأحجار بدعوة، بعد التحقق.","demoNote":"واجهة عرض تجريبية: الصاغة والبثوث والأسعار أمثلة توضيحية. تبدأ البثوث الحقيقية مع الصاغة المختارين.","installT":"أضف Uniqaia إلى هاتفك","installText":"تفتح بملء الشاشة، مثل التطبيق.","installIos":"اضغط مشاركة ثم «إضافة إلى الشاشة الرئيسية».","installB":"تثبيت","eyebrow":"بث مباشر خاص بدعوة","declaredBy":"الخصائص كما أقرّها البائع","fNight":"لأي أمسية","nightAny":"بدون تفضيل","hNights":"برنامج الأسبوع الثابت","nRot":"مواضيع بالتناوب","nAlways":"كل أسبوع، الأيام نفسها دائمًا.","nSlots":"ثلاثة بثوث مدة كل منها ساعة:","nightOpen":"باب الترشّح مفتوح","nightOne":"بث مجدول","nightMany":"بثوث مجدولة","takeIt":"سآخذها","takenOk":"تم الإرسال. سيرسل لك البائع رابط الدفع.","takenMsg":"سآخذها: ","gateTitle":"ادخل البث المباشر","gateLead":"اترك بريدك الإلكتروني للدخول.","gateEmail":"بريدك الإلكتروني","gateName":"اسمك","gateGo":"ادخل","gateConsent":"أرغب في تلقّي جدول البثوث وأخبار Uniqaia","gatePrivacy":"نستخدم بريدك للسماح لك بالدخول ولوصلك بالبائع. لا نشرة بريدية ما لم تحدّد المربع.","gateBadEmail":"تحقّق من عنوان البريد الإلكتروني","payNow":"ادفع الآن","payTitle":"الدفع","payOn":"تدفع على","payBy":"أرسل الرابط","payOpen":"افتح صفحة الدفع","buyPiece":"اشترِ هذه القطعة","payArrived":"أرسل إليك البائع رابط الدفع.","payOutside":"يتم الدفع على نظام البائع. لا تتلقى Uniqaia أي مبلغ وليست طرفًا في البيع.","decl":{"naturali":"أحجار طبيعية","lab":"أحجار مزروعة مخبرياً","sintetiche":"أحجار صناعية أو مقلّدة","nessuna":"بلا أحجار","non_dichiarato":"طبيعة الأحجار غير معلنة","tr":"المعالجات","or":"المنشأ","ce":"الشهادة"},"cc":"الترجمة","subsT":"الترجمة النصية","subsOff":"بدون","subsWait":"في انتظار الصوت…","subsOrig":"الإيطالية (الأصل)","interest":"يهمّني","book":"احجز","invite":"ادعُ","ask":"اكتب سؤالك…","send":"إرسال","me":"أنت","guest":"ضيف","yourName":"اسمك","nameLead":"نحتاج اسمك للمحادثة وإرسال الطلبات: يراه الصائغ فقط.","cont":"متابعة","waitSoon":"يبدأ البث المباشر","waitEnded":"انتهى البث المباشر","waitEndedSub":"شكرًا لمشاركتك. وصلت طلباتك إلى الصائغ.","sentInterest":"أُرسل الطلب إلى ","when":"متى يناسبك؟","book2":"ثلاثون دقيقة بالفيديو مع ","confirmed":"تم طلب الموعد","back":"العودة إلى البث","booked":"حجزت موعدًا خاصًا: ","interestMsg":"يهمّني: ","audio":"تشغيل الصوت","copied":"تم نسخ الرابط: أرسله لمن تريد دعوته","backTo":"الواجهة","askName":"اكتب اسمك أولًا","jEyebrow":"للصاغة وتجّار الأحجار الكريمة","jTitle":"ابثّ معنا","jLead":"المنصة لإقامة بثوث مباشرة خاصة مع عملائك، مع انضمام خبيرة الأحجار إن أردت. أنت تجلب الجمهور، ونحن نجلب التقنية والخبرة.","jWhatH":"ماذا تحصل عليه","jWhat":["صفحة بث مباشر بعلامتك التجارية، خاصة بدعوة أو في الواجهة","محادثة و«يهمّني» وحجوزات: يصلك كل طلب مع اسم العميل","فيديو عالي الدقة من الهاتف، دون تطبيق","خبيرة أحجار GIA عند الطلب، إعادة المشاهدة وترجمة بعدة لغات"],"jWhoH":"من يمكنه التقديم","jWho":["صاغة وتجّار أحجار لديهم مقر ورقم ضريبي","مجوهرات راقية وأحجار طبيعية فقط","مستعدون لعرض القطع على الهواء، مع الشهادات عند توفرها"],"jPrice":"شهريًا للمنصة · تفعيل 290 € · خيارات خبيرة الأحجار بعرض سعر","jFormH":"طلب الانضمام","fName":"اسم النشاط","fCity":"المدينة","fKind":"النوع","kShop":"صائغ","kGems":"تاجر أحجار كريمة","fSite":"الموقع أو الحساب","fShow":"ماذا تودّ أن تعرض على الهواء","fEmail":"البريد الإلكتروني","fPhone":"الهاتف","jSend":"إرسال الطلب","jFine":"تردّ عليك إيلينا شخصيًا. لا التزام قبل العقد الأول.","thTitle":"تم استلام طلبك","thText":"شكرًا. تراجع إيلينا كل طلب بنفسها وستتواصل معك لمكالمة فيديو تعريفية.","thBtn":"العودة إلى الواجهة","need":"يرجى إدخال الاسم والمدينة والبريد الإلكتروني","sending":"جارٍ الإرسال…"},"ru":{"thisWeek":"На этой неделе","later":"Позже","discover":"Смотреть","enter":"Войти","liveOn":"Эфир {day} в {time}","heroLive":"Live сейчас","noWeek":"На этой неделе эфиров нет: смотрите ближайшие ниже.","join2":"Участвовать в эфире","liveNow":"Сейчас в эфире: войти","piecesH":"Представленные изделия","share2":"Поделиться","langShow":"Язык","by":"от","endedLead":"Этот эфир завершён: вы всё ещё можете спросить об изделиях.","localTime":"в вашем часовом поясе","descH":"О чём речь","follow":"Подписаться","following":"Вы подписаны ✓","followLead":"Оставьте email: мы напишем, когда {name} выйдет в эфир. И больше ничего.","followOk":"Готово: мы сообщим","enterLive":"Войти в эфир","nextShow":"Ближайший эфир","upcomingP":"Запланированные эфиры","pastShows":"Прошедшие эфиры","noShowsP":"Сейчас нет запланированных эфиров.","website":"Сайт","shopLink":"Интернет-магазин","specialties":"Специализация","buy":"Купить","how":"Как это работает","howTitle":"Как это работает","howInterest":"Интересует: ювелир получает ваше имя и контакт и отвечает по изделию.","howBook":"Записаться: тридцать минут приватного видео с ювелиром в удобное вам время.","howBuy":"Покупка: напрямую у ювелира — в его интернет-магазине, если есть ссылка, иначе через «Интересует». Без аукционов.","contact":"Email или телефон","contactLead":"Чтобы ювелир мог ответить вам по изделию.","price":"Ценовой диапазон","whichPiece":"Какое изделие вас интересует?","profile":"Профиль","ok":"OK","tabCats":"Категории","hCats":"Смотреть по категориям","catAll":"Все","catOne":"1 эфир","catFew":"{n} эфира","catMany":"{n} эфиров","catSoon":"Скоро","noneCat":"В этой категории пока нет эфиров.","catsOf":"Категории","tag":"Ювелирные украшения и камни · Live","search":"Поиск ювелиров, камней, изделий","tabLive":"Live сейчас","tabSoon":"Скоро","tabShops":"Продавцы","trust":["Fine jewelry & gemstones","Отобранные ювелиры и дилеры камней","Геммолог GIA в прямом эфире"],"hLive":"Сейчас в эфире","hSoon":"Ближайшие эфиры","hShops":"Ювелиры и дилеры камней","join":"Как присоединиться","withGem":"с геммологом GIA","live":"Live сейчас","soon":"Запланирован","ended":"Завершён","gems":"Дилер камней","shop":"Ювелир","emptyLiveT":"Сейчас нет прямых эфиров","emptyLive":"Ближайшие — ниже: нажмите «Напомнить», и мы вас предупредим.","emptySoonT":"Расписание скоро появится","emptySoon":"Ювелиры назначают ближайшие даты.","remind":"Напомнить","reminded":"✓ Мы напомним","remindToast":"Напоминание сохранено на этом телефоне: ","about":"Что это","wTitle":"Украшения и камни <em>вживую</em>, рядом с геммологом.","wLead":"Закрытые прямые эфиры отобранных ювелиров и дилеров камней. Задавайте вопросы, попросите показать изделие ближе, запишитесь на личную встречу: без аукционов и без спешки.","wPoints":["Только fine jewelry и природные камни — от тех, кто их действительно продаёт","Геммолог GIA на связи и отвечает всем","Субтитры на нескольких языках"],"wGo":"Войти","wSellers":"Вы ювелир или дилер камней? Выходите в эфир с нами →","wSig":"Проект Элены Гольо · геммолог GIA","ctaTitle":"Вы ювелир или дилер камней?","ctaText":"Приведите своих клиентов в прямой эфир. Только отобранные продавцы.","ctaBtn":"Подать заявку","foot":"Uniqaia · Gems & Jewelry Live","footJoin":"Ювелиры и дилеры камней входят по приглашению, после проверки.","demoNote":"Демонстрационная витрина: ювелиры, эфиры и цены — примеры. Настоящие эфиры начнутся с отобранными ювелирами.","installT":"Добавьте Uniqaia на телефон","installText":"Открывается на весь экран, как приложение.","installIos":"Нажмите «Поделиться», затем «На экран „Домой“».","installB":"Установить","eyebrow":"Закрытый эфир по приглашению","declaredBy":"характеристики со слов продавца","fNight":"На какой вечер","nightAny":"Без предпочтений","hNights":"Постоянное расписание недели","nRot":"темы по очереди","nAlways":"Каждую неделю, всегда в те же дни.","nSlots":"Три часовых эфира:","nightOpen":"Приём заявок открыт","nightOne":"эфир запланирован","nightMany":"эфира запланировано","takeIt":"Беру","takenOk":"Отправлено. Продавец пришлёт вам ссылку для оплаты.","takenMsg":"Беру: ","gateTitle":"Войти в эфир","gateLead":"Оставьте вашу почту, чтобы войти.","gateEmail":"Ваша почта","gateName":"Ваше имя","gateGo":"Войти","gateConsent":"Хочу получать расписание эфиров и новости Uniqaia","gatePrivacy":"Почта нужна, чтобы впустить вас и связать с продавцом. Рассылки не будет, если не отметить галочку.","gateBadEmail":"Проверьте адрес почты","payNow":"Оплатить","payTitle":"Оплата","payOn":"Оплата на","payBy":"Ссылку отправил","payOpen":"Открыть оплату","buyPiece":"Купить это изделие","payArrived":"Продавец отправил вам ссылку для оплаты.","payOutside":"Оплата проходит в системе продавца. Uniqaia не получает денег и не является стороной сделки.","decl":{"naturali":"природные камни","lab":"камни, выращенные в лаборатории","sintetiche":"синтетика или имитации","nessuna":"без камней","non_dichiarato":"природа камней не указана","tr":"обработка","or":"происхождение","ce":"сертификат"},"cc":"Субтитры","subsT":"Субтитры","subsOff":"Нет","subsWait":"Ожидание звука…","subsOrig":"Итальянский (оригинал)","interest":"Интересует","book":"Записаться","invite":"Пригласить","ask":"Задайте вопрос…","send":"Отправить","me":"Вы","guest":"Гость","yourName":"Ваше имя","nameLead":"Чтобы писать в чат и отправлять запросы, нужно ваше имя: его видит только ювелир.","cont":"Продолжить","waitSoon":"Эфир начнётся","waitEnded":"Эфир завершён","waitEndedSub":"Спасибо за участие. Ваши запросы переданы ювелиру.","sentInterest":"Запрос отправлен: ","when":"Когда вам удобно?","book2":"Тридцать минут по видео с ","confirmed":"Запрос на встречу отправлен","back":"Вернуться к эфиру","booked":"Я записался(ась) на личную встречу: ","interestMsg":"Меня интересует: ","audio":"Включить звук","copied":"Ссылка скопирована: отправьте её тому, кого хотите пригласить","backTo":"Витрина","askName":"Сначала укажите ваше имя","jEyebrow":"Для ювелиров и дилеров камней","jTitle":"Выходите в эфир с нами","jLead":"Платформа для закрытых прямых эфиров с вашими клиентами — при желании с подключением геммолога. Вы приводите аудиторию, мы даём технологию и экспертизу.","jWhatH":"Что вы получаете","jWhat":["Страница эфира с вашим брендом — закрытая по приглашению или в витрине","Чат, «Интересует» и записи на встречу: каждый запрос приходит к вам с именем клиента","HD-видео с телефона, без установки приложений","Геммолог GIA по запросу, записи эфиров и субтитры на нескольких языках"],"jWhoH":"Кто может подать заявку","jWho":["Ювелиры и дилеры камней с офисом и регистрацией НДС","Только fine jewelry и природные камни","Готовность показывать изделия вживую, с сертификатами, где они есть"],"jPrice":"в месяц за платформу · подключение 290 € · опции с геммологом по запросу","jFormH":"Заявка","fName":"Название компании","fCity":"Город","fKind":"Тип","kShop":"Ювелир","kGems":"Дилер камней","fSite":"Сайт или профиль","fShow":"Что вы хотели бы показать в эфире","fEmail":"Email","fPhone":"Телефон","jSend":"Отправить заявку","jFine":"Элена отвечает лично. Никаких обязательств до первого договора.","thTitle":"Заявка получена","thText":"Спасибо. Элена лично рассматривает каждую заявку и свяжется с вами для ознакомительного видеозвонка.","thBtn":"Вернуться в витрину","need":"Заполните название, город и email","sending":"Отправка…"}};
-  var sb = window.supabase.createClient(CFG.url, CFG.key);
+  var TT = {"it":{"thisWeek":"Questa settimana","later":"Più avanti","discover":"Scopri","enter":"Entra","liveOn":"Live {day} alle {time}","heroLive":"Live adesso","noWeek":"Nessuna diretta in programma questa settimana: guarda le prossime qui sotto.","join2":"Partecipa alla diretta","liveNow":"In diretta ora: entra","piecesH":"I pezzi presentati","share2":"Condividi","langShow":"Lingua","by":"di","endedLead":"Questa diretta è terminata: puoi comunque chiedere informazioni sui pezzi.","localTime":"nel tuo fuso orario","descH":"Di cosa parliamo","follow":"Segui","following":"Lo segui ✓","followLead":"Lascia la tua email: ti scriviamo quando {name} va in diretta. Nient'altro.","followOk":"Fatto: ti avviseremo","enterLive":"Entra nella diretta","nextShow":"Prossima diretta","upcomingP":"Dirette in programma","pastShows":"Dirette passate","noShowsP":"Nessuna diretta in programma al momento.","website":"Sito","shopLink":"Negozio online","specialties":"Specialità","buy":"Acquista","how":"Come funziona","howTitle":"Come funziona","howInterest":"Mi interessa: la gioielleria riceve nome e contatto e ti risponde sul pezzo.","howBook":"Prenota: trenta minuti in video privato con la gioielleria, nell'orario che scegli.","howBuy":"Acquisto: direttamente con la gioielleria, dal suo negozio online quando c'è il link, altrimenti tramite «Mi interessa». Nessuna asta.","contact":"Email o telefono","contactLead":"Serve alla gioielleria per risponderti sul pezzo.","price":"Fascia di prezzo","whichPiece":"Quale pezzo ti interessa?","profile":"Scheda","ok":"OK","tabCats":"Categorie","hCats":"Esplora per categoria","catAll":"Tutte","catOne":"1 diretta","catMany":"{n} dirette","catSoon":"Prossimamente","noneCat":"Nessuna diretta in questa categoria per ora.","catsOf":"Categorie","tag":"Fine jewelry & gemstones · Live","search":"Cerca gioiellerie, gemme, pezzi","tabLive":"Live adesso","tabSoon":"In programma","tabShops":"Chi trasmette","trust":["Fine jewelry & gemstones","Gioiellerie e gem dealer selezionati","Gemmologa GIA in diretta"],"hLive":"In diretta ora","hSoon":"Prossime dirette","hShops":"Gioiellerie e gem dealer","join":"Come entrare","withGem":"con la gemmologa GIA","live":"Live adesso","soon":"In programma","ended":"Terminata","gems":"Gem dealer","shop":"Gioielleria","emptyLiveT":"Nessuna diretta in questo momento","emptyLive":"Le prossime sono qui sotto: tocca «Ricordamelo» e ti avvisiamo.","emptySoonT":"Programma in arrivo","emptySoon":"Le gioiellerie stanno fissando le prossime date.","remind":"Ricordamelo","reminded":"✓ Ti avviseremo","remindToast":"Promemoria salvato su questo telefono: ","about":"Che cos’è","wTitle":"Gioielli e gemme <em>dal vivo</em>, con una gemmologa accanto.","wLead":"Dirette private di gioiellerie e gem dealer selezionati. Fai domande, chiedi di vedere un pezzo da vicino, prenota un incontro: senza aste e senza fretta.","wPoints":["Solo fine jewelry e gemme naturali, da chi le vende davvero","Una gemmologa GIA in collegamento che risponde a tutti","Sottotitoli in più lingue"],"wGo":"Entra","wSellers":"Hai una gioielleria o sei un gem dealer? Trasmetti con noi →","wSig":"Un progetto di Elena Goglio · Gemmologa GIA","ctaTitle":"Hai una gioielleria o sei un gem dealer?","ctaText":"Porta i tuoi clienti in diretta. Entrano solo venditori selezionati.","ctaBtn":"Candidati","foot":"Uniqaia · Gems & Jewelry Live","footJoin":"Gioiellerie e gem dealer entrano su invito, dopo verifica.","demoNote":"Vetrina dimostrativa: gioiellieri, dirette e prezzi sono esempi. Le dirette vere partono con i gioiellieri selezionati.","installT":"Metti Uniqaia sul telefono","installText":"Si apre a tutto schermo, come un’app.","installIos":"Tocca Condividi e poi «Aggiungi a schermata Home».","installB":"Installa","eyebrow":"Diretta privata su invito","declaredBy":"caratteristiche dichiarate dal venditore","fNight":"Per quale serata","nightAny":"Nessuna preferenza","hNights":"Il palinsesto fisso della settimana","nRot":"a rotazione","nAlways":"Ogni settimana, sempre gli stessi giorni.","nSlots":"Tre dirette da un'ora:","nightOpen":"Candidature aperte","nightOne":"diretta in programma","nightMany":"dirette in programma","takeIt":"Lo prendo","takenOk":"Richiesta inviata. Il venditore ti manda il link per pagare.","takenMsg":"Lo prendo: ","gateTitle":"Entra in diretta","gateLead":"Lascia la tua email per entrare.","gateEmail":"La tua email","gateName":"Il tuo nome","gateGo":"Entra","gateConsent":"Voglio ricevere il calendario delle dirette e le novità di Uniqaia","gatePrivacy":"L’email serve per farti entrare e per metterti in contatto con il venditore. Nessuna newsletter se non spunti la casella.","gateBadEmail":"Controlla l’indirizzo email","payNow":"Paga ora","payTitle":"Pagamento","payOn":"Paghi su","payBy":"Link inviato da","payOpen":"Apri il pagamento","buyPiece":"Acquista questo pezzo","payArrived":"Il venditore ti ha mandato il link per pagare.","payOutside":"Il pagamento avviene sul sistema del venditore. Uniqaia non incassa nulla e non è parte della vendita.","decl":{"naturali":"pietre naturali","lab":"pietre create in laboratorio","sintetiche":"pietre sintetiche o imitazioni","nessuna":"senza pietre","non_dichiarato":"natura delle pietre non dichiarata","tr":"trattamenti","or":"provenienza","ce":"certificato"},"cc":"Sottotitoli","subsT":"Sottotitoli","subsOff":"Nessuno","subsWait":"In attesa dell'audio…","subsOrig":"Italiano (originale)","interest":"Mi interessa","book":"Prenota","invite":"Invita","ask":"Scrivi una domanda…","send":"Invia","me":"Tu","guest":"Ospite","yourName":"Il tuo nome","nameLead":"Per scrivere e fare richieste serve il tuo nome: lo vede solo la gioielleria.","cont":"Continua","waitSoon":"La diretta inizia","waitEnded":"La diretta è terminata","waitEndedSub":"Grazie per aver partecipato. Le richieste inviate sono arrivate alla gioielleria.","sentInterest":"Richiesta inviata a ","when":"Quando preferisci?","book2":"Trenta minuti in video con ","confirmed":"Appuntamento richiesto","back":"Torna alla diretta","booked":"Ho prenotato l’incontro privato: ","interestMsg":"Mi interessa: ","audio":"Attiva l’audio","copied":"Link copiato: mandalo a chi vuoi invitare","backTo":"Vetrina","askName":"Scrivi prima il tuo nome","jEyebrow":"Per gioiellerie e gem dealer","jTitle":"Trasmetti con noi","jLead":"La piattaforma per fare dirette private con i tuoi clienti, con la gemmologa in collegamento se vuoi. Tu porti il pubblico, noi la tecnologia e la competenza.","jWhatH":"Cosa ricevi","jWhat":["La pagina della diretta con il tuo marchio, privata su invito o in vetrina","Chat, «Mi interessa» e prenotazioni: ogni richiesta arriva a te con il nome del cliente","Video in alta definizione dal telefono, senza app da installare","Gemmologa GIA in collegamento quando vuoi, replay e sottotitoli in più lingue"],"jWhoH":"Chi può candidarsi","jWho":["Gioiellerie e gem dealer con sede e partita IVA","Solo fine jewelry e gemme naturali","Disponibili a mostrare i pezzi dal vivo, con i certificati quando ci sono"],"jPrice":"al mese · 4 dirette al mese, fino a 60 minuti ciascuna · opzioni con la gemmologa su preventivo","jFormH":"Candidatura","fName":"Nome dell’attività","fCity":"Città","fKind":"Tipo","kShop":"Gioielleria","kGems":"Gem dealer","fSite":"Sito o profilo","fShow":"Cosa vorresti mostrare in diretta","fEmail":"Email","fPhone":"Telefono","jSend":"Invia la candidatura","jFine":"Ti risponde Elena personalmente. Nessun impegno fino al primo contratto.","thTitle":"Candidatura ricevuta","thText":"Grazie. Elena guarda ogni candidatura di persona e ti ricontatta per una videochiamata di conoscenza.","thBtn":"Torna alla vetrina","need":"Compila nome, città ed email","sending":"Invio…"},"en":{"thisWeek":"This week","later":"Later on","discover":"Discover","enter":"Enter","liveOn":"Live {day} at {time}","heroLive":"Live now","noWeek":"No shows scheduled this week: see the next ones below.","join2":"Join the live show","liveNow":"Live now: enter","piecesH":"Pieces on show","share2":"Share","langShow":"Language","by":"by","endedLead":"This show has ended: you can still ask about the pieces.","localTime":"in your time zone","descH":"What it's about","follow":"Follow","following":"Following ✓","followLead":"Leave your email: we'll write when {name} goes live. Nothing else.","followOk":"Done: we'll let you know","enterLive":"Enter the live show","nextShow":"Next show","upcomingP":"Upcoming shows","pastShows":"Past shows","noShowsP":"No shows scheduled right now.","website":"Website","shopLink":"Online shop","specialties":"Specialities","buy":"Buy","how":"How it works","howTitle":"How it works","howInterest":"I'm interested: the jeweller gets your name and contact and replies about the piece.","howBook":"Book: thirty minutes on private video with the jeweller, at the time you choose.","howBuy":"Buying: directly with the jeweller, from their online shop when there is a link, otherwise via “I'm interested”. No auctions.","contact":"Email or phone","contactLead":"So the jeweller can get back to you about the piece.","price":"Price range","whichPiece":"Which piece are you interested in?","profile":"Profile","ok":"OK","tabCats":"Categories","hCats":"Browse by category","catAll":"All","catOne":"1 show","catMany":"{n} shows","catSoon":"Coming soon","noneCat":"No shows in this category yet.","catsOf":"Categories","tag":"Fine jewelry & gemstones · Live","search":"Search jewellers, gems, pieces","tabLive":"Live now","tabSoon":"Upcoming","tabShops":"Sellers","trust":["Fine jewelry & gemstones","Selected jewellers and gem dealers","GIA gemologist live"],"hLive":"Live now","hSoon":"Upcoming shows","hShops":"Jewellers and gem dealers","join":"How to join","withGem":"with the GIA gemologist","live":"Live now","soon":"Scheduled","ended":"Ended","gems":"Gem dealer","shop":"Jeweller","emptyLiveT":"No live show right now","emptyLive":"The next ones are below: tap “Remind me” and we'll let you know.","emptySoonT":"Programme coming soon","emptySoon":"The jewellers are setting their next dates.","remind":"Remind me","reminded":"✓ We'll remind you","remindToast":"Reminder saved on this phone: ","about":"What is this","wTitle":"Jewellery and gems <em>live</em>, with a gemologist at your side.","wLead":"Private live shows from selected jewellers and gem dealers. Ask questions, see a piece up close, book a private appointment: no auctions, no rush.","wPoints":["Only fine jewellery and natural gems, from the people who actually sell them","A GIA gemologist joining in and answering everyone","Subtitles in several languages"],"wGo":"Enter","wSellers":"Jeweller or gem dealer? Go live with us →","wSig":"A project by Elena Goglio · GIA gemologist","ctaTitle":"Jeweller or gem dealer?","ctaText":"Bring your clients live. Selected sellers only.","ctaBtn":"Apply","foot":"Uniqaia · Gems & Jewelry Live","footJoin":"Jewellers and gem dealers join by invitation, after vetting.","demoNote":"Demo showcase: jewellers, live shows and prices are examples. Real shows start with the selected jewellers.","installT":"Add Uniqaia to your phone","installText":"It opens full screen, like an app.","installIos":"Tap Share, then “Add to Home Screen”.","installB":"Install","eyebrow":"Private live show, by invitation","declaredBy":"characteristics as declared by the seller","fNight":"Which evening","nightAny":"No preference","hNights":"The fixed weekly schedule","nRot":"rotating themes","nAlways":"Every week, always the same days.","nSlots":"Three one-hour shows:","nightOpen":"Applications open","nightOne":"show scheduled","nightMany":"shows scheduled","takeIt":"I'll take it","takenOk":"Sent. The seller will send you the payment link.","takenMsg":"I'll take it: ","gateTitle":"Join the live show","gateLead":"Leave your email to come in.","gateEmail":"Your email","gateName":"Your name","gateGo":"Come in","gateConsent":"I'd like to receive Uniqaia's show calendar and news","gatePrivacy":"Your email is used to let you in and to put you in touch with the seller. No newsletter unless you tick the box.","gateBadEmail":"Check the email address","payNow":"Pay now","payTitle":"Payment","payOn":"You pay on","payBy":"Link sent by","payOpen":"Open the payment","buyPiece":"Buy this piece","payArrived":"The seller has sent you a payment link.","payOutside":"Payment is taken on the seller's own system. Uniqaia receives no money and is not a party to the sale.","decl":{"naturali":"natural stones","lab":"lab-grown stones","sintetiche":"synthetic stones or imitations","nessuna":"no stones","non_dichiarato":"nature of stones not declared","tr":"treatments","or":"origin","ce":"report"},"cc":"Subtitles","subsT":"Subtitles","subsOff":"None","subsWait":"Waiting for audio…","subsOrig":"Italian (original)","interest":"I'm interested","book":"Book","invite":"Invite","ask":"Ask a question…","send":"Send","me":"You","guest":"Guest","yourName":"Your name","nameLead":"We need your name to chat and send requests: only the jeweller sees it.","cont":"Continue","waitSoon":"The live show starts","waitEnded":"The live show has ended","waitEndedSub":"Thank you for joining. Your requests have reached the jeweller.","sentInterest":"Request sent to ","when":"When suits you?","book2":"Thirty minutes on video with ","confirmed":"Appointment requested","back":"Back to the live show","booked":"I've booked a private appointment: ","interestMsg":"I'm interested: ","audio":"Turn on sound","copied":"Link copied: send it to whoever you'd like to invite","backTo":"Showcase","askName":"Please enter your name first","jEyebrow":"For jewellers and gem dealers","jTitle":"Go live with us","jLead":"The platform for private live shows with your own clients, with the gemologist joining in if you wish. You bring the audience, we bring the technology and the expertise.","jWhatH":"What you get","jWhat":["Your branded live page, private by invitation or in the showcase","Chat, “I'm interested” and bookings: every request reaches you with the client's name","HD video from a phone, no app to install","GIA gemologist on call, replays and subtitles in several languages"],"jWhoH":"Who can apply","jWho":["Jewellers and gem dealers with premises and a VAT number","Fine jewellery and natural gems only","Willing to show pieces live, with certificates where available"],"jPrice":"per month · 4 live shows a month, up to 60 minutes each · gemologist options on quotation","jFormH":"Application","fName":"Business name","fCity":"City","fKind":"Type","kShop":"Jeweller","kGems":"Gem dealer","fSite":"Website or profile","fShow":"What you'd like to show live","fEmail":"Email","fPhone":"Phone","jSend":"Send application","jFine":"Elena replies personally. No commitment before the first contract.","thTitle":"Application received","thText":"Thank you. Elena reviews every application herself and will get back to you for an introductory video call.","thBtn":"Back to the showcase","need":"Please fill in name, city and email","sending":"Sending…"},"fr":{"thisWeek":"Cette semaine","later":"Plus tard","discover":"Découvrir","enter":"Entrer","liveOn":"En direct {day} à {time}","heroLive":"Live maintenant","noWeek":"Aucun direct cette semaine : voyez les prochains ci-dessous.","join2":"Participer au direct","liveNow":"En direct maintenant : entrer","piecesH":"Les pièces présentées","share2":"Partager","langShow":"Langue","by":"par","endedLead":"Ce direct est terminé : vous pouvez encore poser des questions sur les pièces.","localTime":"dans votre fuseau horaire","descH":"De quoi il s'agit","follow":"Suivre","following":"Suivi ✓","followLead":"Laissez votre e-mail : nous vous écrivons quand {name} passe en direct. Rien d'autre.","followOk":"C'est noté : nous vous préviendrons","enterLive":"Entrer dans le direct","nextShow":"Prochain direct","upcomingP":"Directs à venir","pastShows":"Directs passés","noShowsP":"Aucun direct programmé pour le moment.","website":"Site","shopLink":"Boutique en ligne","specialties":"Spécialités","buy":"Acheter","how":"Comment ça marche","howTitle":"Comment ça marche","howInterest":"Ça m'intéresse : la bijouterie reçoit votre nom et votre contact et vous répond sur la pièce.","howBook":"Réserver : trente minutes en vidéo privée avec la bijouterie, à l'heure de votre choix.","howBuy":"Achat : directement auprès de la bijouterie, via sa boutique en ligne s'il y a un lien, sinon via « Ça m'intéresse ». Pas d'enchères.","contact":"E-mail ou téléphone","contactLead":"Pour que la bijouterie puisse vous répondre sur la pièce.","price":"Fourchette de prix","whichPiece":"Quelle pièce vous intéresse ?","profile":"Fiche","ok":"OK","tabCats":"Catégories","hCats":"Explorer par catégorie","catAll":"Toutes","catOne":"1 direct","catMany":"{n} directs","catSoon":"Bientôt","noneCat":"Pas encore de direct dans cette catégorie.","catsOf":"Catégories","tag":"Fine jewelry & gemstones · Live","search":"Chercher bijouteries, gemmes, pièces","tabLive":"Live maintenant","tabSoon":"À venir","tabShops":"Vendeurs","trust":["Fine jewelry & gemstones","Bijouteries et négociants sélectionnés","Gemmologue GIA en direct"],"hLive":"En direct maintenant","hSoon":"Prochains directs","hShops":"Bijouteries et négociants en gemmes","join":"Comment rejoindre","withGem":"avec la gemmologue GIA","live":"Live maintenant","soon":"Programmé","ended":"Terminé","gems":"Négociant en gemmes","shop":"Bijouterie","emptyLiveT":"Aucun direct en ce moment","emptyLive":"Les prochains sont ci-dessous : touchez « Me le rappeler » et nous vous préviendrons.","emptySoonT":"Programme à venir","emptySoon":"Les bijouteries fixent leurs prochaines dates.","remind":"Me le rappeler","reminded":"✓ Nous vous préviendrons","remindToast":"Rappel enregistré sur ce téléphone : ","about":"Qu’est-ce que c’est","wTitle":"Bijoux et gemmes <em>en direct</em>, avec une gemmologue à vos côtés.","wLead":"Directs privés de bijouteries et négociants sélectionnés. Posez vos questions, voyez une pièce de près, réservez un rendez-vous : sans enchères, sans précipitation.","wPoints":["Uniquement de la haute joaillerie et des gemmes naturelles, par ceux qui les vendent vraiment","Une gemmologue GIA en liaison qui répond à tous","Sous-titres en plusieurs langues"],"wGo":"Entrer","wSellers":"Bijoutier ou négociant en gemmes ? Diffusez avec nous →","wSig":"Un projet d’Elena Goglio · Gemmologue GIA","ctaTitle":"Bijoutier ou négociant en gemmes ?","ctaText":"Faites venir vos clients en direct. Vendeurs sélectionnés uniquement.","ctaBtn":"Candidater","foot":"Uniqaia · Gems & Jewelry Live","footJoin":"Bijouteries et négociants entrent sur invitation, après vérification.","demoNote":"Vitrine de démonstration : bijoutiers, directs et prix sont des exemples. Les vrais directs commenceront avec les bijoutiers sélectionnés.","installT":"Ajoutez Uniqaia à votre téléphone","installText":"Elle s’ouvre en plein écran, comme une application.","installIos":"Touchez Partager, puis « Sur l’écran d’accueil ».","installB":"Installer","eyebrow":"Direct privé, sur invitation","declaredBy":"caractéristiques déclarées par le vendeur","fNight":"Pour quelle soirée","nightAny":"Sans préférence","hNights":"Le programme fixe de la semaine","nRot":"thèmes en rotation","nAlways":"Chaque semaine, toujours les mêmes jours.","nSlots":"Trois directs d'une heure :","nightOpen":"Candidatures ouvertes","nightOne":"direct programmé","nightMany":"directs programmés","takeIt":"Je le prends","takenOk":"Envoyé. Le vendeur vous enverra le lien de paiement.","takenMsg":"Je le prends : ","gateTitle":"Entrer dans le direct","gateLead":"Laissez votre e-mail pour entrer.","gateEmail":"Votre e-mail","gateName":"Votre nom","gateGo":"Entrer","gateConsent":"Je souhaite recevoir le calendrier des directs et les actualités d'Uniqaia","gatePrivacy":"Votre e-mail sert à vous faire entrer et à vous mettre en contact avec le vendeur. Pas de newsletter sans cocher la case.","gateBadEmail":"Vérifiez l'adresse e-mail","payNow":"Payer","payTitle":"Paiement","payOn":"Vous payez sur","payBy":"Lien envoyé par","payOpen":"Ouvrir le paiement","buyPiece":"Acheter cette pièce","payArrived":"Le vendeur vous a envoyé un lien de paiement.","payOutside":"Le paiement se fait sur le système du vendeur. Uniqaia ne perçoit rien et n'est pas partie à la vente.","decl":{"naturali":"pierres naturelles","lab":"pierres de laboratoire","sintetiche":"pierres synthétiques ou imitations","nessuna":"sans pierres","non_dichiarato":"nature des pierres non déclarée","tr":"traitements","or":"provenance","ce":"certificat"},"cc":"Sous-titres","subsT":"Sous-titres","subsOff":"Aucun","subsWait":"En attente du son…","subsOrig":"Italien (original)","interest":"Ça m’intéresse","book":"Réserver","invite":"Inviter","ask":"Posez une question…","send":"Envoyer","me":"Vous","guest":"Invité","yourName":"Votre nom","nameLead":"Votre nom est nécessaire pour écrire et faire des demandes : seule la bijouterie le voit.","cont":"Continuer","waitSoon":"Le direct commence","waitEnded":"Le direct est terminé","waitEndedSub":"Merci d’avoir participé. Vos demandes sont bien arrivées à la bijouterie.","sentInterest":"Demande envoyée à ","when":"Quand préférez-vous ?","book2":"Trente minutes en vidéo avec ","confirmed":"Rendez-vous demandé","back":"Retour au direct","booked":"J’ai réservé le rendez-vous privé : ","interestMsg":"Ça m’intéresse : ","audio":"Activer le son","copied":"Lien copié : envoyez-le à qui vous voulez inviter","backTo":"Vitrine","askName":"Indiquez d’abord votre nom","jEyebrow":"Pour bijouteries et négociants","jTitle":"Diffusez avec nous","jLead":"La plateforme pour des directs privés avec vos propres clients, avec la gemmologue en liaison si vous le souhaitez. Vous apportez le public, nous la technologie et l’expertise.","jWhatH":"Ce que vous recevez","jWhat":["Votre page de direct à votre marque, privée sur invitation ou en vitrine","Chat, « Ça m’intéresse » et réservations : chaque demande vous arrive avec le nom du client","Vidéo HD depuis un téléphone, sans application à installer","Gemmologue GIA à la demande, replays et sous-titres en plusieurs langues"],"jWhoH":"Qui peut candidater","jWho":["Bijouteries et négociants avec un local et un numéro de TVA","Uniquement haute joaillerie et gemmes naturelles","Prêts à montrer les pièces en direct, avec les certificats quand ils existent"],"jPrice":"par mois · 4 directs par mois, jusqu'à 60 minutes chacun · options avec la gemmologue sur devis","jFormH":"Candidature","fName":"Nom de l’entreprise","fCity":"Ville","fKind":"Type","kShop":"Bijouterie","kGems":"Négociant en gemmes","fSite":"Site ou profil","fShow":"Ce que vous aimeriez montrer en direct","fEmail":"E-mail","fPhone":"Téléphone","jSend":"Envoyer la candidature","jFine":"Elena vous répond personnellement. Aucun engagement avant le premier contrat.","thTitle":"Candidature reçue","thText":"Merci. Elena examine chaque candidature elle-même et vous recontacte pour un appel vidéo de présentation.","thBtn":"Retour à la vitrine","need":"Merci d’indiquer le nom, la ville et l’e-mail","sending":"Envoi…"},"ar":{"thisWeek":"هذا الأسبوع","later":"لاحقًا","discover":"اكتشف","enter":"ادخل","liveOn":"بث مباشر {day} الساعة {time}","heroLive":"مباشر الآن","noWeek":"لا توجد بثوث هذا الأسبوع: انظر البثوث القادمة أدناه.","join2":"شارك في البث","liveNow":"مباشر الآن: ادخل","piecesH":"القطع المعروضة","share2":"مشاركة","langShow":"اللغة","by":"من","endedLead":"انتهى هذا البث: لا يزال بإمكانك السؤال عن القطع.","localTime":"بتوقيتك المحلي","descH":"عن ماذا نتحدث","follow":"متابعة","following":"تتابعه ✓","followLead":"اترك بريدك الإلكتروني: نراسلك عندما يبدأ {name} البث. لا شيء آخر.","followOk":"تم: سنخبرك","enterLive":"ادخل إلى البث","nextShow":"البث القادم","upcomingP":"البثوث المجدولة","pastShows":"البثوث السابقة","noShowsP":"لا توجد بثوث مجدولة حاليًا.","website":"الموقع","shopLink":"المتجر الإلكتروني","specialties":"التخصصات","buy":"اشترِ","how":"كيف يعمل","howTitle":"كيف يعمل","howInterest":"يهمّني: يتلقى الصائغ اسمك وبيانات التواصل ويردّ عليك بخصوص القطعة.","howBook":"احجز: ثلاثون دقيقة بالفيديو الخاص مع الصائغ في الوقت الذي تختاره.","howBuy":"الشراء: مباشرة مع الصائغ، من متجره الإلكتروني إن وُجد الرابط، وإلا عبر «يهمّني». لا مزادات.","contact":"البريد الإلكتروني أو الهاتف","contactLead":"ليتمكن الصائغ من الرد عليك بخصوص القطعة.","price":"نطاق السعر","whichPiece":"أي قطعة تهمّك؟","profile":"الملف","ok":"حسنًا","tabCats":"الفئات","hCats":"تصفّح حسب الفئة","catAll":"الكل","catOne":"بث واحد","catMany":"{n} بثوث","catSoon":"قريبًا","noneCat":"لا توجد بثوث في هذه الفئة بعد.","catsOf":"الفئات","tag":"مجوهرات راقية وأحجار كريمة · بث مباشر","search":"ابحث عن صاغة وأحجار وقطع","tabLive":"مباشر الآن","tabSoon":"القادمة","tabShops":"البائعون","trust":["مجوهرات راقية وأحجار كريمة","صاغة وتجّار أحجار مختارون","خبيرة أحجار كريمة GIA على الهواء"],"hLive":"مباشر الآن","hSoon":"البثوث القادمة","hShops":"الصاغة وتجّار الأحجار","join":"كيف تنضم","withGem":"مع خبيرة الأحجار الكريمة GIA","live":"مباشر الآن","soon":"مجدول","ended":"انتهى","gems":"تاجر أحجار كريمة","shop":"صائغ","emptyLiveT":"لا يوجد بث مباشر الآن","emptyLive":"البثوث القادمة في الأسفل: اضغط «ذكّرني» وسنخبرك.","emptySoonT":"البرنامج قريبًا","emptySoon":"الصاغة يحددون مواعيدهم القادمة.","remind":"ذكّرني","reminded":"✓ سنذكّرك","remindToast":"تم حفظ التذكير على هذا الهاتف: ","about":"ما هذا؟","wTitle":"مجوهرات وأحجار كريمة <em>على الهواء</em>، مع خبيرة أحجار إلى جانبك.","wLead":"بثوث مباشرة خاصة من صاغة وتجّار أحجار مختارين. اطرح أسئلتك، اطلب رؤية القطعة عن قرب، واحجز موعدًا خاصًا: بلا مزادات وبلا عجلة.","wPoints":["مجوهرات راقية وأحجار طبيعية فقط، من بائعيها الحقيقيين","خبيرة أحجار كريمة GIA تنضم وتجيب عن أسئلة الجميع","ترجمة بعدة لغات"],"wGo":"ادخل","wSellers":"هل أنت صائغ أو تاجر أحجار كريمة؟ ابثّ معنا ←","wSig":"مشروع من إيلينا غوليو · خبيرة أحجار كريمة GIA","ctaTitle":"هل أنت صائغ أو تاجر أحجار كريمة؟","ctaText":"اصطحب عملاءك إلى البث المباشر. للبائعين المختارين فقط.","ctaBtn":"قدّم طلبك","foot":"Uniqaia · Gems & Jewelry Live","footJoin":"ينضم الصاغة وتجّار الأحجار بدعوة، بعد التحقق.","demoNote":"واجهة عرض تجريبية: الصاغة والبثوث والأسعار أمثلة توضيحية. تبدأ البثوث الحقيقية مع الصاغة المختارين.","installT":"أضف Uniqaia إلى هاتفك","installText":"تفتح بملء الشاشة، مثل التطبيق.","installIos":"اضغط مشاركة ثم «إضافة إلى الشاشة الرئيسية».","installB":"تثبيت","eyebrow":"بث مباشر خاص بدعوة","declaredBy":"الخصائص كما أقرّها البائع","fNight":"لأي أمسية","nightAny":"بدون تفضيل","hNights":"برنامج الأسبوع الثابت","nRot":"مواضيع بالتناوب","nAlways":"كل أسبوع، الأيام نفسها دائمًا.","nSlots":"ثلاثة بثوث مدة كل منها ساعة:","nightOpen":"باب الترشّح مفتوح","nightOne":"بث مجدول","nightMany":"بثوث مجدولة","takeIt":"سآخذها","takenOk":"تم الإرسال. سيرسل لك البائع رابط الدفع.","takenMsg":"سآخذها: ","gateTitle":"ادخل البث المباشر","gateLead":"اترك بريدك الإلكتروني للدخول.","gateEmail":"بريدك الإلكتروني","gateName":"اسمك","gateGo":"ادخل","gateConsent":"أرغب في تلقّي جدول البثوث وأخبار Uniqaia","gatePrivacy":"نستخدم بريدك للسماح لك بالدخول ولوصلك بالبائع. لا نشرة بريدية ما لم تحدّد المربع.","gateBadEmail":"تحقّق من عنوان البريد الإلكتروني","payNow":"ادفع الآن","payTitle":"الدفع","payOn":"تدفع على","payBy":"أرسل الرابط","payOpen":"افتح صفحة الدفع","buyPiece":"اشترِ هذه القطعة","payArrived":"أرسل إليك البائع رابط الدفع.","payOutside":"يتم الدفع على نظام البائع. لا تتلقى Uniqaia أي مبلغ وليست طرفًا في البيع.","decl":{"naturali":"أحجار طبيعية","lab":"أحجار مزروعة مخبرياً","sintetiche":"أحجار صناعية أو مقلّدة","nessuna":"بلا أحجار","non_dichiarato":"طبيعة الأحجار غير معلنة","tr":"المعالجات","or":"المنشأ","ce":"الشهادة"},"cc":"الترجمة","subsT":"الترجمة النصية","subsOff":"بدون","subsWait":"في انتظار الصوت…","subsOrig":"الإيطالية (الأصل)","interest":"يهمّني","book":"احجز","invite":"ادعُ","ask":"اكتب سؤالك…","send":"إرسال","me":"أنت","guest":"ضيف","yourName":"اسمك","nameLead":"نحتاج اسمك للمحادثة وإرسال الطلبات: يراه الصائغ فقط.","cont":"متابعة","waitSoon":"يبدأ البث المباشر","waitEnded":"انتهى البث المباشر","waitEndedSub":"شكرًا لمشاركتك. وصلت طلباتك إلى الصائغ.","sentInterest":"أُرسل الطلب إلى ","when":"متى يناسبك؟","book2":"ثلاثون دقيقة بالفيديو مع ","confirmed":"تم طلب الموعد","back":"العودة إلى البث","booked":"حجزت موعدًا خاصًا: ","interestMsg":"يهمّني: ","audio":"تشغيل الصوت","copied":"تم نسخ الرابط: أرسله لمن تريد دعوته","backTo":"الواجهة","askName":"اكتب اسمك أولًا","jEyebrow":"للصاغة وتجّار الأحجار الكريمة","jTitle":"ابثّ معنا","jLead":"المنصة لإقامة بثوث مباشرة خاصة مع عملائك، مع انضمام خبيرة الأحجار إن أردت. أنت تجلب الجمهور، ونحن نجلب التقنية والخبرة.","jWhatH":"ماذا تحصل عليه","jWhat":["صفحة بث مباشر بعلامتك التجارية، خاصة بدعوة أو في الواجهة","محادثة و«يهمّني» وحجوزات: يصلك كل طلب مع اسم العميل","فيديو عالي الدقة من الهاتف، دون تطبيق","خبيرة أحجار GIA عند الطلب، إعادة المشاهدة وترجمة بعدة لغات"],"jWhoH":"من يمكنه التقديم","jWho":["صاغة وتجّار أحجار لديهم مقر ورقم ضريبي","مجوهرات راقية وأحجار طبيعية فقط","مستعدون لعرض القطع على الهواء، مع الشهادات عند توفرها"],"jPrice":"شهريًا · 4 بثوث مباشرة في الشهر، حتى 60 دقيقة لكل منها · خيارات خبيرة الأحجار بعرض سعر","jFormH":"طلب الانضمام","fName":"اسم النشاط","fCity":"المدينة","fKind":"النوع","kShop":"صائغ","kGems":"تاجر أحجار كريمة","fSite":"الموقع أو الحساب","fShow":"ماذا تودّ أن تعرض على الهواء","fEmail":"البريد الإلكتروني","fPhone":"الهاتف","jSend":"إرسال الطلب","jFine":"تردّ عليك إيلينا شخصيًا. لا التزام قبل العقد الأول.","thTitle":"تم استلام طلبك","thText":"شكرًا. تراجع إيلينا كل طلب بنفسها وستتواصل معك لمكالمة فيديو تعريفية.","thBtn":"العودة إلى الواجهة","need":"يرجى إدخال الاسم والمدينة والبريد الإلكتروني","sending":"جارٍ الإرسال…"},"ru":{"thisWeek":"На этой неделе","later":"Позже","discover":"Смотреть","enter":"Войти","liveOn":"Эфир {day} в {time}","heroLive":"Live сейчас","noWeek":"На этой неделе эфиров нет: смотрите ближайшие ниже.","join2":"Участвовать в эфире","liveNow":"Сейчас в эфире: войти","piecesH":"Представленные изделия","share2":"Поделиться","langShow":"Язык","by":"от","endedLead":"Этот эфир завершён: вы всё ещё можете спросить об изделиях.","localTime":"в вашем часовом поясе","descH":"О чём речь","follow":"Подписаться","following":"Вы подписаны ✓","followLead":"Оставьте email: мы напишем, когда {name} выйдет в эфир. И больше ничего.","followOk":"Готово: мы сообщим","enterLive":"Войти в эфир","nextShow":"Ближайший эфир","upcomingP":"Запланированные эфиры","pastShows":"Прошедшие эфиры","noShowsP":"Сейчас нет запланированных эфиров.","website":"Сайт","shopLink":"Интернет-магазин","specialties":"Специализация","buy":"Купить","how":"Как это работает","howTitle":"Как это работает","howInterest":"Интересует: ювелир получает ваше имя и контакт и отвечает по изделию.","howBook":"Записаться: тридцать минут приватного видео с ювелиром в удобное вам время.","howBuy":"Покупка: напрямую у ювелира — в его интернет-магазине, если есть ссылка, иначе через «Интересует». Без аукционов.","contact":"Email или телефон","contactLead":"Чтобы ювелир мог ответить вам по изделию.","price":"Ценовой диапазон","whichPiece":"Какое изделие вас интересует?","profile":"Профиль","ok":"OK","tabCats":"Категории","hCats":"Смотреть по категориям","catAll":"Все","catOne":"1 эфир","catFew":"{n} эфира","catMany":"{n} эфиров","catSoon":"Скоро","noneCat":"В этой категории пока нет эфиров.","catsOf":"Категории","tag":"Ювелирные украшения и камни · Live","search":"Поиск ювелиров, камней, изделий","tabLive":"Live сейчас","tabSoon":"Скоро","tabShops":"Продавцы","trust":["Fine jewelry & gemstones","Отобранные ювелиры и дилеры камней","Геммолог GIA в прямом эфире"],"hLive":"Сейчас в эфире","hSoon":"Ближайшие эфиры","hShops":"Ювелиры и дилеры камней","join":"Как присоединиться","withGem":"с геммологом GIA","live":"Live сейчас","soon":"Запланирован","ended":"Завершён","gems":"Дилер камней","shop":"Ювелир","emptyLiveT":"Сейчас нет прямых эфиров","emptyLive":"Ближайшие — ниже: нажмите «Напомнить», и мы вас предупредим.","emptySoonT":"Расписание скоро появится","emptySoon":"Ювелиры назначают ближайшие даты.","remind":"Напомнить","reminded":"✓ Мы напомним","remindToast":"Напоминание сохранено на этом телефоне: ","about":"Что это","wTitle":"Украшения и камни <em>вживую</em>, рядом с геммологом.","wLead":"Закрытые прямые эфиры отобранных ювелиров и дилеров камней. Задавайте вопросы, попросите показать изделие ближе, запишитесь на личную встречу: без аукционов и без спешки.","wPoints":["Только fine jewelry и природные камни — от тех, кто их действительно продаёт","Геммолог GIA на связи и отвечает всем","Субтитры на нескольких языках"],"wGo":"Войти","wSellers":"Вы ювелир или дилер камней? Выходите в эфир с нами →","wSig":"Проект Элены Гольо · геммолог GIA","ctaTitle":"Вы ювелир или дилер камней?","ctaText":"Приведите своих клиентов в прямой эфир. Только отобранные продавцы.","ctaBtn":"Подать заявку","foot":"Uniqaia · Gems & Jewelry Live","footJoin":"Ювелиры и дилеры камней входят по приглашению, после проверки.","demoNote":"Демонстрационная витрина: ювелиры, эфиры и цены — примеры. Настоящие эфиры начнутся с отобранными ювелирами.","installT":"Добавьте Uniqaia на телефон","installText":"Открывается на весь экран, как приложение.","installIos":"Нажмите «Поделиться», затем «На экран „Домой“».","installB":"Установить","eyebrow":"Закрытый эфир по приглашению","declaredBy":"характеристики со слов продавца","fNight":"На какой вечер","nightAny":"Без предпочтений","hNights":"Постоянное расписание недели","nRot":"темы по очереди","nAlways":"Каждую неделю, всегда в те же дни.","nSlots":"Три часовых эфира:","nightOpen":"Приём заявок открыт","nightOne":"эфир запланирован","nightMany":"эфира запланировано","takeIt":"Беру","takenOk":"Отправлено. Продавец пришлёт вам ссылку для оплаты.","takenMsg":"Беру: ","gateTitle":"Войти в эфир","gateLead":"Оставьте вашу почту, чтобы войти.","gateEmail":"Ваша почта","gateName":"Ваше имя","gateGo":"Войти","gateConsent":"Хочу получать расписание эфиров и новости Uniqaia","gatePrivacy":"Почта нужна, чтобы впустить вас и связать с продавцом. Рассылки не будет, если не отметить галочку.","gateBadEmail":"Проверьте адрес почты","payNow":"Оплатить","payTitle":"Оплата","payOn":"Оплата на","payBy":"Ссылку отправил","payOpen":"Открыть оплату","buyPiece":"Купить это изделие","payArrived":"Продавец отправил вам ссылку для оплаты.","payOutside":"Оплата проходит в системе продавца. Uniqaia не получает денег и не является стороной сделки.","decl":{"naturali":"природные камни","lab":"камни, выращенные в лаборатории","sintetiche":"синтетика или имитации","nessuna":"без камней","non_dichiarato":"природа камней не указана","tr":"обработка","or":"происхождение","ce":"сертификат"},"cc":"Субтитры","subsT":"Субтитры","subsOff":"Нет","subsWait":"Ожидание звука…","subsOrig":"Итальянский (оригинал)","interest":"Интересует","book":"Записаться","invite":"Пригласить","ask":"Задайте вопрос…","send":"Отправить","me":"Вы","guest":"Гость","yourName":"Ваше имя","nameLead":"Чтобы писать в чат и отправлять запросы, нужно ваше имя: его видит только ювелир.","cont":"Продолжить","waitSoon":"Эфир начнётся","waitEnded":"Эфир завершён","waitEndedSub":"Спасибо за участие. Ваши запросы переданы ювелиру.","sentInterest":"Запрос отправлен: ","when":"Когда вам удобно?","book2":"Тридцать минут по видео с ","confirmed":"Запрос на встречу отправлен","back":"Вернуться к эфиру","booked":"Я записался(ась) на личную встречу: ","interestMsg":"Меня интересует: ","audio":"Включить звук","copied":"Ссылка скопирована: отправьте её тому, кого хотите пригласить","backTo":"Витрина","askName":"Сначала укажите ваше имя","jEyebrow":"Для ювелиров и дилеров камней","jTitle":"Выходите в эфир с нами","jLead":"Платформа для закрытых прямых эфиров с вашими клиентами — при желании с подключением геммолога. Вы приводите аудиторию, мы даём технологию и экспертизу.","jWhatH":"Что вы получаете","jWhat":["Страница эфира с вашим брендом — закрытая по приглашению или в витрине","Чат, «Интересует» и записи на встречу: каждый запрос приходит к вам с именем клиента","HD-видео с телефона, без установки приложений","Геммолог GIA по запросу, записи эфиров и субтитры на нескольких языках"],"jWhoH":"Кто может подать заявку","jWho":["Ювелиры и дилеры камней с офисом и регистрацией НДС","Только fine jewelry и природные камни","Готовность показывать изделия вживую, с сертификатами, где они есть"],"jPrice":"в месяц · 4 эфира в месяц, до 60 минут каждый · опции с геммологом по запросу","jFormH":"Заявка","fName":"Название компании","fCity":"Город","fKind":"Тип","kShop":"Ювелир","kGems":"Дилер камней","fSite":"Сайт или профиль","fShow":"Что вы хотели бы показать в эфире","fEmail":"Email","fPhone":"Телефон","jSend":"Отправить заявку","jFine":"Элена отвечает лично. Никаких обязательств до первого договора.","thTitle":"Заявка получена","thText":"Спасибо. Элена лично рассматривает каждую заявку и свяжется с вами для ознакомительного видеозвонка.","thBtn":"Вернуться в витрину","need":"Заполните название, город и email","sending":"Отправка…"}};
+  var CATS = [{"slug":"nuovi-talenti","name_i18n":{"ar":"مواهب جديدة","en":"New talents","fr":"Nouveaux talents","it":"Nuovi talenti","ru":"Новые таланты"}},{"slug":"fatto-a-mano","name_i18n":{"ar":"صناعة يدوية","en":"Handmade","fr":"Fait main","it":"Fatto a mano","ru":"Ручная работа"}},{"slug":"made-in-italy","name_i18n":{"ar":"صنع في إيطاليا","en":"Made in Italy","fr":"Made in Italy","it":"Made in Italy","ru":"Сделано в Италии"}},{"slug":"gioielli-indiani","name_i18n":{"ar":"سحر المجوهرات الهندية","en":"The Magic of Indian Jewellery","fr":"La magie des bijoux indiens","it":"La Magia dei Gioielli Indiani","ru":"Магия индийских украшений"}},{"slug":"su-misura","name_i18n":{"ar":"حسب الطلب","en":"Bespoke","fr":"Sur mesure","it":"Su misura","ru":"На заказ"}},{"slug":"oro-18kt","name_i18n":{"ar":"ذهب عيار 18","en":"18k gold","fr":"Or 18 carats","it":"Oro 18 kt","ru":"Золото 750 (18 карат)"}},{"slug":"oro-14kt","name_i18n":{"ar":"ذهب عيار 14","en":"14k gold","fr":"Or 14 carats","it":"Oro 14 kt","ru":"Золото 585 (14 карат)"}},{"slug":"oro-9kt","name_i18n":{"ar":"ذهب عيار 9","en":"9k gold","fr":"Or 9 carats","it":"Oro 9 kt","ru":"Золото 375 (9 карат)"}},{"slug":"platino","name_i18n":{"ar":"بلاتين","en":"Platinum","fr":"Platine","it":"Platino","ru":"Платина"}},{"slug":"argento-925","name_i18n":{"ar":"فضة 925","en":"Sterling silver 925","fr":"Argent 925","it":"Argento 925","ru":"Серебро 925"}},{"slug":"diamanti-naturali","name_i18n":{"ar":"ألماس طبيعي","en":"Natural diamonds","fr":"Diamants naturels","it":"Diamanti naturali","ru":"Природные бриллианты"}},{"slug":"lab-grown","name_i18n":{"ar":"ألماس مصنّع مخبريًا","en":"Lab-grown diamonds","fr":"Diamants de laboratoire","it":"Lab grown diamonds","ru":"Выращенные бриллианты"}},{"slug":"gemme-di-colore","name_i18n":{"ar":"أحجار كريمة ملونة","en":"Coloured gemstones","fr":"Pierres de couleur","it":"Gemme di colore","ru":"Цветные камни"}},{"slug":"pietre-sciolte","name_i18n":{"ar":"أحجار غير مركّبة","en":"Loose stones","fr":"Pierres sur papier","it":"Pietre sciolte","ru":"Камни без оправы"}},{"slug":"blister","name_i18n":{"ar":"أحجار مختومة (بليستر)","en":"Sealed stones (blister)","fr":"Blisters","it":"Blister","ru":"Камни в блистере"}},{"slug":"montature","name_i18n":{"ar":"أطقم تركيب","en":"Mountings & settings","fr":"Montures","it":"Montature","ru":"Оправы"}},{"slug":"perle","name_i18n":{"ar":"لؤلؤ","en":"Pearls","fr":"Perles","it":"Perle","ru":"Жемчуг"}},{"slug":"sposi","name_i18n":{"ar":"خطوبة وزفاف","en":"Engagement & wedding","fr":"Fiançailles et mariage","it":"Fedi e fidanzamento","ru":"Помолвка и свадьба"}},{"slug":"vintage","name_i18n":{"ar":"قطع قديمة وعتيقة","en":"Vintage & antique","fr":"Vintage et ancien","it":"Vintage e d'epoca","ru":"Винтаж и антиквариат"}},{"slug":"alta-gioielleria","name_i18n":{"ar":"المجوهرات الراقية","en":"High jewellery","fr":"Haute joaillerie","it":"Alta gioielleria","ru":"Высокое ювелирное искусство"}}];
   var $ = function(id){ return document.getElementById(id); };
+  var QS = new URLSearchParams(location.search);
+  var PFX = location.pathname.replace(/\/join\/?.*$/, "");
   var lang = CFG.lang;
   if (!TT[lang]) { try { lang = localStorage.getItem("vetrina-lang") || ""; } catch(e){} }
   if (!TT[lang]) { var nav = (navigator.language || "it").slice(0,2).toLowerCase(); lang = TT[nav] ? nav : "it"; }
   var t = TT[lang];
+
+  // ---------------------------------------------------------------- testi dell'area account (russo e arabo da rivedere con un madrelingua)
+  var J = {
+    it: {
+      acctEyebrow: "Registrazione e candidatura", acctH: "Crea il tuo account e candidati",
+      acctLead: "Con l'account ritrovi la candidatura, l'esito e il tuo regalo di benvenuto da qualunque dispositivo.",
+      tabReg: "Crea un account", tabLogin: "Accedi", fEmail: "Email", fPass: "Password (almeno 8 caratteri)",
+      btnReg: "Crea l'account e continua", btnLogin: "Accedi", forgot: "Password dimenticata?",
+      forgotSent: "Se l'indirizzo è registrato, riceverai un'email per scegliere una nuova password.",
+      confirmMail: "Ti abbiamo mandato un'email per confermare l'indirizzo: aprila, poi torna qui e accedi.",
+      errAuth: "Email o password non corrette.", errExists: "Questa email ha già un account: accedi con la tua password.",
+      errWeak: "La password deve avere almeno 8 caratteri.", errConfirm: "Conferma prima il tuo indirizzo dall'email che ti abbiamo mandato.",
+      errGeneric: "Qualcosa non ha funzionato. Riprova tra poco.", loading: "Un attimo…",
+      loggedAs: "Accesso come {email}", logout: "Esci",
+      offer: "Il tuo regalo di benvenuto: {prize}.", offerKeep: "Il tuo regalo di benvenuto è riservato: {prize}. Registrati per non perderlo.",
+      offerFirst: "{name} — primo mese {p}, poi {s} al mese", demoTag: "demo",
+      formEyebrow: "Passo 2 di 2", fBrand: "Nome del brand o dell'attività", fLegal: "Ragione sociale", fVat: "Partita IVA",
+      fContact: "Referente", fCountry: "Paese", fIg: "Instagram", fCats: "Categorie (da una a tre)",
+      fDesc: "Chi siete e cosa fate", fDescHint: "Fino a 1.500 caratteri", fLogo: "Logo", fPhoto1: "Foto di un prodotto", fPhoto2: "Foto di un secondo prodotto",
+      fileHint: "PNG, JPG o WebP, al massimo 10 MB", uploading: "Caricamento…", uploaded: "Caricato", fileKept: "Già caricato: puoi lasciarlo così",
+      errFileType: "Formato non accettato: usa PNG, JPG o WebP.", errFileSize: "Il file supera 10 MB.",
+      consPrivacy: "Ho letto l'{link}", consPrivacyLink: "informativa privacy", consTerms: "Accetto le {link}", consTermsLink: "condizioni di partecipazione",
+      legalMissing: "Il modulo si attiva appena sono pubblicate l'informativa privacy e le condizioni di partecipazione.",
+      errRequired: "Compila i campi obbligatori segnati con *.", errCats: "Scegli da una a tre categorie.", errFiles: "Carica il logo e due fotografie dei prodotti.",
+      errConsents: "Per inviare la candidatura vanno accettate informativa e condizioni.",
+      needsH: "Ti chiediamo alcune integrazioni", inviteH: "Completa la candidatura che abbiamo preparato con te",
+      recv1: "Grazie per esserti candidato a Uniqaia. Il nostro team valuterà il tuo brand entro 24 ore.",
+      recv2: "Se approvato, riceverai un link di pagamento sicuro con l'offerta di benvenuto già applicata.",
+      recv2b: "Se approvato, riceverai un link di pagamento sicuro per attivare l'abbonamento.",
+      apprH: "Il tuo brand è stato approvato", apprFirst: "Primo mese: {p}", apprNext: "Mesi successivi: {s} al mese",
+      plan: "{n} dirette al mese, fino a {m} minuti ciascuna.", apprWait: "Riceverai a breve per email il link di pagamento sicuro.",
+      apprNote: "Nessun addebito prima che tu confermi il pagamento con carta su Stripe.",
+      actH: "Abbonamento attivo", actText: "Il tuo abbonamento è attivo: {n} dirette al mese, fino a {m} minuti ciascuna. Si rinnova a {s} al mese.",
+      openPanel: "Apri il tuo pannello", pdH: "Rinnovo non riuscito", pdText: "Il pagamento del rinnovo non è andato a buon fine: aggiorna la carta dal link che ti ha mandato Stripe oppure scrivici a seller@uniqaia.com.",
+      cancH: "Abbonamento non attivo", cancText: "Per riattivarlo scrivici a seller@uniqaia.com.",
+      rejH: "Candidatura non accolta", rejText: "Grazie per l'interesse verso Uniqaia. Al momento non possiamo inserire il tuo brand nel palinsesto."
+    },
+    en: {
+      acctEyebrow: "Registration and application", acctH: "Create your account and apply",
+      acctLead: "Your account keeps your application, its outcome and your welcome gift, on any device.",
+      tabReg: "Create an account", tabLogin: "Log in", fEmail: "Email", fPass: "Password (at least 8 characters)",
+      btnReg: "Create account and continue", btnLogin: "Log in", forgot: "Forgot your password?",
+      forgotSent: "If this address is registered, you will receive an email to choose a new password.",
+      confirmMail: "We have sent you an email to confirm your address: open it, then come back here and log in.",
+      errAuth: "Incorrect email or password.", errExists: "This email already has an account: please log in with your password.",
+      errWeak: "The password must be at least 8 characters long.", errConfirm: "Please confirm your address first, from the email we sent you.",
+      errGeneric: "Something went wrong. Please try again shortly.", loading: "One moment…",
+      loggedAs: "Logged in as {email}", logout: "Log out",
+      offer: "Your welcome gift: {prize}.", offerKeep: "Your welcome gift is reserved: {prize}. Register to keep it.",
+      offerFirst: "{name} — first month {p}, then {s}/month", demoTag: "demo",
+      formEyebrow: "Step 2 of 2", fBrand: "Brand or business name", fLegal: "Registered company name", fVat: "VAT number",
+      fContact: "Contact person", fCountry: "Country", fIg: "Instagram", fCats: "Categories (one to three)",
+      fDesc: "Who you are and what you do", fDescHint: "Up to 1,500 characters", fLogo: "Logo", fPhoto1: "Photo of a product", fPhoto2: "Photo of a second product",
+      fileHint: "PNG, JPG or WebP, 10 MB max", uploading: "Uploading…", uploaded: "Uploaded", fileKept: "Already uploaded: you can keep it",
+      errFileType: "Format not accepted: please use PNG, JPG or WebP.", errFileSize: "The file is larger than 10 MB.",
+      consPrivacy: "I have read the {link}", consPrivacyLink: "privacy notice", consTerms: "I accept the {link}", consTermsLink: "terms of participation",
+      legalMissing: "The form will open as soon as the privacy notice and the terms of participation are published.",
+      errRequired: "Please fill in the required fields marked *.", errCats: "Please choose one to three categories.", errFiles: "Please upload your logo and two product photographs.",
+      errConsents: "To send the application, please accept the privacy notice and the terms.",
+      needsH: "We need a few more details", inviteH: "Complete the application we prepared with you",
+      recv1: "Thank you for applying to Uniqaia. Our team will review your brand within 24 hours.",
+      recv2: "If approved, you will receive a secure payment link with your welcome offer applied.",
+      recv2b: "If approved, you will receive a secure payment link to activate your subscription.",
+      apprH: "Your brand has been approved", apprFirst: "First month: {p}", apprNext: "Following months: {s}/month",
+      plan: "{n} live shows per month, each lasting up to {m} minutes.", apprWait: "Your secure payment link will reach you by email shortly.",
+      apprNote: "Nothing is charged until you confirm the card payment on Stripe.",
+      actH: "Subscription active", actText: "Your subscription is active: {n} live shows per month, each lasting up to {m} minutes. It renews at {s}/month.",
+      openPanel: "Open your panel", pdH: "Renewal payment failed", pdText: "The renewal payment did not go through: please update your card from the link Stripe sent you, or write to seller@uniqaia.com.",
+      cancH: "Subscription not active", cancText: "To reactivate it, please write to seller@uniqaia.com.",
+      rejH: "Application not accepted", rejText: "Thank you for your interest in Uniqaia. We are unable to include your brand in our schedule at this time."
+    },
+    fr: {
+      acctEyebrow: "Inscription et candidature", acctH: "Créez votre compte et posez votre candidature",
+      acctLead: "Votre compte conserve votre candidature, sa réponse et votre cadeau de bienvenue, sur tous vos appareils.",
+      tabReg: "Créer un compte", tabLogin: "Se connecter", fEmail: "E-mail", fPass: "Mot de passe (8 caractères minimum)",
+      btnReg: "Créer le compte et continuer", btnLogin: "Se connecter", forgot: "Mot de passe oublié ?",
+      forgotSent: "Si cette adresse est enregistrée, vous recevrez un e-mail pour choisir un nouveau mot de passe.",
+      confirmMail: "Nous vous avons envoyé un e-mail pour confirmer votre adresse : ouvrez-le, puis revenez ici pour vous connecter.",
+      errAuth: "E-mail ou mot de passe incorrect.", errExists: "Cette adresse a déjà un compte : connectez-vous avec votre mot de passe.",
+      errWeak: "Le mot de passe doit comporter au moins 8 caractères.", errConfirm: "Confirmez d'abord votre adresse depuis l'e-mail que nous vous avons envoyé.",
+      errGeneric: "Une erreur est survenue. Veuillez réessayer dans un instant.", loading: "Un instant…",
+      loggedAs: "Connecté en tant que {email}", logout: "Se déconnecter",
+      offer: "Votre cadeau de bienvenue : {prize}.", offerKeep: "Votre cadeau de bienvenue est réservé : {prize}. Inscrivez-vous pour le conserver.",
+      offerFirst: "{name} — premier mois {p}, puis {s} par mois", demoTag: "démo",
+      formEyebrow: "Étape 2 sur 2", fBrand: "Nom de la marque ou de l'entreprise", fLegal: "Raison sociale", fVat: "Numéro de TVA",
+      fContact: "Personne de contact", fCountry: "Pays", fIg: "Instagram", fCats: "Catégories (une à trois)",
+      fDesc: "Qui vous êtes et ce que vous faites", fDescHint: "Jusqu'à 1 500 caractères", fLogo: "Logo", fPhoto1: "Photo d'un produit", fPhoto2: "Photo d'un second produit",
+      fileHint: "PNG, JPG ou WebP, 10 Mo maximum", uploading: "Envoi…", uploaded: "Envoyé", fileKept: "Déjà envoyé : vous pouvez le garder",
+      errFileType: "Format non accepté : utilisez PNG, JPG ou WebP.", errFileSize: "Le fichier dépasse 10 Mo.",
+      consPrivacy: "J'ai lu la {link}", consPrivacyLink: "politique de confidentialité", consTerms: "J'accepte les {link}", consTermsLink: "conditions de participation",
+      legalMissing: "Le formulaire s'ouvrira dès la publication de la politique de confidentialité et des conditions de participation.",
+      errRequired: "Veuillez remplir les champs obligatoires marqués *.", errCats: "Choisissez une à trois catégories.", errFiles: "Envoyez votre logo et deux photographies de produits.",
+      errConsents: "Pour envoyer la candidature, acceptez la politique de confidentialité et les conditions.",
+      needsH: "Nous avons besoin de quelques compléments", inviteH: "Complétez la candidature préparée avec vous",
+      recv1: "Merci d'avoir posé votre candidature à Uniqaia. Notre équipe examinera votre marque sous 24 heures.",
+      recv2: "En cas d'approbation, vous recevrez un lien de paiement sécurisé avec votre offre de bienvenue déjà appliquée.",
+      recv2b: "En cas d'approbation, vous recevrez un lien de paiement sécurisé pour activer votre abonnement.",
+      apprH: "Votre marque a été approuvée", apprFirst: "Premier mois : {p}", apprNext: "Mois suivants : {s} par mois",
+      plan: "{n} directs par mois, de {m} minutes maximum chacun.", apprWait: "Votre lien de paiement sécurisé vous parviendra très bientôt par e-mail.",
+      apprNote: "Aucun prélèvement avant que vous ne confirmiez le paiement par carte sur Stripe.",
+      actH: "Abonnement actif", actText: "Votre abonnement est actif : {n} directs par mois, de {m} minutes maximum chacun. Il se renouvelle à {s} par mois.",
+      openPanel: "Ouvrir votre espace", pdH: "Échec du paiement de renouvellement", pdText: "Le paiement du renouvellement n'a pas abouti : mettez à jour votre carte depuis le lien envoyé par Stripe ou écrivez-nous à seller@uniqaia.com.",
+      cancH: "Abonnement inactif", cancText: "Pour le réactiver, écrivez-nous à seller@uniqaia.com.",
+      rejH: "Candidature non retenue", rejText: "Merci de l'intérêt que vous portez à Uniqaia. Nous ne pouvons pas intégrer votre marque à notre programmation pour le moment."
+    },
+    ru: {
+      acctEyebrow: "Регистрация и заявка", acctH: "Создайте аккаунт и подайте заявку",
+      acctLead: "В аккаунте сохраняются ваша заявка, её результат и приветственный подарок — на любом устройстве.",
+      tabReg: "Создать аккаунт", tabLogin: "Войти", fEmail: "Эл. почта", fPass: "Пароль (не менее 8 символов)",
+      btnReg: "Создать аккаунт и продолжить", btnLogin: "Войти", forgot: "Забыли пароль?",
+      forgotSent: "Если этот адрес зарегистрирован, вы получите письмо для выбора нового пароля.",
+      confirmMail: "Мы отправили вам письмо для подтверждения адреса: откройте его, затем вернитесь сюда и войдите.",
+      errAuth: "Неверная почта или пароль.", errExists: "У этого адреса уже есть аккаунт: войдите со своим паролем.",
+      errWeak: "Пароль должен содержать не менее 8 символов.", errConfirm: "Сначала подтвердите адрес по ссылке из нашего письма.",
+      errGeneric: "Что-то пошло не так. Попробуйте ещё раз чуть позже.", loading: "Минуту…",
+      loggedAs: "Вы вошли как {email}", logout: "Выйти",
+      offer: "Ваш приветственный подарок: {prize}.", offerKeep: "Ваш приветственный подарок закреплён: {prize}. Зарегистрируйтесь, чтобы его сохранить.",
+      offerFirst: "{name} — первый месяц {p}, затем {s} в месяц", demoTag: "демо",
+      formEyebrow: "Шаг 2 из 2", fBrand: "Название бренда или компании", fLegal: "Юридическое название", fVat: "Номер НДС",
+      fContact: "Контактное лицо", fCountry: "Страна", fIg: "Instagram", fCats: "Категории (от одной до трёх)",
+      fDesc: "Кто вы и чем занимаетесь", fDescHint: "До 1500 символов", fLogo: "Логотип", fPhoto1: "Фото изделия", fPhoto2: "Фото второго изделия",
+      fileHint: "PNG, JPG или WebP, не более 10 МБ", uploading: "Загрузка…", uploaded: "Загружено", fileKept: "Уже загружено: можно оставить",
+      errFileType: "Формат не поддерживается: используйте PNG, JPG или WebP.", errFileSize: "Файл больше 10 МБ.",
+      consPrivacy: "Я ознакомился(ась) с {link}", consPrivacyLink: "политикой конфиденциальности", consTerms: "Я принимаю {link}", consTermsLink: "условия участия",
+      legalMissing: "Форма откроется, как только будут опубликованы политика конфиденциальности и условия участия.",
+      errRequired: "Заполните обязательные поля, отмеченные *.", errCats: "Выберите от одной до трёх категорий.", errFiles: "Загрузите логотип и две фотографии изделий.",
+      errConsents: "Чтобы отправить заявку, примите политику конфиденциальности и условия.",
+      needsH: "Нам нужны дополнительные сведения", inviteH: "Завершите заявку, подготовленную вместе с вами",
+      recv1: "Спасибо за заявку в Uniqaia. Наша команда рассмотрит ваш бренд в течение 24 часов.",
+      recv2: "В случае одобрения вы получите защищённую ссылку на оплату с уже применённым приветственным предложением.",
+      recv2b: "В случае одобрения вы получите защищённую ссылку на оплату для активации подписки.",
+      apprH: "Ваш бренд одобрен", apprFirst: "Первый месяц: {p}", apprNext: "Следующие месяцы: {s} в месяц",
+      plan: "{n} эфира в месяц продолжительностью до {m} минут каждый.", apprWait: "Защищённая ссылка на оплату скоро придёт вам на почту.",
+      apprNote: "Списание произойдёт только после подтверждения оплаты картой на Stripe.",
+      actH: "Подписка активна", actText: "Ваша подписка активна: {n} эфира в месяц продолжительностью до {m} минут каждый. Продление — {s} в месяц.",
+      openPanel: "Открыть панель", pdH: "Оплата продления не прошла", pdText: "Оплата продления не прошла: обновите карту по ссылке из письма Stripe или напишите нам на seller@uniqaia.com.",
+      cancH: "Подписка не активна", cancText: "Чтобы возобновить её, напишите нам на seller@uniqaia.com.",
+      rejH: "Заявка не принята", rejText: "Благодарим за интерес к Uniqaia. Сейчас мы не можем включить ваш бренд в программу эфиров."
+    },
+    ar: {
+      acctEyebrow: "التسجيل وتقديم الطلب", acctH: "أنشئ حسابك وقدّم طلبك",
+      acctLead: "يحفظ حسابك طلبك ونتيجته وهديتك الترحيبية على أي جهاز.",
+      tabReg: "إنشاء حساب", tabLogin: "تسجيل الدخول", fEmail: "البريد الإلكتروني", fPass: "كلمة المرور (8 أحرف على الأقل)",
+      btnReg: "أنشئ الحساب وتابع", btnLogin: "تسجيل الدخول", forgot: "نسيت كلمة المرور؟",
+      forgotSent: "إذا كان هذا العنوان مسجلاً، فستصلك رسالة لاختيار كلمة مرور جديدة.",
+      confirmMail: "أرسلنا إليك رسالة لتأكيد عنوانك: افتحها، ثم عد إلى هنا وسجّل الدخول.",
+      errAuth: "البريد الإلكتروني أو كلمة المرور غير صحيحة.", errExists: "لهذا البريد حساب بالفعل: سجّل الدخول بكلمة مرورك.",
+      errWeak: "يجب أن تتكون كلمة المرور من 8 أحرف على الأقل.", errConfirm: "يرجى أولاً تأكيد عنوانك من الرسالة التي أرسلناها إليك.",
+      errGeneric: "حدث خطأ ما. يرجى المحاولة بعد قليل.", loading: "لحظة…",
+      loggedAs: "تم تسجيل الدخول باسم {email}", logout: "تسجيل الخروج",
+      offer: "هديتك الترحيبية: {prize}.", offerKeep: "هديتك الترحيبية محجوزة: {prize}. سجّل لتحتفظ بها.",
+      offerFirst: "{name} — الشهر الأول {p}، ثم {s} شهريًا", demoTag: "تجريبي",
+      formEyebrow: "الخطوة 2 من 2", fBrand: "اسم العلامة التجارية أو النشاط", fLegal: "الاسم القانوني للشركة", fVat: "رقم ضريبة القيمة المضافة",
+      fContact: "الشخص المسؤول", fCountry: "البلد", fIg: "Instagram", fCats: "الفئات (من واحدة إلى ثلاث)",
+      fDesc: "من أنتم وماذا تفعلون", fDescHint: "حتى 1500 حرف", fLogo: "الشعار", fPhoto1: "صورة منتج", fPhoto2: "صورة منتج ثانٍ",
+      fileHint: "PNG أو JPG أو WebP، بحد أقصى 10 ميغابايت", uploading: "جارٍ التحميل…", uploaded: "تم التحميل", fileKept: "تم تحميله سابقًا: يمكنك الإبقاء عليه",
+      errFileType: "الصيغة غير مقبولة: استخدم PNG أو JPG أو WebP.", errFileSize: "حجم الملف أكبر من 10 ميغابايت.",
+      consPrivacy: "قرأت {link}", consPrivacyLink: "إشعار الخصوصية", consTerms: "أوافق على {link}", consTermsLink: "شروط المشاركة",
+      legalMissing: "سيُفتح النموذج فور نشر إشعار الخصوصية وشروط المشاركة.",
+      errRequired: "يرجى ملء الحقول الإلزامية المعلَّمة بـ *.", errCats: "اختر من فئة إلى ثلاث فئات.", errFiles: "حمّل الشعار وصورتين للمنتجات.",
+      errConsents: "لإرسال الطلب، يرجى الموافقة على إشعار الخصوصية والشروط.",
+      needsH: "نحتاج إلى بعض المعلومات الإضافية", inviteH: "أكمل الطلب الذي أعددناه معك",
+      recv1: "شكرًا لتقديم طلبك إلى Uniqaia. سيراجع فريقنا علامتك التجارية خلال 24 ساعة.",
+      recv2: "في حال الموافقة، ستتلقى رابط دفع آمنًا مع تطبيق عرضك الترحيبي.",
+      recv2b: "في حال الموافقة، ستتلقى رابط دفع آمنًا لتفعيل اشتراكك.",
+      apprH: "تمت الموافقة على علامتك التجارية", apprFirst: "الشهر الأول: {p}", apprNext: "الأشهر التالية: {s} شهريًا",
+      plan: "{n} بثوث مباشرة شهريًا، تصل مدة كل منها إلى {m} دقيقة.", apprWait: "سيصلك رابط الدفع الآمن عبر البريد الإلكتروني قريبًا.",
+      apprNote: "لن يُخصم أي مبلغ قبل أن تؤكد الدفع بالبطاقة على Stripe.",
+      actH: "الاشتراك مفعّل", actText: "اشتراكك مفعّل: {n} بثوث مباشرة شهريًا، تصل مدة كل منها إلى {m} دقيقة. يتجدد بسعر {s} شهريًا.",
+      openPanel: "افتح لوحتك", pdH: "فشل دفع التجديد", pdText: "لم يتم دفع التجديد: حدّث بطاقتك من الرابط الذي أرسلته Stripe أو راسلنا على seller@uniqaia.com.",
+      cancH: "الاشتراك غير مفعّل", cancText: "لإعادة تفعيله، راسلنا على seller@uniqaia.com.",
+      rejH: "لم يُقبل الطلب", rejText: "نشكرك على اهتمامك بـ Uniqaia. لا يمكننا إدراج علامتك التجارية في جدول البث في الوقت الحالي."
+    }
+  };
+  function j(k, v){ var s = (J[lang] && J[lang][k]) || J.en[k] || ""; return s.replace(/\{(\w+)\}/g, function(m, n){ return v && v[n] != null ? v[n] : m; }); }
+  function eur(c){ var loc = lang === "ar" ? "ar-AE-u-nu-latn" : lang; try { return new Intl.NumberFormat(loc, { style: "currency", currency: "EUR", minimumFractionDigits: c % 100 ? 2 : 0, maximumFractionDigits: 2 }).format(c / 100); } catch(e){ return "€" + (c / 100); } }
+  var COUNTRIES = ["IT","SM","VA","CH","FR","MC","DE","AT","ES","PT","BE","NL","LU","IE","GB","DK","SE","NO","FI","IS","PL","CZ","SK","HU","SI","HR","GR","CY","MT","RO","BG","EE","LV","LT","RS","AL","ME","US","CA","MX","BR","AE","SA","QA","KW","BH","OM","IL","TR","EG","MA","ZA","IN","LK","TH","SG","HK","JP","KR","CN","AU","RU","UA"];
+
+  // ---------------------------------------------------------------- account (Supabase Auth, REST)
+  var AUTH = "uq-auth", SESS = null, refreshing = null;
+  try { SESS = JSON.parse(localStorage.getItem(AUTH) || "null"); } catch(e){}
+  function saveSess(s){ SESS = s; try { if (s) localStorage.setItem(AUTH, JSON.stringify(s)); else localStorage.removeItem(AUTH); } catch(e){} }
+  function announce(){ try { document.dispatchEvent(new CustomEvent("uqauth:change")); } catch(e){} }
+  function http(url, body, tok, method){
+    return fetch(url, { method: method || "POST", headers: { "Content-Type": "application/json", apikey: CFG.key, Authorization: "Bearer " + (tok || CFG.key) }, body: body === undefined ? undefined : JSON.stringify(body) })
+      .then(function(r){ return r.text().then(function(x){ var d = null; try { d = x ? JSON.parse(x) : null; } catch(e){}
+        if (!r.ok) { var e = new Error((d && (d.msg || d.error_description || d.message || d.error)) || ("HTTP " + r.status)); e.code = d && (d.error_code || d.code || d.error); e.status = r.status; throw e; }
+        return d; }); });
+  }
+  function asSess(d){ if (!d || !d.access_token) return null; return { access_token: d.access_token, refresh_token: d.refresh_token, expires_at: d.expires_at || Math.floor(Date.now() / 1000) + (d.expires_in || 3600), user: { id: d.user && d.user.id, email: d.user && d.user.email } }; }
+  function fresh(){
+    if (!SESS) return Promise.resolve(null);
+    if (SESS.expires_at - 60 > Date.now() / 1000) return Promise.resolve(SESS.access_token);
+    if (!refreshing) refreshing = http(CFG.url + "/auth/v1/token?grant_type=refresh_token", { refresh_token: SESS.refresh_token })
+      .then(function(d){ saveSess(asSess(d)); return SESS && SESS.access_token; }, function(){ saveSess(null); ST.me = null; announce(); renderAcct(); return null; })
+      .then(function(x){ refreshing = null; return x; });
+    return refreshing;
+  }
+  window.UQAuth = { fresh: fresh, email: function(){ return SESS && SESS.user && SESS.user.email; } };
+  function rpc(fn, args){ return fresh().then(function(tok){ return http(CFG.url + "/rest/v1/rpc/" + fn, args || {}, tok); }); }
+
+  // ---------------------------------------------------------------- stato
+  var ST = { me: null, terms: null, nights: [], tab: "reg", msg: "", msgOk: false, busy: false, form: {}, cats: [],
+             files: { draft: null, logo: null, photo1: null, photo2: null }, fileMsg: {},
+             invite: (QS.get("t") || "").replace(/[^a-f0-9]/g, "").slice(0, 64) || null, inviteData: null };
+  if (ST.invite) ST.tab = "reg";
+
   function li(arr){ return '<ul>' + arr.map(function(x){ return '<li><i></i>' + esc(x) + '</li>'; }).join("") + '</ul>'; }
+  function wheelSpin(){ if (ST.me && ST.me.spin) return ST.me.spin; var w = window.UQWheel && UQWheel.state(); return w && w.spin && !SESS ? w.spin : null; }
+  function offerHtml(keep){
+    var s = wheelSpin(); if (!s || s.status === "void") return "";
+    var std = (ST.me && ST.me.plan && ST.me.plan.price_cents) || 14900;
+    var name = s.kind === "discount" ? j("offerFirst", { name: s.prize_name, p: eur(s.first_month_cents), s: eur(std) }) : s.prize_name;
+    if (s.mode === "demo") name += " (" + j("demoTag") + ")";
+    return '<p class="offer" role="note"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 8h14l-7 12.5z" stroke="#A9833A" stroke-width="1.4"/><path d="M8.5 3.5h7L19 8H5z" fill="#F8F1DF" stroke="#A9833A" stroke-width="1.4"/><circle cx="12" cy="9.6" r="1.6" fill="#D43F52"/></svg><span>' + esc(j(keep ? "offerKeep" : "offer", { prize: name })) + '</span></p>';
+  }
+
+  // ---------------------------------------------------------------- pagina
   function render(){
     t = TT[lang]; document.documentElement.lang = lang; document.documentElement.dir = lang === "ar" ? "rtl" : "ltr"; $("langCur").textContent = lang.toUpperCase();
     $("tag").textContent = t.tag; $("foot").textContent = t.foot; var dn = document.querySelector(".demo span"); if (dn && t.demoNote) dn.textContent = t.demoNote;
     Array.prototype.forEach.call(document.querySelectorAll("#langMenu button"), function(b){ b.classList.toggle("on", b.getAttribute("data-lang") === lang); });
+    collect();
     $("page").innerHTML = '<span class="eyebrow">' + esc(t.jEyebrow) + '</span><h1>' + esc(t.jTitle) + '</h1><p class="lead">' + esc(t.jLead) + '</p>' +
       '<h3>' + esc(t.jWhatH) + '</h3>' + li(t.jWhat) + '<h3>' + esc(t.jWhoH) + '</h3>' + li(t.jWho) +
-      '<div class="price"><b>149 €</b> ' + esc(t.jPrice) + '</div>' +
-      '<h3>' + esc(t.jFormH) + '</h3><form class="jform" id="jForm">' +
-        '<label>' + esc(t.fName) + '<input id="jName" type="text" maxlength="80" required></label><label>' + esc(t.fCity) + '<input id="jCity" type="text" maxlength="60" required></label>' +
-        '<label>' + esc(t.fKind) + '<select id="jKind"><option value="shop">' + esc(t.kShop) + '</option><option value="gems">' + esc(t.kGems) + '</option></select></label><label>' + esc(t.fSite) + '<input id="jSite" type="text" maxlength="160" placeholder="www…"></label>' +
-        '<label class="full">' + esc(t.fNight) + '<select id="jNight"><option value="">' + esc(t.nightAny) + '</option></select></label>' +
-        '<label class="full">' + esc(t.fShow) + '<textarea id="jShow" maxlength="600"></textarea></label>' +
-        '<label>' + esc(t.fEmail) + '<input id="jEmail" type="email" maxlength="120" required></label><label>' + esc(t.fPhone) + '<input id="jPhone" type="tel" maxlength="40"></label>' +
-        '<button class="submit" type="submit" id="jSend">' + esc(t.jSend) + '</button></form><p class="hint">' + esc(t.jFine) + '</p>';
-    // Le serate a tema sono il motivo per cui uno si candida adesso invece
-    // che un giorno qualunque: vanno messe davanti, non nascoste.
-    sb.rpc("list_nights", { p_from: null }).then(function(r){
-      var sel = $("jNight"); if (!sel || r.error) return;
-      (r.data || []).forEach(function(n){
-        if (!n.applications_open) return;
-        var o = document.createElement("option");
-        o.value = n.id;
-        var i18n = n.title_i18n || {};
-        var nome = i18n[lang] || (lang !== "it" && i18n.en) || n.title;
-        var quando = "";
-        try { quando = new Intl.DateTimeFormat(lang || "it", { weekday:"long", day:"numeric", month:"long", hour:"2-digit", minute:"2-digit" }).format(new Date(n.starts_at)); } catch(e){}
-        o.textContent = nome + (quando ? " · " + quando : "");
-        sel.appendChild(o);
-      });
+      '<div class="price"><b>' + esc(eur(((ST.terms && ST.terms.price_cents) || 14900))) + '</b> ' + esc(t.jPrice) + '</div>' +
+      '<section class="acct" id="acct" aria-live="polite"></section>';
+    renderAcct();
+  }
+
+  function renderAcct(){
+    var box = $("acct"); if (!box) return;
+    collect();
+    if (!SESS) { box.innerHTML = authCard(); bindAuth(); return; }
+    if (!ST.me) { box.innerHTML = '<div class="acard"><p class="hint">' + esc(j("loading")) + '</p></div>'; return; }
+    var a = ST.me.application, sub = ST.me.subscription, h = userBar();
+    if (sub && sub.status === "awaiting_payment") h += approvedCard(sub);
+    else if (sub) h += activeCard(sub);
+    else if (a && a.status === "new") h += receivedCard();
+    else if (a && a.status === "rejected") h += statusCard(j("rejH"), j("rejText"));
+    else if (a && a.status === "approved") h += statusCard(j("apprH"), j("apprWait"));
+    else h += formCard(a);
+    box.innerHTML = h; bindAcct();
+  }
+
+  function userBar(){ return '<p class="userbar">' + esc(j("loggedAs", { email: (ST.me && ST.me.email) || (SESS.user && SESS.user.email) || "" })) + ' · <button type="button" class="lnk" id="aOut">' + esc(j("logout")) + '</button></p>'; }
+
+  function authCard(){
+    var reg = ST.tab === "reg";
+    return '<div class="acard"><span class="eyebrow">' + esc(j("acctEyebrow")) + '</span><h2>' + esc(j("acctH")) + '</h2><p class="lead">' + esc(j("acctLead")) + '</p>' + offerHtml(true) +
+      '<div class="atabs" role="tablist"><button type="button" role="tab" data-tab="reg" aria-selected="' + reg + '" class="' + (reg ? "on" : "") + '">' + esc(j("tabReg")) + '</button>' +
+      '<button type="button" role="tab" data-tab="login" aria-selected="' + !reg + '" class="' + (reg ? "" : "on") + '">' + esc(j("tabLogin")) + '</button></div>' +
+      '<form class="jform" id="aForm" novalidate><label class="full">' + esc(j("fEmail")) + '<input id="aEmail" type="email" autocomplete="email" required maxlength="160" value="' + esc(ST.form.aEmail || "") + '"></label>' +
+      '<label class="full">' + esc(j("fPass")) + '<input id="aPass" type="password" minlength="8" required autocomplete="' + (reg ? "new-password" : "current-password") + '"></label>' +
+      '<button class="submit" type="submit" id="aSend"' + (ST.busy ? " disabled" : "") + '>' + esc(j(reg ? "btnReg" : "btnLogin")) + '</button></form>' +
+      (reg ? "" : '<p class="hint"><button type="button" class="lnk" id="aForgot">' + esc(j("forgot")) + '</button></p>') +
+      '<p class="amsg' + (ST.msgOk ? " ok" : "") + '" role="status">' + esc(ST.msg) + '</p></div>';
+  }
+
+  function field(id, label, value, opt){
+    opt = opt || {};
+    var req = opt.req ? ' required aria-required="true"' : "", star = opt.req ? " *" : "";
+    if (opt.area) return '<label class="full">' + esc(label + star) + (opt.hint ? ' <small>' + esc(opt.hint) + '</small>' : "") + '<textarea id="' + id + '" maxlength="' + opt.max + '"' + req + '>' + esc(value || "") + '</textarea></label>';
+    return '<label' + (opt.full ? ' class="full"' : "") + '>' + esc(label + star) + '<input id="' + id + '" type="' + (opt.type || "text") + '" maxlength="' + (opt.max || 160) + '"' + req + (opt.ro ? " readonly" : "") + (opt.ph ? ' placeholder="' + esc(opt.ph) + '"' : "") + ' value="' + esc(value || "") + '"></label>';
+  }
+  function formCard(a){
+    var F = ST.form, pre = (a && a.fields) || ST.inviteData || {}, v = function(k){ return F[k] != null ? F[k] : (pre[k] != null ? pre[k] : ""); };
+    if (!ST.cats.length && pre.categories) ST.cats = pre.categories.slice(0, 3);
+    var dn; try { dn = new Intl.DisplayNames([lang], { type: "region" }); } catch(e){ dn = null; }
+    var cc = v("country") || "IT", countries = COUNTRIES.map(function(c){ return { c: c, n: dn ? dn.of(c) : c }; }).sort(function(x, y){ return x.n.localeCompare(y.n, lang); });
+    var legal = ST.terms && ST.terms.legal_ready, keep = { logo: pre.has_logo, photo1: pre.has_photos, photo2: pre.has_photos };
+    function file(kind, label){
+      var m = ST.fileMsg[kind] || (ST.files[kind] ? "✓ " + j("uploaded") : keep[kind] ? "✓ " + j("fileKept") : j("fileHint"));
+      return '<label class="filebox">' + esc(label + (keep[kind] ? "" : " *")) + '<input type="file" id="f_' + kind + '" data-kind="' + kind + '" accept="image/png,image/jpeg,image/webp"><small id="m_' + kind + '">' + esc(m) + '</small></label>';
+    }
+    function link(key, url, lk){ return esc(j(key)).replace("{link}", url ? '<a href="' + esc(url) + '" target="_blank" rel="noopener">' + esc(j(lk)) + '</a>' : esc(j(lk))); }
+    var head = a && a.status === "needs_info" ? '<div class="notice"><b>' + esc(j("needsH")) + '</b><p>' + esc(a.info_request || "") + '</p></div>' : ST.inviteData ? '<div class="notice"><b>' + esc(j("inviteH")) + '</b></div>' : "";
+    return '<div class="acard"><span class="eyebrow">' + esc(j("formEyebrow")) + '</span><h2>' + esc(t.jFormH) + '</h2>' + head + offerHtml(false) +
+      '<form class="jform" id="jForm" novalidate>' +
+      field("jName", j("fBrand"), v("name"), { req: 1, max: 80 }) + field("jLegal", j("fLegal"), v("legal_name"), { req: 1 }) +
+      field("jVat", j("fVat"), v("vat_number"), { req: 1, max: 40 }) + field("jContact", j("fContact"), v("contact_name"), { req: 1, max: 120 }) +
+      field("jEmail", t.fEmail, (ST.me && ST.me.email) || "", { type: "email", ro: 1 }) + field("jPhone", t.fPhone, v("phone"), { type: "tel", max: 40 }) +
+      '<label>' + esc(j("fCountry") + " *") + '<select id="jCountry">' + countries.map(function(x){ return '<option value="' + x.c + '"' + (x.c === cc ? " selected" : "") + '>' + esc(x.n) + '</option>'; }).join("") + '</select></label>' +
+      field("jCity", t.fCity, v("city"), { req: 1, max: 60 }) +
+      field("jSite", t.fSite, v("site"), { ph: "www…" }) + field("jIg", j("fIg"), v("instagram"), { ph: "@…", max: 80 }) +
+      '<label>' + esc(t.fKind) + '<select id="jKind"><option value="shop">' + esc(t.kShop) + '</option><option value="gems"' + (v("kind") === "gems" ? " selected" : "") + '>' + esc(t.kGems) + '</option></select></label>' +
+      '<label>' + esc(t.fNight) + '<select id="jNight"><option value="">' + esc(t.nightAny) + '</option>' + ST.nights.map(function(n){
+        var i18n = n.title_i18n || {}, nome = i18n[lang] || (lang !== "it" && i18n.en) || n.title, q = "";
+        try { q = new Intl.DateTimeFormat(lang, { weekday: "long", day: "numeric", month: "long", hour: "2-digit", minute: "2-digit" }).format(new Date(n.starts_at)); } catch(e){}
+        return '<option value="' + n.id + '"' + (v("night_id") === n.id ? " selected" : "") + '>' + esc(nome + (q ? " · " + q : "")) + '</option>'; }).join("") + '</select></label>' +
+      '<fieldset class="full chips" id="jCats"><legend>' + esc(j("fCats") + " *") + '</legend>' + CATS.map(function(c){
+        var on = ST.cats.indexOf(c.slug) >= 0, nm = (c.name_i18n && (c.name_i18n[lang] || c.name_i18n.en || c.name_i18n.it)) || c.slug;
+        return '<button type="button" class="chip' + (on ? " on" : "") + '" aria-pressed="' + on + '" data-cat="' + esc(c.slug) + '">' + esc(nm) + '</button>'; }).join("") + '</fieldset>' +
+      field("jDesc", j("fDesc"), v("description"), { area: 1, req: 1, max: 1500, hint: j("fDescHint") }) +
+      field("jShow", t.fShow, v("show_what"), { area: 1, max: 600 }) +
+      '<div class="full files">' + file("logo", j("fLogo")) + file("photo1", j("fPhoto1")) + file("photo2", j("fPhoto2")) + '</div>' +
+      '<label class="full consent"><input type="checkbox" id="jPrivacy"' + (F.privacy ? " checked" : "") + '><span>' + link("consPrivacy", ST.terms && ST.terms.privacy_url, "consPrivacyLink") + ' *</span></label>' +
+      '<label class="full consent"><input type="checkbox" id="jTerms"' + (F.terms ? " checked" : "") + '><span>' + link("consTerms", ST.terms && ST.terms.terms_url, "consTermsLink") + ' *</span></label>' +
+      (legal ? "" : '<p class="full notice">' + esc(j("legalMissing")) + '</p>') +
+      '<button class="submit" type="submit" id="jSend"' + (legal && !ST.busy ? "" : " disabled") + '>' + esc(t.jSend) + '</button></form>' +
+      '<p class="amsg" role="status">' + esc(ST.msg) + '</p><p class="hint">' + esc(t.jFine) + '</p></div>';
+  }
+
+  function receivedCard(){
+    var s = ST.me.spin, offer = s && s.mode === "live" && s.kind === "discount" && s.status !== "void";
+    return '<div class="acard astat"><span class="okc" aria-hidden="true">✓</span><h2 class="brandh">APPLICATION RECEIVED</h2><p>' + esc(j("recv1")) + '</p><p>' + esc(j(offer ? "recv2" : "recv2b")) + '</p>' + offerHtml(false) + '</div>';
+  }
+  function planLine(){ var p = ST.me.plan || {}; return j("plan", { n: p.lives_per_month || 4, m: p.live_max_min || 60 }); }
+  function approvedCard(sub){
+    var pay = sub.pay_token ? '<a class="btn dark wide" id="aPay" href="' + PFX + '/pay/?t=' + encodeURIComponent(sub.pay_token) + '">ACTIVATE YOUR SUBSCRIPTION</a><p class="hint">' + esc(j("apprNote")) + '</p>' : '<p class="notice">' + esc(j("apprWait")) + '</p>';
+    return '<div class="acard astat"><span class="okc" aria-hidden="true">✓</span><h2>' + esc(j("apprH")) + '</h2><div class="plan"><p><b>' + esc(j("apprFirst", { p: eur(sub.first_month_cents) })) + '</b></p><p>' + esc(j("apprNext", { s: eur(sub.standard_cents) })) + '</p><p>' + esc(planLine()) + '</p></div>' + pay + '</div>';
+  }
+  function activeCard(sub){
+    var p = ST.me.plan || {}, panel = ST.me.panel;
+    if (sub.status === "active") return '<div class="acard astat"><span class="okc" aria-hidden="true">✓</span><h2>' + esc(j("actH")) + '</h2><p>' + esc(j("actText", { n: p.lives_per_month || 4, m: p.live_max_min || 60, s: eur(sub.standard_cents) })) + '</p>' +
+      (panel ? '<a class="btn dark wide" href="' + PFX + '/' + encodeURIComponent(panel.slug) + '/panel/?k=' + encodeURIComponent(panel.key) + '">' + esc(j("openPanel")) + '</a>' : "") + '</div>';
+    if (sub.status === "past_due") return statusCard(j("pdH"), j("pdText"));
+    return statusCard(j("cancH"), j("cancText"));
+  }
+  function statusCard(h, p){ return '<div class="acard astat"><h2>' + esc(h) + '</h2><p>' + esc(p) + '</p></div>'; }
+
+  // ---------------------------------------------------------------- comportamento
+  function say(m, ok){ ST.msg = m || ""; ST.msgOk = !!ok; var el = document.querySelector("#acct .amsg"); if (el) { el.textContent = ST.msg; el.classList.toggle("ok", !!ok); } }
+  function collect(){
+    var F = ST.form, val = function(id){ var e = $(id); return e ? e.value : undefined; }, chk = function(id){ var e = $(id); return e ? e.checked : undefined; };
+    var map = { aEmail: "aEmail", jName: "name", jLegal: "legal_name", jVat: "vat_number", jContact: "contact_name", jPhone: "phone", jCountry: "country", jCity: "city", jSite: "site", jIg: "instagram", jKind: "kind", jNight: "night_id", jDesc: "description", jShow: "show_what" };
+    Object.keys(map).forEach(function(id){ var x = val(id); if (x !== undefined) F[map[id]] = x; });
+    var p = chk("jPrivacy"), tm = chk("jTerms"); if (p !== undefined) F.privacy = p; if (tm !== undefined) F.terms = tm;
+  }
+  function authError(e, reg){
+    var c = String(e.code || "") + " " + String(e.message || "");
+    if (/already|exists|registered/i.test(c)) { ST.tab = "login"; renderAcct(); say(j("errExists")); return; }
+    if (/weak|password.*(short|characters)/i.test(c)) return say(j("errWeak"));
+    if (/not.?confirmed/i.test(c)) return say(j("errConfirm"));
+    if (/invalid|credentials|grant/i.test(c)) return say(j("errAuth"));
+    say(j("errGeneric"));
+  }
+  function bindAuth(){
+    Array.prototype.forEach.call(document.querySelectorAll("#acct [data-tab]"), function(b){ b.addEventListener("click", function(){ collect(); ST.tab = b.getAttribute("data-tab"); ST.msg = ""; renderAcct(); var e = $("aEmail"); if (e) e.focus(); }); });
+    var fg = $("aForgot"); if (fg) fg.addEventListener("click", function(){
+      var em = ($("aEmail").value || "").trim(); if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(em)) { $("aEmail").focus(); return; }
+      http(CFG.url + "/auth/v1/recover", { email: em }).then(function(){ say(j("forgotSent"), true); }, function(){ say(j("forgotSent"), true); });
     });
-    $("jForm").addEventListener("submit", function(e){
-      e.preventDefault();
-      var name = $("jName").value.trim(), city = $("jCity").value.trim(), email = $("jEmail").value.trim();
-      if (!name || !city || !email){ toast(t.need); return; }
-      $("jSend").disabled = true; $("jSend").textContent = t.sending;
-      sb.rpc("apply_seller", { p_name: name, p_city: city, p_kind: $("jKind").value, p_site: $("jSite").value.trim(), p_show_what: $("jShow").value.trim(), p_email: email, p_phone: $("jPhone").value.trim(), p_lang: lang, p_night: ($("jNight") && $("jNight").value) || null }).then(function(r){
-        if (r.error){ toast(r.error.message); $("jSend").disabled = false; $("jSend").textContent = t.jSend; return; }
-        $("page").innerHTML = '<div class="thanks"><span class="okc">✓</span><h2>' + esc(t.thTitle) + '</h2><p>' + esc(t.thText) + '</p><a class="btn dark" style="margin-top:8px" href="' + CFG.base + '/">' + esc(t.thBtn) + '</a></div>';
-        window.scrollTo(0, 0);
-      });
+    $("aForm").addEventListener("submit", function(e){
+      e.preventDefault(); collect();
+      var em = ($("aEmail").value || "").trim().toLowerCase(), pw = $("aPass").value || "", reg = ST.tab === "reg";
+      if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(em)) { $("aEmail").focus(); return say(j("errAuth")); }
+      if (pw.length < 8) { $("aPass").focus(); return say(j("errWeak")); }
+      ST.busy = true; $("aSend").disabled = true; say(j("loading"), true);
+      var p = reg ? http(CFG.url + "/auth/v1/signup", { email: em, password: pw, data: { source: "join" } }) : http(CFG.url + "/auth/v1/token?grant_type=password", { email: em, password: pw });
+      p.then(function(d){
+        ST.busy = false; var s = asSess(d);
+        if (!s) { ST.tab = "login"; renderAcct(); say(j("confirmMail"), true); return; }   // conferma dell'indirizzo richiesta
+        saveSess(s); ST.msg = ""; announce(); afterLogin();
+      }, function(err){ ST.busy = false; var b = $("aSend"); if (b) b.disabled = false; authError(err, reg); });
     });
   }
+  function afterLogin(){
+    renderAcct();
+    var dev = (window.UQWheel && UQWheel.device && UQWheel.device()) || (function(){ try { return localStorage.getItem("uqw-device"); } catch(e){ return null; } })();
+    // il premio giocato da questo dispositivo passa all'account: da qui in poi non si perde più
+    (dev ? rpc("account_claim_spin", { p_device: dev }).catch(function(){}) : Promise.resolve()).then(loadMe);
+  }
+  function loadMe(){
+    return rpc("account_me", {}).then(function(me){
+      ST.me = me;
+      var needInvite = ST.invite && !me.application && !ST.inviteData;
+      return needInvite ? rpc("get_application_by_token", { p_token: ST.invite }).then(function(r){ ST.inviteData = (r && r[0]) || null; }, function(){}) : null;
+    }).then(function(){ renderAcct(); announce(); }, function(e){
+      if (/JWT|token|401|Accedi/i.test(String(e.message))) { saveSess(null); ST.me = null; announce(); }
+      renderAcct(); say(j("errGeneric"));
+    });
+  }
+  function bindAcct(){
+    var out = $("aOut"); if (out) out.addEventListener("click", function(){
+      var tok = SESS && SESS.access_token; saveSess(null); ST.me = null; ST.inviteData = null; ST.form = {}; ST.cats = []; ST.files = { draft: null, logo: null, photo1: null, photo2: null }; ST.fileMsg = {};
+      if (tok) http(CFG.url + "/auth/v1/logout", {}, tok).catch(function(){});
+      announce(); renderAcct();
+    });
+    var f = $("jForm"); if (!f) return;
+    Array.prototype.forEach.call(f.querySelectorAll(".chip"), function(b){ b.addEventListener("click", function(){
+      var c = b.getAttribute("data-cat"), i = ST.cats.indexOf(c);
+      if (i >= 0) ST.cats.splice(i, 1); else if (ST.cats.length < 3) ST.cats.push(c); else { say(j("errCats")); return; }
+      b.classList.toggle("on", i < 0); b.setAttribute("aria-pressed", String(i < 0)); say("");
+    }); });
+    Array.prototype.forEach.call(f.querySelectorAll('input[type="file"]'), function(inp){ inp.addEventListener("change", function(){ upload(inp); }); });
+    f.addEventListener("submit", function(e){ e.preventDefault(); submit(); });
+  }
+  function upload(inp){
+    var kind = inp.getAttribute("data-kind"), file = inp.files && inp.files[0], m = $("m_" + kind); if (!file) return;
+    var show = function(x){ ST.fileMsg[kind] = x; if ($("m_" + kind)) $("m_" + kind).textContent = x; };
+    if (["image/png", "image/jpeg", "image/webp"].indexOf(file.type) < 0) { inp.value = ""; return show(j("errFileType")); }
+    if (file.size > 10 * 1024 * 1024) { inp.value = ""; return show(j("errFileSize")); }
+    show(j("uploading")); ST.files[kind] = null;
+    http(CFG.url + "/functions/v1/seller-files", { action: "upload", kind: kind, type: file.type, size: file.size, draft: ST.files.draft }).then(function(d){
+      var fd = new FormData(); fd.append("cacheControl", "3600"); fd.append("", file);
+      return fetch(d.signedUrl, { method: "PUT", headers: { apikey: CFG.key, Authorization: "Bearer " + CFG.key, "x-upsert": "true" }, body: fd }).then(function(r){
+        if (!r.ok) throw new Error("upload " + r.status); ST.files.draft = d.draft; ST.files[kind] = d.path; show("✓ " + j("uploaded") + " · " + file.name);
+      });
+    }).catch(function(e){ show((e && e.message && !/HTTP|upload/.test(e.message)) ? e.message : j("errGeneric")); });
+  }
+  function submit(){
+    collect();
+    var F = ST.form, a = ST.me && ST.me.application, pre = (a && a.fields) || ST.inviteData || {};
+    if (!ST.terms || !ST.terms.legal_ready) return say(j("legalMissing"));
+    var req = ["name", "legal_name", "vat_number", "contact_name", "city", "description"];
+    for (var i = 0; i < req.length; i++) if (!String(F[req[i]] || "").trim()) { var map = { name: "jName", legal_name: "jLegal", vat_number: "jVat", contact_name: "jContact", city: "jCity", description: "jDesc" }; $(map[req[i]]).focus(); return say(j("errRequired")); }
+    if (!ST.cats.length) return say(j("errCats"));
+    var hasLogo = ST.files.logo || pre.has_logo, hasPhotos = (ST.files.photo1 && ST.files.photo2) || pre.has_photos;
+    if (!hasLogo || !hasPhotos) return say(j("errFiles"));
+    if (!F.privacy || !F.terms) return say(j("errConsents"));
+    var p = { name: F.name, legal_name: F.legal_name, vat_number: F.vat_number, contact_name: F.contact_name, phone: F.phone || "", country: F.country || "IT", city: F.city,
+      site: F.site || "", instagram: F.instagram || "", kind: F.kind || "shop", categories: ST.cats, description: F.description, show_what: F.show_what || "", night_id: F.night_id || null,
+      privacy: true, terms: true, privacy_version: "v1", terms_version: "v1", lang: lang, draft: ST.files.draft };
+    if (ST.files.logo) p.logo_path = ST.files.logo;
+    if (ST.files.photo1 && ST.files.photo2) p.photo_paths = [ST.files.photo1, ST.files.photo2];
+    if (ST.invite && !a) p.token = ST.invite;
+    ST.busy = true; var b = $("jSend"); if (b) { b.disabled = true; b.textContent = t.sending; }
+    rpc("account_submit_application", { p: p }).then(function(){
+      ST.busy = false; ST.form = {}; ST.cats = []; ST.files = { draft: null, logo: null, photo1: null, photo2: null }; ST.fileMsg = {}; ST.msg = "";
+      return loadMe();
+    }).then(function(){ var box = $("acct"); if (box) window.scrollTo({ top: box.getBoundingClientRect().top + window.pageYOffset - 70 }); }, function(e){
+      ST.busy = false; var b2 = $("jSend"); if (b2) { b2.disabled = false; b2.textContent = t.jSend; } say(e.message || j("errGeneric"));
+    });
+  }
+
+  // ---------------------------------------------------------------- avvio
   $("langCur").addEventListener("click", function(e){ e.stopPropagation(); $("langMenu").hidden = !$("langMenu").hidden; });
   document.addEventListener("click", function(){ $("langMenu").hidden = true; });
   Array.prototype.forEach.call(document.querySelectorAll("#langMenu button"), function(b){ b.addEventListener("click", function(){ lang = b.getAttribute("data-lang"); $("langMenu").hidden = true; try { localStorage.setItem("vetrina-lang", lang); } catch(e){} render(); }); });
+  // il premio giocato prima della registrazione compare nel riquadro dell'account, senza ridisegnare il modulo
+  document.addEventListener("uqw:change", function(){
+    if (SESS) return; var box = $("acct"); if (!box) return;
+    var old = box.querySelector(".offer"), html = offerHtml(true);
+    if (old) { if (html) old.outerHTML = html; else old.parentNode.removeChild(old); }
+    else if (html) { var lead = box.querySelector(".lead"); if (lead) lead.insertAdjacentHTML("afterend", html); }
+  });
   render();
+  rpc("site_terms", {}).then(function(x){ ST.terms = x; renderAcct(); }, function(){});
+  rpc("list_nights", { p_from: null }).then(function(r){ ST.nights = (r || []).filter(function(n){ return n.applications_open; }); if (SESS && ST.me) renderAcct(); }, function(){});
+  if (SESS) loadMe();
+  if (/#acct$/.test(location.hash)) setTimeout(function(){ var b = $("acct"); if (b) b.scrollIntoView(); }, 50);
 })();
 </script>
+<style>
+.acct{margin-top:18px;scroll-margin-top:80px}
+.jform .full{grid-column:1/-1}
+.acard{border:1px solid var(--line);border-radius:16px;padding:20px 18px;background:#FFFDF8;display:flex;flex-direction:column;gap:12px}
+.acard h2{font-family:var(--display);font-size:clamp(22px,5vw,28px);line-height:1.15}
+.acard h2.brandh{letter-spacing:.06em}
+.acard .lead{font-size:14.5px;color:var(--muted);line-height:1.5}
+.acard.astat{align-items:center;text-align:center;padding:28px 18px}
+.acard.astat p{max-width:46ch;line-height:1.55;font-size:15px}
+.acard .okc{width:50px;height:50px;border-radius:50%;background:var(--soft-2);color:var(--gold-edge);display:grid;place-items:center;font-size:24px;border:1px solid var(--gold-hi)}
+.atabs{display:flex;gap:6px;border-bottom:1px solid var(--line)}
+.atabs button{border:0;background:none;padding:10px 12px;font-size:14.5px;border-bottom:2px solid transparent;margin-bottom:-1px;color:var(--muted)}
+.atabs button.on{border-color:var(--gold);color:var(--ink);font-weight:500}
+.lnk{border:0;background:none;padding:4px;color:var(--gold-edge);text-decoration:underline;font-size:13.5px;cursor:pointer}
+.amsg{font-size:14px;color:#B42318;min-height:1em;margin:0}
+.amsg.ok{color:var(--gold-edge)}
+.amsg:empty{display:none}
+.userbar{font-size:13.5px;color:var(--muted);text-align:end;margin:0 0 8px}
+.offer{display:flex;gap:10px;align-items:flex-start;border:1px solid var(--gold-hi);background:var(--soft-2);border-radius:12px;padding:10px 14px;font-size:14px;line-height:1.45;text-align:start;margin:0}
+.offer svg{width:18px;height:18px;flex:none;margin-top:1px}
+.notice{background:#FFF6E5;border:1px solid var(--gold-hi);border-radius:12px;padding:10px 14px;font-size:14px;line-height:1.5;margin:0}
+.notice p{margin:4px 0 0}
+.chips{border:0;padding:0;margin:0;display:flex;flex-wrap:wrap;gap:6px}
+.chips legend{font-size:13px;color:var(--muted);margin-bottom:6px;padding:0}
+.chip{border:1px solid var(--line);background:var(--paper);border-radius:999px;padding:7px 12px;font-size:13.5px;min-height:36px}
+.chip.on{background:var(--gold-ink);color:var(--gold-hi);border-color:var(--gold-ink)}
+.jform textarea{min-height:96px;border-radius:12px;padding:10px 14px;resize:vertical}
+.jform label small{font-size:11.5px;color:var(--muted)}
+.files{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.filebox{border:1px dashed var(--gold-hi);border-radius:12px;padding:10px;background:var(--paper)}
+.filebox input{border:0;padding:4px 0;min-height:0;border-radius:0;font-size:13px;max-width:100%}
+.consent{flex-direction:row;align-items:flex-start;gap:10px;font-size:14px;color:var(--ink)}
+.consent input{min-height:0;width:20px;height:20px;margin-top:1px;flex:none}
+.consent a{color:var(--gold-edge)}
+.jform .submit:disabled{opacity:.45;cursor:not-allowed}
+.plan{display:flex;flex-direction:column;gap:2px;border:1px solid var(--gold-hi);background:var(--soft-2);border-radius:12px;padding:12px 16px;margin:4px 0}
+.plan p{margin:0;font-size:15px}
+.btn.wide{width:100%;max-width:360px;letter-spacing:.12em;font-size:14px;min-height:50px}
+@media (max-width:640px){.jform{grid-template-columns:1fr}.files{grid-template-columns:1fr}.userbar{text-align:start}}
+</style>
 <script>
-/* THE JEWELER'S WHEEL — pop-up di benvenuto della pagina /join (4 novembre 2026)
+/* THE JEWELER'S WHEEL — pop-up di benvenuto della pagina /join (4 novembre 2026, percorso con account)
  *
- * Script autonomo: non tocca la logica della pagina, la affianca.
+ * Script autonomo accanto alla pagina /join.
  * - Il premio lo decide il server (wheel_spin); qui si disegna solo l'animazione.
  * - Modalità "demo": visibile solo con ?wheel=preview, con l'etichetta "demo" ben in vista.
  * - Modalità "live": compare a tutti appena si apre la pagina.
- * - Chiuso il pop-up, resta il pulsante YOUR WELCOME GIFT; nella stessa sessione non si riapre da solo.
- * - All'invio della candidatura il premio provvisorio si lega a email e partita IVA (wheel_link);
- *   diventa definitivo solo quando la gemmologa approva la candidatura.
+ * - Chiuso il pop-up resta il pulsante YOUR WELCOME GIFT; nella stessa sessione non si riapre da solo.
+ * - REGISTER & APPLY porta all'area account della pagina: dopo la registrazione o l'accesso il premio
+ *   passa all'account (account_claim_spin) e non si perde più. Lo sconto vale solo per il primo mese
+ *   e solo se Uniqaia approva il brand.
+ * - Con un account aperto (window.UQAuth) la ruota mostra il premio dell'account da qualunque dispositivo.
  */
 (function () {
   "use strict";
@@ -614,8 +1058,8 @@ function lkAttachRemote(room, tiles, LK){
     title: "YOUR EXCLUSIVE WELCOME GIFT",
     spin: "SPIN & DISCOVER",
     congrats: "CONGRATULATIONS!",
-    unlocked: "YOU'VE UNLOCKED YOUR WELCOME GIFT",
-    claim: "CLAIM YOUR REWARD & JOIN",
+    reserved: "YOUR WELCOME OFFER IS RESERVED!",
+    apply: "REGISTER & APPLY",
     fab: "YOUR WELCOME GIFT"
   };
   var TX = {
@@ -625,18 +1069,18 @@ function lkAttachRemote(room, tiles, LK){
       first: "Your first month: {p}", instead: "Instead of {s}.",
       renews: "Your subscription renews at {s}/month from the second month.",
       perkStd: "Your first month is at the standard price of {s}/month.",
-      setup: "One-off activation fee of {f}, as shown on this page.",
       golden_visibility: "7 days of extra visibility in the brands section.",
       golden_promotion: "A personalised promotional reel for your first live, created from our template.",
       golden_spotlight: "Enjoy 7 days of featured visibility for your jewelry brand.",
-      fine: "One welcome gift per business. It is confirmed when your application is approved. First month only; not combinable with other promotions.",
-      linked: "Application received: your gift will be confirmed when it is approved.",
-      confirmed: "Your welcome gift is confirmed.",
-      redeemed: "Your welcome gift has been applied to your subscription.",
+      res1: "Your welcome discount will be applied to your first monthly subscription, subject to Uniqaia's review and approval of your brand.",
+      res1perk: "Your welcome gift will be activated with your first monthly subscription, subject to Uniqaia's review and approval of your brand.",
+      res2: "All applications are reviewed within 24 hours.",
+      terms1: "Welcome offers are valid for the first month only and are subject to Uniqaia's approval of your brand.",
+      terms2: "Standard subscription: {s}/month for {n} live shows of up to {m} minutes each.",
+      linked: "Your offer is reserved for your account.",
+      confirmed: "Your brand has been approved: the secure payment link is on its way to your inbox.",
+      redeemed: "Your welcome offer has been applied to your subscription.",
       demo: "Preview · demo mode · no real prize", again: "Spin again (demo)",
-      banner: "Your welcome gift: {prize}. Complete the form to claim it — it will be confirmed when your application is approved.",
-      bannerFirst: "first month {p}, then {s}/month",
-      thanks: "Your welcome gift ({prize}) is reserved and will be confirmed together with your application.",
       error: "The welcome gift isn't available right now. Please try again later.", result: "Result: {prize}"
     },
     it: {
@@ -645,18 +1089,18 @@ function lkAttachRemote(room, tiles, LK){
       first: "Il tuo primo mese: {p}", instead: "Invece di {s}.",
       renews: "Dal secondo mese l'abbonamento si rinnova a {s} al mese.",
       perkStd: "Il primo mese è al prezzo standard di {s} al mese.",
-      setup: "Attivazione una tantum di {f}, come indicato in questa pagina.",
       golden_visibility: "7 giorni di visibilità in più nella sezione dedicata ai brand.",
       golden_promotion: "Un reel promozionale personalizzato per la tua prima diretta, creato dal nostro modello.",
       golden_spotlight: "7 giorni in evidenza nella vetrina speciale della home page.",
-      fine: "Un solo regalo di benvenuto per attività. Viene confermato quando la candidatura è approvata. Vale solo per il primo mese e non è cumulabile con altre promozioni.",
-      linked: "Candidatura ricevuta: il regalo sarà confermato con l'approvazione.",
-      confirmed: "Il tuo regalo di benvenuto è confermato.",
-      redeemed: "Il tuo regalo di benvenuto è stato applicato all'abbonamento.",
+      res1: "Lo sconto di benvenuto sarà applicato al primo mese di abbonamento, dopo la valutazione e l'approvazione del tuo brand da parte di Uniqaia.",
+      res1perk: "Il regalo di benvenuto si attiva con il primo mese di abbonamento, dopo la valutazione e l'approvazione del tuo brand da parte di Uniqaia.",
+      res2: "Valutiamo ogni candidatura entro 24 ore.",
+      terms1: "Le offerte di benvenuto valgono solo per il primo mese e sono soggette all'approvazione del tuo brand da parte di Uniqaia.",
+      terms2: "Abbonamento standard: {s} al mese per {n} dirette fino a {m} minuti ciascuna.",
+      linked: "L'offerta è riservata al tuo account.",
+      confirmed: "Il tuo brand è stato approvato: il link di pagamento sicuro è in arrivo nella tua casella email.",
+      redeemed: "L'offerta di benvenuto è stata applicata al tuo abbonamento.",
       demo: "Anteprima · modalità demo · nessun premio reale", again: "Gira di nuovo (demo)",
-      banner: "Il tuo regalo di benvenuto: {prize}. Compila il modulo per riceverlo: sarà confermato con l'approvazione della candidatura.",
-      bannerFirst: "primo mese {p}, poi {s} al mese",
-      thanks: "Il tuo regalo di benvenuto ({prize}) è riservato e sarà confermato insieme alla candidatura.",
       error: "Il regalo di benvenuto non è disponibile in questo momento. Riprova più tardi.", result: "Risultato: {prize}"
     },
     fr: {
@@ -665,18 +1109,18 @@ function lkAttachRemote(room, tiles, LK){
       first: "Votre premier mois : {p}", instead: "Au lieu de {s}.",
       renews: "À partir du deuxième mois, l'abonnement se renouvelle à {s} par mois.",
       perkStd: "Le premier mois est au tarif standard de {s} par mois.",
-      setup: "Frais d'activation uniques de {f}, comme indiqué sur cette page.",
       golden_visibility: "7 jours de visibilité supplémentaire dans la section des marques.",
       golden_promotion: "Un reel promotionnel personnalisé pour votre premier live, créé à partir de notre modèle.",
       golden_spotlight: "7 jours de mise en avant dans la vitrine spéciale de la page d'accueil.",
-      fine: "Un seul cadeau de bienvenue par entreprise. Il est confirmé lorsque votre candidature est approuvée. Valable uniquement le premier mois, non cumulable avec d'autres promotions.",
-      linked: "Candidature reçue : votre cadeau sera confirmé lors de l'approbation.",
-      confirmed: "Votre cadeau de bienvenue est confirmé.",
-      redeemed: "Votre cadeau de bienvenue a été appliqué à votre abonnement.",
+      res1: "Votre remise de bienvenue sera appliquée à votre premier mois d'abonnement, sous réserve de l'examen et de l'approbation de votre marque par Uniqaia.",
+      res1perk: "Votre cadeau de bienvenue sera activé avec votre premier mois d'abonnement, sous réserve de l'examen et de l'approbation de votre marque par Uniqaia.",
+      res2: "Toutes les candidatures sont examinées sous 24 heures.",
+      terms1: "Les offres de bienvenue ne valent que pour le premier mois et sont soumises à l'approbation de votre marque par Uniqaia.",
+      terms2: "Abonnement standard : {s} par mois pour {n} directs de {m} minutes maximum chacun.",
+      linked: "Votre offre est réservée à votre compte.",
+      confirmed: "Votre marque a été approuvée : le lien de paiement sécurisé arrive dans votre boîte e-mail.",
+      redeemed: "Votre offre de bienvenue a été appliquée à votre abonnement.",
       demo: "Aperçu · mode démo · aucun cadeau réel", again: "Tourner à nouveau (démo)",
-      banner: "Votre cadeau de bienvenue : {prize}. Remplissez le formulaire pour en bénéficier : il sera confirmé lors de l'approbation de votre candidature.",
-      bannerFirst: "premier mois {p}, puis {s} par mois",
-      thanks: "Votre cadeau de bienvenue ({prize}) est réservé et sera confirmé avec votre candidature.",
       error: "Le cadeau de bienvenue n'est pas disponible pour le moment. Veuillez réessayer plus tard.", result: "Résultat : {prize}"
     },
     ru: {
@@ -685,18 +1129,18 @@ function lkAttachRemote(room, tiles, LK){
       first: "Ваш первый месяц: {p}", instead: "Вместо {s}.",
       renews: "Со второго месяца подписка продлевается по цене {s} в месяц.",
       perkStd: "Первый месяц — по стандартной цене {s} в месяц.",
-      setup: "Единоразовая плата за подключение {f}, как указано на этой странице.",
       golden_visibility: "7 дней дополнительной видимости в разделе брендов.",
       golden_promotion: "Персональный промо-ролик для вашего первого эфира, созданный по нашему шаблону.",
       golden_spotlight: "7 дней в специальной витрине на главной странице.",
-      fine: "Один приветственный подарок на компанию. Подарок подтверждается после одобрения заявки. Действует только на первый месяц и не суммируется с другими акциями.",
-      linked: "Заявка получена: подарок будет подтверждён после её одобрения.",
-      confirmed: "Ваш приветственный подарок подтверждён.",
-      redeemed: "Ваш приветственный подарок применён к подписке.",
+      res1: "Приветственная скидка будет применена к первому месяцу подписки после рассмотрения и одобрения вашего бренда командой Uniqaia.",
+      res1perk: "Приветственный подарок будет активирован с первым месяцем подписки после рассмотрения и одобрения вашего бренда командой Uniqaia.",
+      res2: "Все заявки рассматриваются в течение 24 часов.",
+      terms1: "Приветственные предложения действуют только на первый месяц и при условии одобрения вашего бренда командой Uniqaia.",
+      terms2: "Стандартная подписка: {s} в месяц за {n} эфира продолжительностью до {m} минут каждый.",
+      linked: "Предложение закреплено за вашим аккаунтом.",
+      confirmed: "Ваш бренд одобрен: защищённая ссылка на оплату уже отправлена на вашу почту.",
+      redeemed: "Приветственное предложение применено к вашей подписке.",
       demo: "Предпросмотр · демо-режим · без реальных подарков", again: "Крутить снова (демо)",
-      banner: "Ваш приветственный подарок: {prize}. Заполните форму, чтобы получить его: он будет подтверждён после одобрения заявки.",
-      bannerFirst: "первый месяц {p}, затем {s} в месяц",
-      thanks: "Ваш приветственный подарок ({prize}) зарезервирован и будет подтверждён вместе с заявкой.",
       error: "Приветственный подарок сейчас недоступен. Попробуйте позже.", result: "Результат: {prize}"
     },
     ar: {
@@ -705,18 +1149,18 @@ function lkAttachRemote(room, tiles, LK){
       first: "شهرك الأول: {p}", instead: "بدلاً من {s}.",
       renews: "يتجدد اشتراكك بسعر {s} شهريًا ابتداءً من الشهر الثاني.",
       perkStd: "الشهر الأول بالسعر المعتاد {s} شهريًا.",
-      setup: "رسوم تفعيل لمرة واحدة بقيمة {f}، كما هو موضح في هذه الصفحة.",
       golden_visibility: "7 أيام من الظهور الإضافي في قسم العلامات التجارية.",
       golden_promotion: "مقطع ترويجي مخصص لأول بث مباشر لك، يُنشأ من قالبنا.",
       golden_spotlight: "7 أيام من الظهور المميز في واجهة خاصة على الصفحة الرئيسية.",
-      fine: "هدية ترحيبية واحدة لكل نشاط تجاري. تُؤكَّد عند الموافقة على طلبك. صالحة للشهر الأول فقط ولا تُجمع مع عروض أخرى.",
-      linked: "تم استلام طلبك: ستُؤكَّد هديتك عند الموافقة عليه.",
-      confirmed: "تم تأكيد هديتك الترحيبية.",
-      redeemed: "تم تطبيق هديتك الترحيبية على اشتراكك.",
+      res1: "سيُطبَّق خصم الترحيب على الشهر الأول من اشتراكك، بعد مراجعة Uniqaia لعلامتك التجارية والموافقة عليها.",
+      res1perk: "ستُفعَّل هديتك الترحيبية مع الشهر الأول من اشتراكك، بعد مراجعة Uniqaia لعلامتك التجارية والموافقة عليها.",
+      res2: "نراجع جميع الطلبات خلال 24 ساعة.",
+      terms1: "عروض الترحيب صالحة للشهر الأول فقط وتخضع لموافقة Uniqaia على علامتك التجارية.",
+      terms2: "الاشتراك المعتاد: {s} شهريًا مقابل {n} بثوث مباشرة تصل مدة كل منها إلى {m} دقيقة.",
+      linked: "العرض محجوز لحسابك.",
+      confirmed: "تمت الموافقة على علامتك التجارية: رابط الدفع الآمن في طريقه إلى بريدك الإلكتروني.",
+      redeemed: "تم تطبيق عرض الترحيب على اشتراكك.",
       demo: "معاينة · وضع تجريبي · لا توجد جوائز حقيقية", again: "أدر العجلة مرة أخرى (تجريبي)",
-      banner: "هديتك الترحيبية: {prize}. املأ النموذج للحصول عليها، وستُؤكَّد عند الموافقة على طلبك.",
-      bannerFirst: "الشهر الأول {p}، ثم {s} شهريًا",
-      thanks: "هديتك الترحيبية ({prize}) محجوزة وستُؤكَّد مع طلبك.",
       error: "الهدية الترحيبية غير متاحة حاليًا. يرجى المحاولة لاحقًا.", result: "النتيجة: {prize}"
     }
   };
@@ -747,17 +1191,20 @@ function lkAttachRemote(room, tiles, LK){
   var preview = get(SS, "uqw-preview") === "1";
 
   // ---------------------------------------------------------------- server
+  function bearer() { return window.UQAuth && UQAuth.fresh ? UQAuth.fresh().catch(function () { return null; }) : Promise.resolve(null); }
   function rpc(fn, body, keep) {
-    return fetch(W.url + "/rest/v1/rpc/" + fn, {
-      method: "POST", keepalive: !!keep,
-      headers: { "Content-Type": "application/json", apikey: W.key, Authorization: "Bearer " + W.key },
-      body: JSON.stringify(body)
+    return bearer().then(function (tok) {
+      return fetch(W.url + "/rest/v1/rpc/" + fn, {
+        method: "POST", keepalive: !!keep,
+        headers: { "Content-Type": "application/json", apikey: W.key, Authorization: "Bearer " + (tok || W.key) },
+        body: JSON.stringify(body)
+      });
     }).then(function (r) { return r.json().then(function (j) { if (!r.ok) throw new Error((j && j.message) || r.status); return j; }); });
   }
   function track(ev) { rpc("wheel_track", { p_session: session(), p_device: device(), p_event: ev, p_lang: lang() }, true).catch(function () {}); }
 
   // ---------------------------------------------------------------- stato
-  var S = { mode: "off", prizes: [], spin: null, std: 14900, setup: 0, open: false, view: "wheel", spinning: false, rot: 0, interacted: false };
+  var S = { mode: "off", prizes: [], spin: null, std: 14900, lives: 4, maxMin: 60, open: false, view: "wheel", spinning: false, rot: 0, interacted: false };
   var els = {};
 
   // ---------------------------------------------------------------- stile
@@ -775,13 +1222,13 @@ function lkAttachRemote(room, tiles, LK){
     ".uqw-eyebrow{font-size:11.5px;letter-spacing:.2em;text-transform:uppercase;color:var(--gold-edge,#8C6A2B);font-weight:500;margin:0}",
     ".uqw-h{font-family:var(--display,'Bodoni Moda',Didot,Georgia,serif);font-weight:400;font-size:clamp(21px,5.6vw,26px);line-height:1.15;letter-spacing:.06em;margin:6px 0 8px;padding:0 26px}",
     ".uqw-sub{font-size:14px;line-height:1.5;color:var(--muted,#5B606A);font-style:italic;margin:0 auto;max-width:34ch}",
-    ".uqw-stage{position:relative;width:min(72vw,300px,44dvh);aspect-ratio:1;margin:18px auto 18px}",
+    ".uqw-stage{position:relative;width:min(70vw,290px,40dvh);aspect-ratio:1;margin:16px auto 16px}",
     ".uqw-rot{position:absolute;inset:0;will-change:transform}",
     ".uqw-rot svg,.uqw-pin svg{display:block;width:100%;height:100%;overflow:visible}",
     ".uqw-pin{position:absolute;left:50%;top:-6%;width:13%;height:17%;transform:translateX(-50%);filter:drop-shadow(0 2px 3px rgba(28,20,6,.35));z-index:1}",
     ".uqw-rot text{font-family:var(--display,'Bodoni Moda',Didot,Georgia,serif);fill:#1C1406}",
     ".uqw-rot text.s{font-family:var(--body,'Jost',system-ui,sans-serif);font-size:8.6px;letter-spacing:.16em;fill:#8C6A2B;font-weight:500}",
-    ".uqw-rot path.win{fill:#F3DFA9}",
+    ".uqw-rot .win{fill:#F3DFA9}",
     ".uqw-btn{display:inline-flex;align-items:center;justify-content:center;min-height:50px;padding:0 28px;border-radius:999px;border:1px solid #1C1406;background:#1C1406;color:#EDD596;font:500 14px/1 var(--body,'Jost',system-ui,sans-serif);letter-spacing:.16em;text-transform:uppercase;cursor:pointer;width:100%;max-width:320px;transition:background .2s,color .2s,transform .1s}",
     ".uqw-btn:hover{background:#2a2010}",
     ".uqw-btn:active{transform:scale(.99)}",
@@ -792,7 +1239,13 @@ function lkAttachRemote(room, tiles, LK){
     ".uqw-prize .p{font-family:var(--display,'Bodoni Moda',Didot,Georgia,serif);font-size:clamp(22px,6vw,27px);line-height:1.15;color:#1C1406;margin:0 0 8px}",
     ".uqw-prize .l{font-size:13.5px;line-height:1.5;color:#3b3a36;margin:0}",
     ".uqw-prize .l + .l{margin-top:2px}",
-    ".uqw-fine{font-size:11.5px;line-height:1.45;color:var(--muted,#5B606A);margin:12px auto 0;max-width:36ch}",
+    ".uqw-fine{font-size:12px;line-height:1.45;color:var(--muted,#5B606A);margin:12px auto 0;max-width:38ch}",
+    ".uqw-terms{font-size:12px;line-height:1.45;color:#4a4740;margin:12px auto 0;max-width:40ch}",
+    ".uqw-terms p{margin:0}",
+    ".uqw-terms p + p{margin-top:3px}",
+    ".uqw-res{font-size:13.5px;line-height:1.5;color:#2b2a26;margin:0 auto 14px;max-width:38ch}",
+    ".uqw-res p{margin:0}",
+    ".uqw-res p + p{margin-top:4px;color:#8C6A2B}",
     ".uqw-note{font-size:13.5px;line-height:1.45;margin:4px auto 0;color:#1E7A4F;max-width:34ch}",
     ".uqw-link{display:inline-block;margin-top:10px;background:none;border:0;color:#8C6A2B;text-decoration:underline;font-size:12.5px;cursor:pointer;padding:6px}",
     ".uqw-sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}",
@@ -802,9 +1255,6 @@ function lkAttachRemote(room, tiles, LK){
     "[dir=rtl] .uqw-fab{right:auto;left:max(16px,env(safe-area-inset-left,0px))}",
     ".uqw-fab svg{width:18px;height:18px;flex:none}",
     ".uqw-fab.off{opacity:0;transform:translateY(12px);pointer-events:none}",
-    ".uqw-banner{display:flex;gap:10px;align-items:flex-start;border:1px solid #EDD596;background:#FBF3E0;border-radius:12px;padding:10px 14px;font-size:13.5px;line-height:1.45;color:#1C1406;text-align:start}",
-    ".uqw-banner svg{width:18px;height:18px;flex:none;margin-top:1px}",
-    ".uqw-thanks{margin-top:10px;font-size:14px;color:#8C6A2B}",
     "html.uqw-lock,html.uqw-lock body{overflow:hidden}",
     "@media (max-width:380px){.uqw-card{padding:26px 16px 18px}.uqw-h{padding:0 30px}}",
     "@media (prefers-reduced-motion:reduce){.uqw-scrim,.uqw-card,.uqw-fab{transition:none}.uqw-in{animation:none}}"
@@ -829,8 +1279,10 @@ function lkAttachRemote(room, tiles, LK){
     for (var i = 0; i < n; i++) {
       var a0 = i * seg, a1 = a0 + seg, fill = tones[i % 2];
       if (n % 2 && i === n - 1) fill = "#FBF4E4";
-      out.push('<path data-i="' + i + '" d="M0 0 L' + pt(R, a0) + ' A' + R + ' ' + R + ' 0 ' + (seg > 180 ? 1 : 0) + ' 1 ' + pt(R, a1) + ' Z" fill="' + fill + '" stroke="#CBA44F" stroke-width=".8"/>');
-      var L = labels(S.prizes[i]), mid = a0 + seg / 2;
+      // un solo premio: disco intero (un arco da 360° non si disegna), con la scritta in alto
+      if (n === 1) out.push('<circle data-i="0" r="' + R + '" fill="' + fill + '"/>');
+      else out.push('<path data-i="' + i + '" d="M0 0 L' + pt(R, a0) + ' A' + R + ' ' + R + ' 0 ' + (seg > 180 ? 1 : 0) + ' 1 ' + pt(R, a1) + ' Z" fill="' + fill + '" stroke="#CBA44F" stroke-width=".8"/>');
+      var L = labels(S.prizes[i]), mid = n === 1 ? 0 : a0 + seg / 2;
       out.push('<g transform="rotate(' + mid.toFixed(2) + ')"><text class="s" x="0" y="-116" text-anchor="middle">' + esc(L.s) + '</text>' +
         '<text x="0" y="' + (L.big ? -86 : -92) + '" text-anchor="middle" font-size="' + (L.big ? 23 : 12.5) + '"' + (L.big ? '' : ' letter-spacing="1.2"') + '>' + esc(L.b) + '</text></g>');
     }
@@ -883,13 +1335,17 @@ function lkAttachRemote(room, tiles, LK){
   function prizeIndex(code) { for (var i = 0; i < S.prizes.length; i++) if (S.prizes[i].code === code) return i; return -1; }
   function demoTag() { return S.mode === "demo" ? '<p class="uqw-demo">' + esc(tx("demo")) + "</p>" : ""; }
 
+  function termsBlock() {
+    return '<div class="uqw-terms"><p>' + esc(tx("terms1")) + "</p><p>" + esc(tx("terms2", { s: eur(S.std), n: S.lives, m: S.maxMin })) + "</p></div>";
+  }
+
   function viewWheel() {
     var names = S.prizes.map(function (p) { return p.name; }).join(", ");
     els.body.innerHTML = demoTag() +
       '<p class="uqw-h" id="uqw-title">' + esc(BRAND.title) + "</p>" +
       '<p class="uqw-sub">' + esc(tx("sub")) + "</p>" +
       '<div class="uqw-stage" dir="ltr" role="img" aria-label="' + esc(tx("wheel", { list: names })) + '"><div class="uqw-rot">' + wheelSVG() + '</div><div class="uqw-pin">' + PIN + "</div></div>" +
-      '<button type="button" class="uqw-btn" id="uqw-spin">' + esc(BRAND.spin) + "</button>";
+      '<button type="button" class="uqw-btn" id="uqw-spin">' + esc(BRAND.spin) + "</button>" + termsBlock();
     els.rot = els.body.querySelector(".uqw-rot"); setRot(S.rot);
     els.body.querySelector("#uqw-spin").addEventListener("click", spin);
   }
@@ -905,20 +1361,25 @@ function lkAttachRemote(room, tiles, LK){
       l.push('<p class="l">' + esc(tx(s.prize_code)) + "</p>");
       l.push('<p class="l">' + esc(tx("perkStd", { s: std })) + "</p>");
     }
-    if (S.setup > 0) l.push('<p class="l">' + esc(tx("setup", { f: eur(S.setup) })) + "</p>");
-    var st = s.status, foot;
-    if (st === "provisional") foot = '<button type="button" class="uqw-btn" id="uqw-claim">' + esc(BRAND.claim) + '</button><p class="uqw-fine">' + esc(tx("fine")) + "</p>";
-    else foot = '<p class="uqw-note">' + esc(tx(st === "linked" ? "linked" : st === "confirmed" ? "confirmed" : "redeemed")) + '</p><p class="uqw-fine">' + esc(tx("fine")) + "</p>";
+    var st = s.status, foot = "";
+    if (st === "provisional" || st === "linked") {
+      foot = '<div class="uqw-res"><p>' + esc(tx(s.kind === "discount" ? "res1" : "res1perk")) + "</p><p>" + esc(tx("res2")) + "</p></div>" +
+        (st === "linked" ? '<p class="uqw-note">' + esc(tx("linked")) + "</p>" : "") +
+        '<button type="button" class="uqw-btn" id="uqw-apply">' + esc(BRAND.apply) + "</button>";
+    } else {
+      foot = '<p class="uqw-note">' + esc(tx(st === "confirmed" ? "confirmed" : "redeemed")) + "</p>";
+    }
+    foot += termsBlock();
     if (S.mode === "demo") foot += '<button type="button" class="uqw-link" id="uqw-again">' + esc(tx("again")) + "</button>";
     els.body.innerHTML = demoTag() +
       '<div class="' + (fresh ? "uqw-in" : "") + '"><p class="uqw-eyebrow">' + esc(BRAND.congrats) + "</p>" +
-      '<p class="uqw-h" id="uqw-title">' + esc(BRAND.unlocked) + "</p>" +
+      '<p class="uqw-h" id="uqw-title">' + esc(BRAND.reserved) + "</p>" +
       '<div class="uqw-prize">' + (s.kind === "discount" ? '<p class="n">' + esc(s.prize_name) + "</p>" : "") + l.join("") + "</div>" + foot + "</div>";
     els.rot = null;
-    var c = els.body.querySelector("#uqw-claim"); if (c) c.addEventListener("click", claim);
+    var c = els.body.querySelector("#uqw-apply"); if (c) c.addEventListener("click", apply);
     var g = els.body.querySelector("#uqw-again"); if (g) g.addEventListener("click", again);
     if (fresh) els.live.textContent = tx("result", { prize: s.prize_name });
-    if (fresh && S.open) { var f = els.body.querySelector("#uqw-claim") || els.x; f.focus({ preventScroll: true }); }
+    if (fresh && S.open) { var f = els.body.querySelector("#uqw-apply") || els.x; f.focus({ preventScroll: true }); }
   }
 
   function viewError() {
@@ -944,8 +1405,8 @@ function lkAttachRemote(room, tiles, LK){
     animate(res, function () {
       res.then(function (i) {
         S.spinning = false;
-        var path = els.rot && els.rot.querySelector('path[data-i="' + i + '"]'); if (path) path.classList.add("win");
-        setTimeout(function () { S.view = "result"; viewResult(true); track("prize_shown"); syncFab(); }, path ? 650 : 0);
+        var path = els.rot && els.rot.querySelector('[data-i="' + i + '"]'); if (path) path.classList.add("win");
+        setTimeout(function () { S.view = "result"; viewResult(true); track("prize_shown"); syncFab(); changed(); }, path ? 650 : 0);
       }, function () { S.spinning = false; S.view = "error"; viewError(); });
     });
   }
@@ -953,18 +1414,18 @@ function lkAttachRemote(room, tiles, LK){
   function again() {
     // solo in demo: nuovo dispositivo, nuovo giro, per provare gli esiti
     if (S.mode !== "demo") return;
-    set(LS, "uqw-device", uuid()); set(LS, "uqw-claimed", ""); S.spin = null; S.view = "wheel"; S.rot = 0; removeBanner(); render();
+    set(LS, "uqw-device", uuid()); S.spin = null; S.view = "wheel"; S.rot = 0; render(); changed();
     var b = els.body.querySelector("#uqw-spin"); if (b) b.focus();
   }
 
-  function claim() {
-    track("claim_click"); set(LS, "uqw-claimed", "1"); close(true);
-    var form = findForm();
-    if (!form) { location.href = location.pathname.replace(/[^/]*$/, "") || "/"; return; }
-    banner();
-    var top = (els.banner || form).getBoundingClientRect().top + window.pageYOffset - 16;
+  // REGISTER & APPLY: si chiude il pop-up e si va all'area account della pagina (registrazione, accesso o candidatura)
+  function apply() {
+    track("claim_click"); close(true);
+    var box = document.getElementById("acct");
+    if (!box) { location.href = (location.pathname.replace(/[^/]*$/, "") || "/") + "#acct"; return; }
+    var top = box.getBoundingClientRect().top + window.pageYOffset - 12;
     window.scrollTo({ top: top, behavior: window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" });
-    var first = form.querySelector("input,select,textarea"); if (first) setTimeout(function () { first.focus({ preventScroll: true }); }, 450);
+    setTimeout(function () { var f = box.querySelector("input:not([type=hidden]):not([disabled]),select,textarea,button.btn"); if (f) f.focus({ preventScroll: true }); }, 450);
   }
 
   // ---------------------------------------------------------------- pop-up
@@ -1035,67 +1496,43 @@ function lkAttachRemote(room, tiles, LK){
     els.fab.setAttribute("aria-hidden", show ? "false" : "true");
   }
 
-  // ---------------------------------------------------------------- modulo di candidatura
-  function findForm() { return document.querySelector("#jForm") || document.querySelector("main form"); }
-  function prizeLine() {
-    var s = S.spin; if (!s) return "";
-    return s.kind === "discount" ? s.prize_name + " — " + tx("bannerFirst", { p: eur(s.first_month_cents), s: eur(S.std) }) : s.prize_name;
+  // ---------------------------------------------------------------- dialogo con la pagina
+  // La pagina /join legge lo stato della ruota (premio del dispositivo prima della registrazione)
+  // e avvisa quando si entra o si esce dall'account: allora la ruota ricarica il premio dell'account.
+  function changed() { try { document.dispatchEvent(new CustomEvent("uqw:change")); } catch (e) {} }
+  window.UQWheel = {
+    state: function () { return { mode: S.mode, spin: S.spin, std: S.std, lives: S.lives, maxMin: S.maxMin }; },
+    device: device,
+    open: function () { if (S.mode !== "off") open(); }
+  };
+  function reload() {
+    return rpc("wheel_state", { p_device: device() }).then(function (st) {
+      if (!st || st.mode === "off") return;
+      S.spin = st.spin || null; if (S.open && !S.spinning) { S.view = S.spin ? "result" : "wheel"; render(); }
+      syncFab(); changed();
+    }).catch(function () {});
   }
-  function removeBanner() { if (els.banner && els.banner.parentNode) els.banner.parentNode.removeChild(els.banner); els.banner = null; }
-  function banner() {
-    var form = findForm(), s = S.spin;
-    if (!form || !s || s.status !== "provisional" || get(LS, "uqw-claimed") !== "1") { removeBanner(); return; }
-    var txt = tx("banner", { prize: prizeLine() });
-    if (els.banner && els.banner.parentNode && els.banner.nextSibling === form) { if (els.banner.lastChild.textContent !== txt) els.banner.lastChild.textContent = txt; return; }
-    removeBanner();
-    var b = document.createElement("div"); b.className = "uqw-banner"; b.setAttribute("role", "note");
-    b.innerHTML = GIFT + "<span></span>"; b.lastChild.textContent = txt;
-    form.parentNode.insertBefore(b, form); els.banner = b;
-  }
-  function thanks() {
-    var t = document.querySelector(".thanks"); if (!t || !S.spin || S.spin.status !== "linked" || t.querySelector(".uqw-thanks")) return;
-    var p = document.createElement("p"); p.className = "uqw-thanks"; p.textContent = tx("thanks", { prize: S.spin.prize_name });
-    var h = t.querySelector("p") || t.lastChild; t.insertBefore(p, h ? h.nextSibling : null);
-  }
-  // la candidatura parte: il premio provvisorio si lega a email e partita IVA dichiarate
-  document.addEventListener("submit", function (e) {
-    var f = e.target; if (!S.spin || S.spin.status === "void" || !f || !f.querySelector) return;
-    var em = f.querySelector('input[type="email"]'); if (!em || !em.value) return;
-    var vat = f.querySelector('#jVat,[name="vat_number"],[name="vat"],input[id*="Vat"],input[id*="vat"]');
-    rpc("wheel_link", { p_device: device(), p_session: session(), p_email: em.value, p_vat: vat ? vat.value : null }, true)
-      .then(function (sp) { if (sp) { S.spin = sp; thanks(); syncFab(); } }).catch(function () {});
-  }, true);
+  document.addEventListener("uqauth:change", reload);
 
-  // la pagina si ridisegna da sola quando cambia lingua: testi e banner vanno rimessi al loro posto
-  function onPageChange() { if (S.mode === "off") return; banner(); thanks(); watchSubmit(); syncFab(); }
   function observe() {
-    var page = document.querySelector("main") || document.body;
-    new MutationObserver(function (ms) {
-      // si ignorano i cambiamenti fatti da questo script (pop-up, banner, pulsante), altrimenti si rincorrerebbe da solo
-      function mine(n) { return n === els.scrim || n === els.banner || n === els.fab || (n.className && /^uqw-/.test(n.className)); }
-      for (var i = 0; i < ms.length; i++) {
-        var t = ms[i].target;
-        if ([els.scrim, els.banner, els.fab].some(function (x) { return x && (x === t || x.contains(t)); })) continue;
-        var other = Array.prototype.some.call(ms[i].addedNodes, function (n) { return !mine(n); }) ||
-                    Array.prototype.some.call(ms[i].removedNodes, function (n) { return !mine(n); });
-        if (other) { onPageChange(); break; }
-      }
-    }).observe(page, { childList: true, subtree: true });
+    // il tasto di invio del modulo cambia quando la pagina si ridisegna: il pulsante flottante lo segue
+    var page = document.querySelector("main") || document.body, t = null;
+    new MutationObserver(function () { clearTimeout(t); t = setTimeout(function () { watchSubmit(); syncFab(); }, 60); }).observe(page, { childList: true, subtree: true });
     new MutationObserver(function () {
       if (els.x) els.x.setAttribute("aria-label", tx("close"));
       if (S.open && !S.spinning) render();
-      onPageChange();
     }).observe(document.documentElement, { attributes: true, attributeFilter: ["lang"] });
   }
 
   // ---------------------------------------------------------------- avvio: subito, senza ritardi
   rpc("wheel_state", { p_device: device() }).then(function (st) {
     if (!st || st.mode === "off" || (st.mode === "demo" && !preview) || !st.prizes || !st.prizes.length) return;
-    S.mode = st.mode; S.prizes = st.prizes; S.spin = st.spin || null; S.std = st.standard_cents || 14900; S.setup = st.setup_fee_cents || 0;
-    build(); observe(); banner();
+    S.mode = st.mode; S.prizes = st.prizes; S.spin = st.spin || null;
+    S.std = st.standard_cents || 14900; S.lives = st.lives_per_month || 4; S.maxMin = st.live_max_min || 60;
+    build(); observe(); changed();
     var dead = S.spin && (S.spin.status === "void" || S.spin.status === "redeemed");
     // chiuso in questa sessione: non si riapre da solo; nuova sessione: si riapre, con il premio già assegnato
-    if (get(SS, "uqw-closed") !== "1" && !dead) open(true); else syncFab();
+    if (get(SS, "uqw-closed") !== "1" && !dead && !/#acct$/.test(location.hash)) open(true); else syncFab();
   }).catch(function () {});
 })();
 

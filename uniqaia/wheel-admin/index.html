@@ -534,9 +534,8 @@ body.dark .demo{color:rgba(247,235,203,.55)}body.dark .demo b{color:var(--gold-h
     h.push('</tbody></table></div><p class="muted" style="margin-top:8px">Il peso decide la probabilità solo nella versione pubblica: ogni premio esce in proporzione al suo peso (es. pesi 40, 30, 20, 10 = 40 %, 30 %, 20 %, 10 %). In demo i premi attivi escono tutti con la stessa frequenza. Gli sconti valgono solo il primo mese; dal secondo il rinnovo è sempre 149 €.</p></section>');
 
     // impostazioni
-    h.push('<section class="box"><h2>Impostazioni</h2><div class="row"><label>Attivazione una tantum mostrata con il premio <input type="number" min="0" step="1" id="setup" value="' + (c.setup_fee_cents / 100) + '"> €</label>' +
-      '<label>Stesso indirizzo IP, stesso premio per <input type="number" min="0" max="720" id="ipw" value="' + c.ip_window_hours + '"> ore</label><button class="sm" id="saveCfg">Salva</button></div>' +
-      '<p class="muted" style="margin-top:6px">Oggi la pagina /join indica «attivazione 290 €»: finché resta, la ruota la ricorda accanto al premio. Mettere 0 solo se l\'attivazione non si paga più.</p></section>');
+    h.push('<section class="box"><h2>Impostazioni</h2><div class="row"><label>Stesso indirizzo IP, stesso premio per <input type="number" min="0" max="720" id="ipw" value="' + c.ip_window_hours + '"> ore</label><button class="sm" id="saveCfg">Salva</button></div>' +
+      '<p class="muted" style="margin-top:6px">Abbonamento: 149 € al mese, 4 dirette al mese da 60 minuti, nessun costo di attivazione. Gli sconti valgono solo il primo mese. <a href="' + PREVIEW.replace(/\/join\/\?wheel=preview$/, "/admin/?k=") + encodeURIComponent(CFG.token) + '">Candidature e pagamenti →</a></p></section>');
 
     // numeri
     var f = F[tab] || {};
@@ -593,7 +592,7 @@ body.dark .demo{color:rgba(247,235,203,.55)}body.dark .demo b{color:var(--gold-h
       act(rpc("wheel_admin_save_prize", { p_token: CFG.token, p_code: tr.getAttribute("data-code"), p_active: q("active").checked, p_weight: parseInt(q("weight").value || "0", 10),
         p_first_month_cents: pr ? Math.round(parseFloat(pr.value) * 100) : null, p_deliverable: q("deliverable").checked }));
     }); });
-    var sc = $("saveCfg"); if (sc) sc.addEventListener("click", function(){ act(rpc("wheel_admin_save_config", { p_token: CFG.token, p_setup_fee_cents: Math.round(parseFloat($("setup").value || "0") * 100), p_ip_window_hours: parseInt($("ipw").value || "0", 10) })); });
+    var sc = $("saveCfg"); if (sc) sc.addEventListener("click", function(){ act(rpc("wheel_admin_save_config", { p_token: CFG.token, p_setup_fee_cents: 0, p_ip_window_hours: parseInt($("ipw").value || "0", 10) })); });
     Array.prototype.forEach.call(document.querySelectorAll("[data-tab]"), function(b){ b.addEventListener("click", function(){ tab = b.getAttribute("data-tab"); draw(); }); });
     Array.prototype.forEach.call(document.querySelectorAll("[data-act]"), function(b){ b.addEventListener("click", function(){
       var tr = b.closest("tr"), ref = tr.querySelector("[data-ref]");

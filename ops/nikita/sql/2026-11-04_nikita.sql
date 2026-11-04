@@ -723,7 +723,7 @@ create or replace function ops.alerts_pending() returns jsonb language sql stabl
     'sentinella_ferma', coalesce((select now() - max(finished_at) > interval '15 minutes' from ops.runs where source = 'sentinella' and freq = '5m'), true),
     'nuovi', coalesce((select jsonb_agg(jsonb_build_object('id', id, 'gravita', severity, 'area', area, 'titolo', title, 'impatto', impact,
                  'correzione_proposta', fix, 'aperto', to_char(opened_at at time zone 'Europe/Rome', 'DD/MM HH24:MI'), 'prova', evidence) order by ops._rank(severity), opened_at)
-               from ops.incidents where status = 'open' and severity in ('P0','P1') and push_sent_at is null), '[]'::jsonb),
+               from ops.incidents where status = 'open' and severity in ('P0','P1') and confidence = 'verificato' and push_sent_at is null), '[]'::jsonb),
     'risolti', coalesce((select jsonb_agg(jsonb_build_object('id', id, 'gravita', severity, 'titolo', title, 'risolto', to_char(resolved_at at time zone 'Europe/Rome', 'DD/MM HH24:MI'), 'nota', resolved_note))
                from ops.incidents where status = 'resolved' and push_sent_at is not null and resolved_push_sent_at is null), '[]'::jsonb))
 $$;

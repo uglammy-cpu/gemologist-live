@@ -46,7 +46,17 @@ test("[e2e.diretta.spettatore] La pagina dello spettatore si apre e «Mi interes
   // secondo passo (diretta non in onda con più pezzi): quale pezzo
   const pezzo = page.locator("#modal [data-p]").first();
   if (await pezzo.waitFor({ state: "visible", timeout: 3000 }).then(() => true, () => false)) await pezzo.click();
-  await expect.poll(() => st.scritture.some((s) => /^create_request/.test(s.rpc)), { message: "la richiesta deve partire verso il database", timeout: 8000 }).toBe(true);
+  const partita = await expect.poll(() => st.scritture.some((s) => /^create_request/.test(s.rpc)), { timeout: 8000 }).toBe(true).then(() => true, () => false);
+  if (!partita) {
+    // prove per capire dove si ferma il percorso
+    const diag = await page.evaluate(() => ({
+      modale: (document.querySelector("#modal") || {}).hidden === false ? document.querySelector("#modal").innerText.slice(0, 200) : "chiusa",
+      avvisi: [...document.querySelectorAll(".toast, [class*=toast]")].map((e) => e.textContent.trim()).filter(Boolean).slice(-3),
+      pezzi: document.querySelectorAll("#modal [data-p]").length,
+    }));
+    prova(`percorso interrotto: ${JSON.stringify(diag)}; scritture viste: ${JSON.stringify(st.scritture.map((s) => s.rpc))}`);
+  }
+  expect(partita, "la richiesta deve partire verso il database").toBe(true);
   const c = st.scritture.find((s) => /^create_request/.test(s.rpc)).corpo;
   expect(c.p_show).toBe(d.id);
   expect(c.p_type).toBe("interest");

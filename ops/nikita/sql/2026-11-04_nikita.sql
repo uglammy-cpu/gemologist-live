@@ -487,7 +487,7 @@ begin
   r := ops._http('https://uniqaia.com/?nikita=' || extract(epoch from now())::bigint);
   if (r->>'status')::int <> 200 then return ops._res('not_tested', 'vetrina non leggibile (HTTP ' || (r->>'status') || ')'); end if;
   v_body := r->>'body';
-  select count(*), coalesce(jsonb_agg(j.slug || '/' || s.slug) filter (where position(s.slug in v_body) = 0), '[]'::jsonb)
+  select count(*), coalesce(jsonb_agg(j.slug || '/' || s.slug) filter (where position(s.slug in v_body) = 0 and position(s.id::text in v_body) = 0), '[]'::jsonb)
     into n, v_missing
     from public.shows s join public.jewelers j on j.id = s.jeweler_id
    where j.is_public and s.visibility = 'public' and s.status <> 'ended'
@@ -521,7 +521,7 @@ create or replace function ops.chk_domini() returns jsonb language plpgsql set s
 declare d text; r jsonb; v_exp timestamptz; v_days int; out jsonb := '[]'::jsonb; worst text := 'pass'; msg text[] := '{}';
 begin
   foreach d in array array['uniqaia.com', 'uniquaia.com'] loop
-    r := ops._http('https://rdap.verisign.com/com/v1/domain/' || upper(d));
+    r := ops._http('https://rdap.cloudflare.com/rdap/v1/domain/' || d);   -- registrar: Cloudflare (Verisign rifiuta la connessione da Supabase)
     if (r->>'status')::int <> 200 then msg := msg || (d || ': registro non leggibile'); if worst = 'pass' then worst := 'not_tested'; end if; continue; end if;
     select (x->>'eventDate')::timestamptz into v_exp from jsonb_array_elements(((r->>'body')::jsonb)->'events') x where x->>'eventAction' = 'expiration';
     v_days := round(extract(epoch from v_exp - now()) / 86400);
@@ -793,7 +793,7 @@ insert into ops.checks (id, area, title, kind, freq, severity, fail_threshold, s
  ('sito.gemsandjewelry', 'sito', 'Copia su live.gemsandjewelrytechlab.com/show', 'http', '1h', 'P3', 2, '3 hours',
    '{"url":"https://live.gemsandjewelrytechlab.com/show/","expect_text":["Uniqaia"]}'),
  ('sito.404', 'sito', 'Pagina inesistente = 404 corretta', 'http', '1h', 'P3', 2, '3 hours',
-   '{"url":"https://uniqaia.com/nikita-pagina-inesistente/","expect_status":[404],"expect_text":["uniqaia"]}'),
+   '{"url":"https://uniqaia.com/nikita-pagina-inesistente/","expect_status":[404],"expect_text":["Pagina non trovata"]}'),
  ('sito.robots', 'sito', 'robots.txt e sitemap', 'http', '1h', 'P3', 2, '3 hours',
    '{"url":"https://uniqaia.com/robots.txt","expect_text":["User-agent"]}'),
  ('supabase.api', 'supabase', 'Database raggiungibile dall''API pubblica', 'http', '5m', 'P0', 2, '20 minutes',

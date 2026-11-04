@@ -1,5 +1,5 @@
 // Vetrina e pagine pubbliche: si caricano, i pulsanti fanno quello che promettono, i link portano dove devono.
-import { test, expect, controllo, prepara, nessunErrore, parziale, prova } from "./_aiuti.mjs";
+import { test, expect, controllo, prepara, nessunErrore, parziale, prova, entra } from "./_aiuti.mjs";
 
 test("[e2e.home] La vetrina si carica con contenuti visibili e senza errori", async ({ page }, info) => {
   controllo(`e2e.home.${info.project.name}`, { area: "interfaccia", gravita: "P0", impatto: "Chi apre uniqaia.com vede una pagina rotta o vuota." });
@@ -13,10 +13,25 @@ test("[e2e.home] La vetrina si carica con contenuti visibili e senza errori", as
   nessunErrore(st);
 });
 
+test("[e2e.home.benvenuto] Alla prima visita compare il benvenuto, «Entra» lo chiude e non torna più", async ({ page }, info) => {
+  controllo(`e2e.home.benvenuto.${info.project.name}`, { area: "interfaccia", gravita: "P1", impatto: "Il benvenuto copre la vetrina e non si chiude: il visitatore resta bloccato.", correzione: "Controllare renderWelcome/closeWelcome nella vetrina." });
+  const st = await prepara(page);
+  await page.goto("/", { waitUntil: "load" });
+  const b = page.locator("#welcome");
+  await expect(b, "alla prima visita il benvenuto si apre").toBeVisible({ timeout: 8000 });
+  await page.locator("#wGo").click();
+  await expect(b).toBeHidden();
+  await expect(page.locator("#tabs button.tab").first(), "dopo «Entra» la vetrina risponde ai clic").toBeEnabled();
+  await page.reload({ waitUntil: "load" });
+  await page.waitForTimeout(1500);
+  await expect(b, "alla seconda visita il benvenuto non si ripresenta").toBeHidden();
+  nessunErrore(st);
+});
+
 test("[e2e.home.schede] Le schede Live, In programma, Categorie, Chi trasmette rispondono", async ({ page }, info) => {
   controllo(`e2e.home.schede.${info.project.name}`, { area: "interfaccia", gravita: "P2" });
   const st = await prepara(page);
-  await page.goto("/", { waitUntil: "load" });
+  await entra(page, "/");
   const schede = page.locator("#tabs button.tab");
   await expect(schede).toHaveCount(4);
   for (const dest of ["soon", "browse", "shops", "live"]) {
@@ -31,7 +46,7 @@ test("[e2e.home.carosello] Le frecce del carosello cambiano slide", async ({ pag
   test.skip(info.project.name === "iphone", "su telefono il carosello si scorre con il dito");
   controllo("e2e.home.carosello", { area: "interfaccia", gravita: "P3" });
   const st = await prepara(page);
-  await page.goto("/", { waitUntil: "load" });
+  await entra(page, "/");
   const pallini = page.locator("#dots > *");
   await expect(pallini.first()).toBeVisible({ timeout: 15_000 });
   const n = await pallini.count();
@@ -49,7 +64,7 @@ test("[e2e.home.lingue] Il cambio lingua funziona, arabo da destra a sinistra", 
   test.skip(info.project.name === "iphone", "basta su un dispositivo");
   controllo("e2e.home.lingue", { area: "interfaccia", gravita: "P2" });
   const st = await prepara(page);
-  await page.goto("/", { waitUntil: "load" });
+  await entra(page, "/");
   await page.locator("#langCur").click();
   await expect(page.locator("#langMenu")).toBeVisible();
   await page.locator('#langMenu [data-lang="ar"]').click();
@@ -64,7 +79,7 @@ test("[e2e.home.link] Tutti i link della vetrina portano a una pagina esistente"
   test.skip(info.project.name === "iphone", "basta su un dispositivo");
   controllo("e2e.home.link", { area: "interfaccia", gravita: "P1", impatto: "Un link porta a una pagina che non esiste.", correzione: "Correggere il link nel template o nei dati (slide, categorie, venditori)." });
   await prepara(page);
-  await page.goto("/", { waitUntil: "load" });
+  await entra(page, "/");
   await expect(page.locator("#tabs")).toBeVisible();
   await page.waitForTimeout(2500);
   const hrefs = await page.locator("a[href]").evaluateAll((as) => as.map((a) => a.href));
@@ -84,7 +99,7 @@ test("[e2e.home.categoria] Una categoria del carosello apre la vetrina filtrata"
   test.skip(info.project.name === "iphone", "basta su un dispositivo");
   controllo("e2e.home.categoria", { area: "interfaccia", gravita: "P2" });
   const st = await prepara(page);
-  await page.goto("/?c=perle", { waitUntil: "load" });
+  await entra(page, "/?c=perle");
   await expect(page.locator("#tabs")).toBeVisible();
   // la categoria scelta deve risultare evidenziata o il titolo deve parlare di perle
   await expect(page.locator("body")).toContainText(/Perle|Pearls/i, { timeout: 15_000 });

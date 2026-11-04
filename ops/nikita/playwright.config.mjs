@@ -21,6 +21,9 @@ export default defineConfig({
     trace: "retain-on-failure",
     userAgent: undefined,
     extraHTTPHeaders: { "X-Uniqaia-Test": "nikita" },
+    // OBBLIGATORIO: con il service worker del sito attivo, WebKit manda le richieste fuori dall'intercettazione
+    // e le scritture dei test arriverebbero al database vero (successo il 4/11/2026 al primo collaudo).
+    serviceWorkers: "block",
   },
   projects: [
     { name: "computer", use: { ...devices["Desktop Chrome"] } },

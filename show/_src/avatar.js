@@ -87,7 +87,7 @@
     ".uqa-note{font-size:12.5px;color:#5B606A;margin:0}",
     ".uqa-note[hidden]{display:none}",
     "@media (max-width:640px){.uqa{grid-template-columns:minmax(0,1fr);gap:14px}",
-    ".uqa-niche{height:300px;width:min(100%,340px);justify-self:center;border-radius:150px 150px 18px 18px}",
+    ".uqa-niche{height:330px;width:min(100%,340px);justify-self:center;border-radius:150px 150px 18px 18px}",
     ".uqa-niche::before{border-radius:143px 143px 13px 13px}",
     ".uqa-bub::before,[dir=rtl] .uqa-bub::before{left:50%;right:auto;bottom:auto;top:-9px;margin-left:-8px;transform:rotate(135deg)}",
     ".uqa-t{font-size:22px}.uqa-ib{width:42px;height:42px}.uqa-dots button{width:32px;height:32px}}",
@@ -302,7 +302,7 @@
   function layout() {
     if (!el.niche) return;
     var w = el.niche.clientWidth, h = el.niche.clientHeight; if (!w || !h) return;
-    var bottom = w / h > 0.8 ? 880 : 1262;        // nicchia larga (telefono): mezzo busto; alta: figura intera
+    var bottom = w / h > 0.8 ? 1004 : 1262;       // nicchia larga (telefono): fino alle mani, con lente e diamante; alta: figura intera
     var vh = bottom - G.top, vw = vh * w / h;
     V = { x: G.cx - vw / 2, y: G.top, w: vw, h: vh, pw: w, ph: h };
     var k = w / vw;                                // px CSS per px dell'originale

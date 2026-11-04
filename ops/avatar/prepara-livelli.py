@@ -3,6 +3,7 @@
 Uso:  python3 ops/avatar/prepara-livelli.py
 Serve: numpy, pillow, opencv-python, onnxruntime e il modello di scontorno isnet-general-use.onnx
        (rilasci di github.com/danielgatis/rembg) in ~/.u2net/.
+Gli oggetti in mano (lente e diamante) li disegna props.py.
 Le coordinate di occhi e bocca sono misurate su elena-originale.png: con un'altra immagine vanno rimisurate,
 e i riquadri scritti in fondo (META) vanno ricopiati nella variabile G di show/_src/avatar.js.
 """
@@ -56,6 +57,14 @@ FG = np.clip(FG, 0, 255)
 # per alpha quasi pieno teniamo l'originale (niente rumore)
 FG = np.where(a3 > 0.97, SRC, FG)
 RGB = FG.copy()
+
+# ---------------------------------------------------------------- 1b. oggetti in mano (4 novembre 2026)
+# via la pochette; lente da gioielliere nella mano a sinistra; diamante gigante fra pollice e indice a destra
+sys.path.insert(0, HERE)
+from props import clean_clutch, draw_loupe, draw_diamond, composite_under, composite_over, thumb_mask
+RGB, a = clean_clutch(RGB, a)
+composite_under(RGB, a, draw_loupe())
+composite_over(RGB, a, draw_diamond(), keep=thumb_mask(a.shape))
 
 # ---------------------------------------------------------------- 2. occhi chiusi
 def poly_mask(pts, shape=(H, W), ss=4):

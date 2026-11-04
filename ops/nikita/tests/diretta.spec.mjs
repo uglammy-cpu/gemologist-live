@@ -53,7 +53,9 @@ test("[e2e.diretta.spettatore] La pagina dello spettatore si apre e «Mi interes
       modale: (document.querySelector("#modal") || {}).hidden === false ? document.querySelector("#modal").innerText.slice(0, 200) : "chiusa",
       avvisi: [...document.querySelectorAll(".toast, [class*=toast]")].map((e) => e.textContent.trim()).filter(Boolean).slice(-3),
       pezzi: document.querySelectorAll("#modal [data-p]").length,
+      interesse: !!document.querySelector("#interest") && getComputedStyle(document.querySelector("#interest")).display,
     }));
+    diag.errori = st.errori.slice(-3); diag.console = st.console.slice(-3);
     prova(`percorso interrotto: ${JSON.stringify(diag)}; scritture viste: ${JSON.stringify(st.scritture.map((s) => s.rpc))}`);
   }
   expect(partita, "la richiesta deve partire verso il database").toBe(true);

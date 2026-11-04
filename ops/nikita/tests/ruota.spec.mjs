@@ -55,22 +55,36 @@ test("[e2e.ruota] Ruota in anteprima: si apre, gira, assegna il premio e porta a
   nessunErrore(st);
 });
 
-test("[e2e.ruota.nascosta] In modalità demo la ruota non compare al pubblico", async ({ page }, info) => {
+test("[e2e.ruota.nascosta] La ruota segue la modalità scelta: in demo nascosta, in pubblico si apre e si chiude", async ({ page }, info) => {
   test.skip(info.project.name === "iphone", "basta su un dispositivo");
-  controllo("e2e.ruota.nascosta", { area: "ruota", gravita: "P1", impatto: "Premi dimostrativi mostrati al pubblico prima della verifica legale (DPR 430/2001).", correzione: "Rimettere la ruota in demo dal pannello /wheel-admin/." });
+  controllo("e2e.ruota.nascosta", { area: "ruota", gravita: "P1", impatto: "In demo: premi dimostrativi mostrati al pubblico prima della verifica legale (DPR 430/2001). In pubblico: la ruota non si apre o non si chiude e copre la pagina.", correzione: "Controllare la modalità nel pannello /wheel-admin/ e wheel.js (open/close)." });
   const st = await prepara(page);
   await page.goto("/join/", { waitUntil: "load" });
   await page.waitForTimeout(3000);
   const modo = await page.evaluate(async () => (await (await fetch("https://itoxzepuukyvdxxtfetf.supabase.co/rest/v1/rpc/wheel_state", { method: "POST", headers: { apikey: "sb_publishable_Y6m8EWUZt97nSTmYBsRwYg_Fnzidatk", "Content-Type": "application/json" }, body: '{"p_device":null}' })).json()).mode);
   prova(`modalità della ruota: ${modo}`);
-  if (modo === "public") nonTestato("la ruota è pubblica: questo controllo vale solo in demo");
-  await expect(page.locator(".uqw-card[role=dialog]"), "in demo il pop-up si vede solo con ?wheel=preview").toBeHidden();
+  const carta = page.locator(".uqw-card[role=dialog]");
+  // la modalità pubblica si chiama «live» (dal 4/11/2026 alle 15:50, per decisione di Elena)
+  if (modo === "live" || modo === "public") {
+    await expect(carta, "in modalità pubblica il pop-up si apre da solo a chi arriva su /join").toBeVisible({ timeout: 8000 });
+    await page.locator(".uqw-x").click();
+    await expect(carta, "la X deve chiudere il pop-up").toBeHidden({ timeout: 3000 });
+    await page.reload({ waitUntil: "load" });
+    await page.waitForTimeout(2000);
+    await expect(carta, "chiuso una volta, nella stessa sessione non deve riaprirsi da solo").toBeHidden();
+    await expect(page.locator("#aSend"), "chiusa la ruota, il modulo dell'account deve essere raggiungibile").toBeVisible();
+    prova("modalità pubblica: il pop-up si apre, la X lo chiude e non si riapre nella stessa sessione");
+  } else {
+    await expect(carta, "in demo il pop-up si vede solo con ?wheel=preview").toBeHidden();
+  }
   nessunErrore(st);
 });
 
 test("[e2e.join] Pagina per i gioiellieri: il modulo dell'account controlla i dati e non invia campi vuoti", async ({ page }, info) => {
   controllo(`e2e.join.${info.project.name}`, { area: "interfaccia", gravita: "P1", impatto: "I gioiellieri non riescono a creare l'account.", correzione: "Controllare join.html (renderAcct) e Supabase Auth." });
   const st = await prepara(page);
+  // con la ruota pubblica il pop-up si apre da solo e coprirebbe il modulo: qui si prova il modulo, la ruota ha i suoi test
+  await page.addInitScript(() => { try { sessionStorage.setItem("uqw-closed", "1"); } catch (e) {} });
   await page.goto("/join/", { waitUntil: "load" });
   await expect(page.locator("#acct")).toBeVisible();
   const invia = page.locator("#aSend");

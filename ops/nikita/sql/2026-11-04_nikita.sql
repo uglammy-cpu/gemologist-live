@@ -458,14 +458,43 @@ declare c record; v_bad int;
 begin
   select * into c from public.wheel_config where id = 1;
   if c is null then return ops._res('fail', 'configurazione della ruota mancante'); end if;
-  if c.mode = 'public' then
+  -- la ruota pubblica si chiama 'live' (vincolo di wheel_config: off, demo, live)
+  if c.mode in ('live', 'public') then
     select count(*) into v_bad from public.wheel_prizes where active and (not deliverable or coalesce(weight, 0) <= 0);
     if c.legal_ref is null or v_bad > 0 then
-      return ops._res('fail', 'ruota pubblica senza ' || concat_ws(' e ', case when c.legal_ref is null then 'riferimento della verifica legale' end,
+      return ops._res('fail', 'ruota pubblica senza ' || concat_ws(' e ', case when c.legal_ref is null then 'riferimento della decisione legale' end,
                                                                     case when v_bad > 0 then v_bad || ' premi visibili non erogabili o con probabilità 0' end));
     end if;
   end if;
   return ops._res('pass', 'ruota in modalità ' || c.mode || ', configurazione coerente', jsonb_build_object('modalita', c.mode));
+end $$;
+
+-- Il percorso del gioielliere dalla ruota alla candidatura è percorribile davvero?
+create or replace function ops.chk_percorso_seller() returns jsonb language plpgsql set search_path = ops, public as $$
+declare v_mode text; v_legal boolean; v_auto boolean; v_mail text := coalesce(public._cfg('MAIL_MODE'), 'hold');
+        v_bloccati int; r jsonb; probs text[] := '{}'; rischi text[] := '{}';
+begin
+  select mode into v_mode from public.wheel_config where id = 1;
+  v_legal := coalesce((public.site_terms()->>'legal_ready')::boolean, false);
+  r := ops._http((ops._setting('supabase_url') #>> '{}') || '/auth/v1/settings', jsonb_build_object('apikey', ops._setting('anon_key') #>> '{}'));
+  v_auto := (ops._json(r->>'body')->>'mailer_autoconfirm')::boolean;
+  select count(*) into v_bloccati from auth.users where email_confirmed_at is null and created_at < now() - interval '60 minutes';
+  if v_bloccati > 0 then
+    probs := probs || (v_bloccati || ' gioiellieri registrati non hanno mai confermato l''email: non possono accedere né candidarsi');
+  end if;
+  if v_mode in ('live', 'public') and not v_legal then
+    probs := probs || 'la ruota è pubblica e invita a candidarsi, ma il modulo di candidatura è chiuso: mancano informativa e condizioni'::text;
+  end if;
+  if v_auto is false and v_mail <> 'live' then
+    rischi := rischi || 'la conferma dell''email è obbligatoria ma non c''è ancora un servizio di invio collegato: chi si registra rischia di non ricevere la conferma e restare bloccato'::text;
+  end if;
+  if array_length(probs, 1) > 0 then
+    return ops._res('fail', array_to_string(probs || rischi, '; '), jsonb_build_object('ruota', v_mode, 'testi_legali', v_legal, 'conferma_email_obbligatoria', not coalesce(v_auto, false), 'invio_email', v_mail, 'registrati_bloccati', v_bloccati));
+  end if;
+  if array_length(rischi, 1) > 0 then
+    return ops._res('partial', array_to_string(rischi, '; '), jsonb_build_object('ruota', v_mode, 'testi_legali', v_legal, 'conferma_email_obbligatoria', not coalesce(v_auto, false), 'invio_email', v_mail));
+  end if;
+  return ops._res('pass', 'dalla ruota alla candidatura il percorso è aperto');
 end $$;
 
 create or replace function ops.chk_costi_db() returns jsonb language plpgsql stable set search_path = ops, public as $$
@@ -843,6 +872,8 @@ insert into ops.checks (id, area, title, kind, freq, severity, fail_threshold, s
    '{"fn":"ops.chk_dirette_fantasma","impact":"La vetrina mostra LIVE ADESSO e chi entra trova lo schermo nero.","fix":"Chiudere la diretta dal pannello (stato «conclusa»); valutare la chiusura automatica dopo la durata prevista."}'),
  ('ruota.configurazione', 'ruota', 'Ruota: configurazione coerente', 'sql', '1h', 'P1', 1, '3 hours',
    '{"fn":"ops.chk_ruota","impact":"Premi non erogabili o senza verifica legale mostrati al pubblico.","fix":"Rimettere la ruota in demo dal pannello /wheel-admin/."}'),
+ ('abbonamenti.percorso_seller', 'abbonamenti', 'Percorso del gioielliere: dalla ruota alla candidatura senza blocchi', 'sql', '1h', 'P1', 1, '3 hours',
+   '{"fn":"ops.chk_percorso_seller","impact":"I gioiellieri arrivati dalla ruota non riescono a registrarsi o a candidarsi.","fix":"Pubblicare informativa e condizioni; collegare un servizio di invio (Resend) a Supabase Auth oppure togliere la conferma obbligatoria dell''email."}'),
  ('nikita.esecuzioni', 'nikita', 'Esecuzioni pianificate (pg_cron) senza errori', 'sql', '1h', 'P1', 1, '3 hours',
    '{"fn":"ops.chk_cron","impact":"Una parte dei controlli non sta girando.","fix":"Leggere cron.job_run_details e correggere la funzione."}'),
  ('nikita.collaudo_recente', 'nikita', 'Collaudo con il browser eseguito nelle ultime 30 ore', 'sql', '1h', 'P2', 1, '3 hours',

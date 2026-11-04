@@ -364,7 +364,7 @@ self.addEventListener("fetch", function(e){
     }
   }
   write("sitemap.xml", `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls.map((u) => `  <url><loc>${H(u)}</loc></url>`).join("\n")}\n</urlset>\n`);
-  if (P === "") write("robots.txt", DEMO ? `User-agent: *\nAllow: /\nDisallow: /*/panel/\nDisallow: /wheel-admin/\nDisallow: /admin/\nDisallow: /pay/\n` : `User-agent: *\nAllow: /\nDisallow: /*/panel/\nDisallow: /wheel-admin/\nDisallow: /admin/\nDisallow: /pay/\nSitemap: ${t.site}/sitemap.xml\n`);
+  if (P === "") write("robots.txt", DEMO ? `User-agent: *\nAllow: /\nDisallow: /*/panel/\nDisallow: /wheel-admin/\nDisallow: /admin/\nDisallow: /pay/\nDisallow: /social/\n` : `User-agent: *\nAllow: /\nDisallow: /*/panel/\nDisallow: /wheel-admin/\nDisallow: /admin/\nDisallow: /pay/\nDisallow: /social/\nSitemap: ${t.site}/sitemap.xml\n`);
   // Immagini (logo, icona, anteprima, copertine, foto) condivise tra le due versioni
   if (P === "") { fs.cpSync(IMG, path.join(t.out, "img"), { recursive: true }); }
   // 404.html: instrada <prefix>/<slug>, /panel, /profile e <prefix>/<slug>/<diretta> verso le pagine giuste

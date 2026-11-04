@@ -4,3 +4,4 @@ Disallow: /*/panel/
 Disallow: /wheel-admin/
 Disallow: /admin/
 Disallow: /pay/
+Disallow: /social/

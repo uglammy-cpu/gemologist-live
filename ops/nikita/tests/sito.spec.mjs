@@ -52,11 +52,15 @@ test("[e2e.home.carosello] Le frecce del carosello cambiano slide", async ({ pag
   const n = await pallini.count();
   test.skip(n < 2, "una sola slide: niente da far scorrere");
   const attivo = () => page.locator("#dots > *").evaluateAll((els) => els.findIndex((e) => e.classList.contains("on")));
-  const prima = await attivo();
-  await page.locator("#nextSlide").click();
-  await expect.poll(attivo, { message: "la freccia › deve passare alla slide successiva" }).toBe((prima + 1) % n);
-  await page.locator("#prevSlide").click();
-  await expect.poll(attivo, { message: "la freccia ‹ deve tornare indietro" }).toBe(prima);
+  // il carosello avanza anche da solo ogni pochi secondi: la risposta al clic va misurata subito,
+  // altrimenti lo scorrimento automatico nasconde una freccia che non funziona (lo ha scoperto l'autotest)
+  for (let giro = 0; giro < 2; giro++) {
+    const prima = await attivo();
+    await page.locator("#nextSlide").click();
+    await expect.poll(attivo, { message: "la freccia › deve passare alla slide successiva", timeout: 1200, intervals: [100] }).toBe((prima + 1) % n);
+    await page.locator("#prevSlide").click();
+    await expect.poll(attivo, { message: "la freccia ‹ deve tornare indietro", timeout: 1200, intervals: [100] }).toBe(prima);
+  }
   nessunErrore(st);
 });
 

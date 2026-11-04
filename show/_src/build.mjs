@@ -32,7 +32,9 @@ const LOC = { it: "it-IT", en: "en-GB", fr: "fr-FR", ar: "ar-AE-u-nu-latn", ru: 
 const tpl = (n) => fs.readFileSync(path.join(HERE, "tpl", n), "utf8");
 const parts = { HEAD: tpl("head.txt"), CSS: tpl("css.txt"), LKJS: tpl("lkjs.txt"), ART: tpl("art.txt"), T: tpl("t.txt"),
   // The Jeweler's Wheel: pop-up di benvenuto della pagina /join (script autonomo, vedi wheel.js)
-  WHEEL: fs.readFileSync(path.join(HERE, "wheel.js"), "utf8") };
+  WHEEL: fs.readFileSync(path.join(HERE, "wheel.js"), "utf8"),
+  // Avatar di Elena che spiega l'ingresso nella pagina /join (vedi avatar.js); i testi stanno in avatar-copione.json
+  AVATAR: fs.readFileSync(path.join(HERE, "avatar.js"), "utf8").replace("/*COPIONE*/{}", () => JSON.stringify(Object.fromEntries(Object.entries(JSON.parse(fs.readFileSync(path.join(HERE, "avatar-copione.json"), "utf8"))).filter(([k]) => !k.startsWith("_"))))) };
 const ART = JSON.parse(parts.ART), T = JSON.parse(parts.T);
 const { landingBody } = createRequire(import.meta.url)("./landing-body.js");
 const LANDING_JS = fs.readFileSync(path.join(HERE, "landing-body.js"), "utf8").replace(/if \(typeof module[^\n]*\n?/, "");

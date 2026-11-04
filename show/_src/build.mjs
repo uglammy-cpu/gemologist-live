@@ -30,7 +30,9 @@ const TARGETS = [
 const LOC = { it: "it-IT", en: "en-GB", fr: "fr-FR", ar: "ar-AE-u-nu-latn", ru: "ru-RU" };
 
 const tpl = (n) => fs.readFileSync(path.join(HERE, "tpl", n), "utf8");
-const parts = { HEAD: tpl("head.txt"), CSS: tpl("css.txt"), LKJS: tpl("lkjs.txt"), ART: tpl("art.txt"), T: tpl("t.txt") };
+const parts = { HEAD: tpl("head.txt"), CSS: tpl("css.txt"), LKJS: tpl("lkjs.txt"), ART: tpl("art.txt"), T: tpl("t.txt"),
+  // The Jeweler's Wheel: pop-up di benvenuto della pagina /join (script autonomo, vedi wheel.js)
+  WHEEL: fs.readFileSync(path.join(HERE, "wheel.js"), "utf8") };
 const ART = JSON.parse(parts.ART), T = JSON.parse(parts.T);
 const { landingBody } = createRequire(import.meta.url)("./landing-body.js");
 const LANDING_JS = fs.readFileSync(path.join(HERE, "landing-body.js"), "utf8").replace(/if \(typeof module[^\n]*\n?/, "");
@@ -335,6 +337,7 @@ self.addEventListener("fetch", function(e){
 `);
   write("index.html", prerenderVetrina(t, render(t, "vetrina", {})));
   write("join/index.html", render(t, "join", {}));
+  write("wheel-admin/index.html", render(t, "wheel-admin", { tokenParam: "k" }));
   const viewer = render(t, "viewer", { tokenParam: "t" });
   const panel = render(t, "panel", { tokenParam: "k" });
   const profile = render(t, "profile", {});
@@ -357,7 +360,7 @@ self.addEventListener("fetch", function(e){
     }
   }
   write("sitemap.xml", `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls.map((u) => `  <url><loc>${H(u)}</loc></url>`).join("\n")}\n</urlset>\n`);
-  if (P === "") write("robots.txt", DEMO ? `User-agent: *\nAllow: /\nDisallow: /*/panel/\n` : `User-agent: *\nAllow: /\nDisallow: /*/panel/\nSitemap: ${t.site}/sitemap.xml\n`);
+  if (P === "") write("robots.txt", DEMO ? `User-agent: *\nAllow: /\nDisallow: /*/panel/\nDisallow: /wheel-admin/\n` : `User-agent: *\nAllow: /\nDisallow: /*/panel/\nDisallow: /wheel-admin/\nSitemap: ${t.site}/sitemap.xml\n`);
   // Immagini (logo, icona, anteprima, copertine, foto) condivise tra le due versioni
   if (P === "") { fs.cpSync(IMG, path.join(t.out, "img"), { recursive: true }); }
   // 404.html: instrada <prefix>/<slug>, /panel, /profile e <prefix>/<slug>/<diretta> verso le pagine giuste

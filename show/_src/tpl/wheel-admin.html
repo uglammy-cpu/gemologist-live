@@ -1,0 +1,163 @@
+<!doctype html><html lang="it"><head>{{HEAD}}<meta name="robots" content="noindex,nofollow"><title>The Jeweler's Wheel · {{NAME}}</title><style>{{CSS}}
+.wa{max-width:1080px;margin:0 auto;padding:22px 16px 80px;display:flex;flex-direction:column;gap:18px}
+.wa h1{font-family:var(--display);font-size:clamp(24px,4vw,32px)}
+.wa h2{font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:var(--gold-edge);font-weight:500;margin:0 0 10px}
+.wa .box{border:1px solid var(--line);border-radius:14px;padding:16px;background:#fff}
+.wa .row{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.wa .modes button{min-height:40px;padding:0 16px;border-radius:999px;border:1px solid var(--line);background:#fff;font-size:14px}
+.wa .modes button.on{background:var(--gold-ink);color:var(--gold-hi);border-color:var(--gold-ink)}
+.wa .badge{display:inline-block;padding:3px 10px;border-radius:999px;font-size:12px;letter-spacing:.06em;text-transform:uppercase;background:var(--soft);border:1px solid var(--line)}
+.wa .badge.live{background:#1E7A4F;color:#fff;border-color:#1E7A4F}.wa .badge.demo{background:#16181D;color:#EDD596}.wa .badge.off{background:#eee}
+.wa .warn{background:#FFF6E5;border:1px solid #EDD596;border-radius:10px;padding:10px 12px;font-size:14px;line-height:1.5}
+.wa .warn ul{margin:6px 0 0;padding-inline-start:18px}
+.wa table{width:100%;border-collapse:collapse;font-size:13.5px}
+.wa th{text-align:start;font-weight:500;color:var(--muted);font-size:12px;letter-spacing:.04em;padding:6px 8px;border-bottom:1px solid var(--line);white-space:nowrap}
+.wa td{padding:7px 8px;border-bottom:1px solid var(--line);vertical-align:middle}
+.wa .scroll{overflow-x:auto}
+.wa input[type=number],.wa input[type=text]{border:1px solid var(--line);border-radius:8px;padding:6px 8px;min-height:34px;width:100%;max-width:120px;background:#fff}
+.wa input[type=number]{width:84px}
+.wa label{display:inline-flex;align-items:center;gap:6px;flex-wrap:wrap}
+.wa input.wide{max-width:none}
+.wa .sm{min-height:34px;padding:0 12px;border-radius:999px;border:1px solid var(--ink);background:#fff;font-size:13px;white-space:nowrap}
+.wa .sm.dark{background:var(--gold-ink);color:var(--gold-hi);border-color:var(--gold-ink)}
+.wa .kpis{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px}
+.wa .kpi{border:1px solid var(--line);border-radius:12px;padding:10px 12px;background:var(--soft)}
+.wa .kpi b{display:block;font-family:var(--display);font-size:24px;font-weight:400}
+.wa .kpi span{font-size:12.5px;color:var(--muted)}
+.wa .st{font-size:12px;padding:2px 8px;border-radius:999px;background:var(--soft);border:1px solid var(--line);white-space:nowrap}
+.wa .st.confirmed{background:#E9F6EF;border-color:#9fd3b6}.wa .st.redeemed{background:#1E7A4F;color:#fff;border-color:#1E7A4F}.wa .st.void{background:#f5e6e6;border-color:#e2b4b4}
+.wa .muted{color:var(--muted);font-size:13px}
+.wa .err{color:#B42318}
+.wa .tabs button{border:0;background:none;padding:6px 10px;border-bottom:2px solid transparent;font-size:14px}
+.wa .tabs button.on{border-color:var(--gold)}
+</style></head>
+<body>
+<header class="top wrap"><div class="col"><div class="brand"><a class="logo" href="{{BASE}}/" aria-label="{{NAME}}">Uniqaia</a><small>THE JEWELER'S WHEEL · AMMINISTRAZIONE</small></div></div></header>
+<main class="wa" id="app"><p class="muted">Caricamento…</p></main>
+<script>
+(function(){
+  var CFG = {"url":"{{URL}}","key":"{{KEY}}","base":"{{BASE}}","token":"{{TOKEN}}"};
+  var $ = function(id){ return document.getElementById(id); };
+  var D = null, tab = "live", msg = "";
+  var PREVIEW = location.origin + location.pathname.replace(/\/wheel-admin\/?.*$/, "") + "/join/?wheel=preview";
+  function esc(s){ return String(s == null ? "" : s).replace(/[&<>"']/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]; }); }
+  function eur(c){ return c == null ? "—" : new Intl.NumberFormat("it-IT", { style: "currency", currency: "EUR", minimumFractionDigits: c % 100 ? 2 : 0 }).format(c / 100); }
+  function dt(s){ return s ? new Intl.DateTimeFormat("it-IT", { day: "2-digit", month: "2-digit", year: "2-digit", hour: "2-digit", minute: "2-digit" }).format(new Date(s)) : ""; }
+  function rpc(fn, body){
+    return fetch(CFG.url + "/rest/v1/rpc/" + fn, { method: "POST", headers: { "Content-Type": "application/json", apikey: CFG.key, Authorization: "Bearer " + CFG.key }, body: JSON.stringify(body) })
+      .then(function(r){ return r.json().then(function(j){ if (!r.ok) throw new Error((j && j.message) || r.status); return j; }); });
+  }
+  function act(p){ msg = ""; return p.then(function(d){ D = d; draw(); }, function(e){ msg = e.message; draw(); }); }
+  var STATUS = { provisional: "Provvisorio", linked: "Candidatura inviata", confirmed: "Confermato", redeemed: "Abbonato", void: "Annullato" };
+  var DELIV = { "n/a": "", pending: "Da erogare", delivered: "Erogato" };
+
+  function draw(){
+    var c = D.config, P = D.prizes, F = D.funnel || {}, h = [];
+    var eligible = P.filter(function(p){ return p.active && p.deliverable && p.weight > 0; }), tw = eligible.reduce(function(a, p){ return a + p.weight; }, 0);
+    h.push('<div class="row" style="justify-content:space-between"><h1>The Jeweler\'s Wheel</h1><span class="badge ' + c.mode + '">' + ({off:"Spenta",demo:"Demo",live:"Pubblica"})[c.mode] + '</span></div>');
+    if (msg) h.push('<p class="warn err">' + esc(msg) + '</p>');
+
+    // stato
+    h.push('<section class="box"><h2>Stato della promozione</h2><div class="row modes">' +
+      '<button data-mode="off" class="' + (c.mode === "off" ? "on" : "") + '">Spenta</button>' +
+      '<button data-mode="demo" class="' + (c.mode === "demo" ? "on" : "") + '">Demo (solo anteprima)</button>' +
+      '<button data-mode="live" class="' + (c.mode === "live" ? "on" : "") + '">Pubblica</button></div>' +
+      '<p class="muted" style="margin-top:10px">Anteprima: <a href="' + esc(PREVIEW) + '" target="_blank" rel="noopener">' + esc(PREVIEW.replace(/^https?:\/\//, "")) + '</a> — in demo la vede solo chi ha questo link, con la scritta «demo».</p>');
+    if (c.mode !== "live") {
+      h.push('<div class="warn" style="margin-top:10px"><b>Per renderla pubblica servono:</b><ul>' +
+        '<li>la verifica legale sulle manifestazioni a premio (DPR 430/2001): riferimento qui sotto, chi l\'ha fatta e quando</li>' +
+        (D.live_problems || []).map(function(p){ return '<li>' + esc(p) + '</li>'; }).join("") + '</ul>' +
+        '<div class="row" style="margin-top:8px"><input type="text" class="wide" id="legal" placeholder="Es. parere avv. … del …" style="flex:1 1 260px"><button class="sm dark" id="goLive">Rendi pubblica</button></div></div>');
+    } else {
+      h.push('<p class="muted" style="margin-top:8px">Pubblica dal ' + dt(c.live_since) + ' · verifica legale: ' + esc(c.legal_ref) + '</p>');
+    }
+    h.push('</section>');
+
+    // premi
+    h.push('<section class="box"><h2>Premi</h2><div class="scroll"><table><thead><tr><th>Premio</th><th>Primo mese</th><th>Peso</th><th>Probabilità (pubblica)</th><th>Attivo</th><th>Erogabile</th><th>Note</th><th></th></tr></thead><tbody>');
+    P.forEach(function(p){
+      var pr = (p.active && p.deliverable && p.weight > 0 && tw) ? (100 * p.weight / tw).toFixed(1).replace(".", ",") + " %" : "—";
+      h.push('<tr data-code="' + esc(p.code) + '"><td><b>' + esc(p.name) + '</b><br><span class="muted">' + (p.kind === "discount" ? "Sconto primo mese" : "Vantaggio promozionale") + '</span></td>' +
+        '<td>' + (p.kind === "discount" ? '<input type="number" min="1" max="148" step="1" data-f="price" value="' + (p.first_month_cents / 100) + '"> €' : eur(p.first_month_cents)) + '</td>' +
+        '<td><input type="number" min="0" step="1" data-f="weight" value="' + p.weight + '"></td><td>' + pr + '</td>' +
+        '<td><input type="checkbox" data-f="active"' + (p.active ? " checked" : "") + '></td>' +
+        '<td><input type="checkbox" data-f="deliverable"' + (p.deliverable ? " checked" : "") + '></td>' +
+        '<td class="muted" style="max-width:240px">' + esc(p.delivery_note || "") + '</td>' +
+        '<td><button class="sm" data-save>Salva</button></td></tr>');
+    });
+    h.push('</tbody></table></div><p class="muted" style="margin-top:8px">Il peso decide la probabilità solo nella versione pubblica: ogni premio esce in proporzione al suo peso (es. pesi 40, 30, 20, 10 = 40 %, 30 %, 20 %, 10 %). In demo i premi attivi escono tutti con la stessa frequenza. Gli sconti valgono solo il primo mese; dal secondo il rinnovo è sempre 149 €.</p></section>');
+
+    // impostazioni
+    h.push('<section class="box"><h2>Impostazioni</h2><div class="row"><label>Attivazione una tantum mostrata con il premio <input type="number" min="0" step="1" id="setup" value="' + (c.setup_fee_cents / 100) + '"> €</label>' +
+      '<label>Stesso indirizzo IP, stesso premio per <input type="number" min="0" max="720" id="ipw" value="' + c.ip_window_hours + '"> ore</label><button class="sm" id="saveCfg">Salva</button></div>' +
+      '<p class="muted" style="margin-top:6px">Oggi la pagina /join indica «attivazione 290 €»: finché resta, la ruota la ricorda accanto al premio. Mettere 0 solo se l\'attivazione non si paga più.</p></section>');
+
+    // numeri
+    var f = F[tab] || {};
+    function k(v, l){ return '<div class="kpi"><b>' + v + '</b><span>' + l + '</span></div>'; }
+    var conv = f.visitors ? (100 * f.redeemed / f.visitors).toFixed(1).replace(".", ",") + " %" : "—";
+    h.push('<section class="box"><div class="row" style="justify-content:space-between"><h2 style="margin:0">Numeri</h2><div class="tabs"><button data-tab="live" class="' + (tab === "live" ? "on" : "") + '">Pubblica</button><button data-tab="demo" class="' + (tab === "demo" ? "on" : "") + '">Demo</button></div></div><div class="kpis" style="margin-top:10px">' +
+      k(f.popup_view || 0, "pop-up visti (sessioni)") + k(f.visitors || 0, "visitatori unici") + k(f.close_no_spin || 0, "chiusi senza giocare") + k(f.spin_click || 0, "clic su SPIN & DISCOVER") +
+      k(f.prize_shown || 0, "premi mostrati") + k(f.claim_click || 0, "clic su CLAIM YOUR REWARD") + k(f.gift_button || 0, "uso del pulsante YOUR WELCOME GIFT") +
+      k(f.linked || 0, "candidature con premio") + k(f.confirmed || 0, "premi confermati") + k(f.redeemed || 0, "abbonamenti attivati") +
+      k(eur(f.avg_first_month_cents), "ricavo medio del primo mese") + k(conv, "da visitatore ad abbonato") + '</div>' +
+      '<p class="muted" style="margin-top:8px">Ogni evento si conta una volta per sessione: riaprire il pop-up non gonfia i numeri. «Abbonamenti attivati» si aggiorna quando segni un premio come abbonato.</p></section>');
+
+    // assegnazioni
+    var S = (D.spins || []).filter(function(s){ return s.mode === tab; });
+    h.push('<section class="box"><h2>Assegnazioni e riscatti · ' + (tab === "live" ? "pubblica" : "demo") + ' (' + S.length + ')</h2>');
+    if (!S.length) h.push('<p class="muted">Nessuna assegnazione.</p>');
+    else {
+      h.push('<div class="scroll"><table><thead><tr><th>Data</th><th>Premio</th><th>Stato</th><th>Chi</th><th>Codice</th><th>Abbonamento</th><th></th></tr></thead><tbody>');
+      S.forEach(function(s){
+        var who = s.jeweler_name ? esc(s.jeweler_name) : (s.application_name ? esc(s.application_name) : "");
+        if (s.email) who += (who ? "<br>" : "") + '<span class="muted">' + esc(s.email) + (s.vat_number ? " · " + esc(s.vat_number) : "") + '</span>';
+        var acts = "";
+        if (s.status === "confirmed") acts += '<input type="text" placeholder="N. fattura o pagamento" data-ref style="max-width:170px"> <button class="sm dark" data-act="redeem">Segna abbonato</button> ';
+        if (s.prize_kind === "perk" && s.delivery_status === "pending") acts += '<button class="sm" data-act="deliver">Vantaggio erogato</button> ';
+        if (s.status !== "redeemed" && s.status !== "void") acts += '<button class="sm" data-act="void">Annulla</button>';
+        h.push('<tr data-id="' + s.id + '"><td class="muted">' + dt(s.created_at) + (s.repeat ? '<br>stesso IP' : '') + '</td><td>' + esc(s.prize_name) + '<br><span class="muted">primo mese ' + eur(s.first_month_cents) + '</span></td>' +
+          '<td><span class="st ' + s.status + '">' + STATUS[s.status] + '</span>' + (s.void_reason ? '<br><span class="muted">' + esc(s.void_reason) + '</span>' : '') + (DELIV[s.delivery_status] ? '<br><span class="muted">' + DELIV[s.delivery_status] + '</span>' : '') + '</td>' +
+          '<td>' + (who || '<span class="muted">non ancora identificato</span>') + '</td><td>' + esc(s.promo_code || "") + '</td><td>' + esc(s.subscription_ref || "") + (s.redeemed_at ? '<br><span class="muted">' + dt(s.redeemed_at) + '</span>' : '') + '</td><td class="row" style="flex-wrap:nowrap">' + acts + '</td></tr>');
+      });
+      h.push('</tbody></table></div>');
+    }
+    h.push('<p class="muted" style="margin-top:8px">Il premio diventa «Confermato» da solo quando approvi la candidatura con la stessa email o partita IVA. Un secondo premio per lo stesso gioielliere, o per chi è già venditore, si annulla da solo.</p>');
+    if (tab === "demo") h.push('<button class="sm" id="resetDemo" style="margin-top:10px">Cancella tutti i giri demo</button>');
+    h.push('</section>');
+
+    // registro
+    h.push('<section class="box"><h2>Registro delle modifiche</h2>' + ((D.audit || []).length ? '<table><tbody>' + D.audit.map(function(a){
+      var d = a.detail || {}, what = a.action === "mode" ? "Modalità: " + d.mode + (d.legal_ref ? " · " + d.legal_ref : "") : a.action === "prize" ? "Premio " + ((d.after || {}).name || "") + ": peso " + (d.before || {}).weight + "→" + (d.after || {}).weight + ", attivo " + ((d.after || {}).active ? "sì" : "no") + ", erogabile " + ((d.after || {}).deliverable ? "sì" : "no") + ", primo mese " + eur((d.after || {}).first_month_cents) : a.action === "config" ? "Impostazioni" : a.action === "reset_demo" ? "Giri demo cancellati" : a.action.replace("spin_", "Assegnazione: ") + (d.ref ? " · " + d.ref : "");
+      return '<tr><td class="muted" style="white-space:nowrap">' + dt(a.created_at) + '</td><td>' + esc(a.actor) + '</td><td>' + esc(what) + '</td></tr>';
+    }).join("") + '</tbody></table>' : '<p class="muted">Nessuna modifica.</p>') + '</section>');
+
+    $("app").innerHTML = h.join("");
+    bind();
+  }
+
+  function bind(){
+    Array.prototype.forEach.call(document.querySelectorAll("[data-mode]"), function(b){ b.addEventListener("click", function(){
+      var m = b.getAttribute("data-mode"); if (m === "live") { var g = $("goLive"); if (g) g.focus(); return; }
+      act(rpc("wheel_admin_set_mode", { p_token: CFG.token, p_mode: m, p_legal_ref: null }));
+    }); });
+    var gl = $("goLive"); if (gl) gl.addEventListener("click", function(){ act(rpc("wheel_admin_set_mode", { p_token: CFG.token, p_mode: "live", p_legal_ref: $("legal").value })); });
+    Array.prototype.forEach.call(document.querySelectorAll("[data-save]"), function(b){ b.addEventListener("click", function(){
+      var tr = b.closest("tr"), q = function(f){ return tr.querySelector('[data-f="' + f + '"]'); }, pr = q("price");
+      act(rpc("wheel_admin_save_prize", { p_token: CFG.token, p_code: tr.getAttribute("data-code"), p_active: q("active").checked, p_weight: parseInt(q("weight").value || "0", 10),
+        p_first_month_cents: pr ? Math.round(parseFloat(pr.value) * 100) : null, p_deliverable: q("deliverable").checked }));
+    }); });
+    var sc = $("saveCfg"); if (sc) sc.addEventListener("click", function(){ act(rpc("wheel_admin_save_config", { p_token: CFG.token, p_setup_fee_cents: Math.round(parseFloat($("setup").value || "0") * 100), p_ip_window_hours: parseInt($("ipw").value || "0", 10) })); });
+    Array.prototype.forEach.call(document.querySelectorAll("[data-tab]"), function(b){ b.addEventListener("click", function(){ tab = b.getAttribute("data-tab"); draw(); }); });
+    Array.prototype.forEach.call(document.querySelectorAll("[data-act]"), function(b){ b.addEventListener("click", function(){
+      var tr = b.closest("tr"), ref = tr.querySelector("[data-ref]");
+      act(rpc("wheel_admin_spin_action", { p_token: CFG.token, p_spin: tr.getAttribute("data-id"), p_action: b.getAttribute("data-act"), p_ref: ref ? ref.value : null }));
+    }); });
+    var rd = $("resetDemo"); if (rd) rd.addEventListener("click", function(){ act(rpc("wheel_admin_reset_demo", { p_token: CFG.token })); });
+  }
+
+  if (!CFG.token) { $("app").innerHTML = '<p class="warn">Apri questa pagina con il tuo link da gemmologa: lo stesso indirizzo con <b>?k=</b> e la tua chiave del pannello.</p>'; return; }
+  rpc("wheel_admin_get", { p_token: CFG.token }).then(function(d){ D = d; tab = d.config.mode === "live" ? "live" : "demo"; draw(); }, function(e){ $("app").innerHTML = '<p class="warn err">' + esc(e.message) + '</p>'; });
+})();
+</script>
+</body></html>

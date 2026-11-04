@@ -65,6 +65,15 @@ const TPL: Record<string, Partial<Record<L, T>>> = {
   admin_new: {
     it: { s: (d) => `${d.completed === "true" ? "Candidatura completata" : "Nuova candidatura"}: ${d.brand} (${d.country})`, b: (d) => `${d.completed === "true" ? "Il seller che avevi inserito ha completato e confermato la candidatura" : "È arrivata una candidatura spontanea"}: ${d.brand}, ${d.city} (${d.country}).\n\nLa trovi nel pannello, sezione Candidature, con i dati e le immagini.` },
   },
+  // allarmi tecnici di Nikita (P0/P1) per Elena: li accoda ops._email_alert solo con MAIL_MODE = live
+  ops_alert: {
+    it: {
+      s: (d) => (d.kind === "resolved" ? `[Uniqaia · risolto] ${d.title}` : `[Uniqaia · ${d.severity}] ${d.title}`).slice(0, 180),
+      b: (d) => d.kind === "resolved"
+        ? `Ciao Elena,\n\nil problema segnalato da Nikita è risolto: un nuovo test lo ha confermato.\n\n${d.title}\n\nGilda · Uniqaia`
+        : `Ciao Elena,\n\nNikita ha trovato un problema ${d.severity} (area: ${d.area}) il ${d.opened}.\n\n${d.title}\n\nImpatto: ${d.impact || "—"}\nCosa fare: ${d.fix || "—"}\n\nProva tecnica:\n${d.evidence}\n\nGilda · Uniqaia`,
+    },
+  },
 };
 
 const esc = (s: string) => s.replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]!));

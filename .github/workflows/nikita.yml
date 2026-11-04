@@ -1,0 +1,87 @@
+# Nikita · collaudo con il browser di Uniqaia (Playwright: computer con Chromium, iPhone 13 con WebKit).
+# Gira due volte al giorno, dopo ogni aggiornamento del sito e a mano (Actions → Nikita · collaudo → Run workflow).
+# Gli esiti vanno al registro di Nikita su Supabase, firmati da GitHub (OIDC): nessun segreto nel repository.
+# I test non scrivono nei dati veri: le chiamate che scriverebbero vengono intercettate (vedi ops/nikita/tests/_aiuti.mjs).
+name: Nikita · collaudo
+on:
+  schedule:
+    - cron: "17 4 * * *"    # mattina, prima del rapporto di Nikita (GitHub può ritardare)
+    - cron: "47 15 * * *"   # pomeriggio, prima delle dirette serali
+  workflow_dispatch:
+    inputs:
+      motivo:
+        description: "Perché lo lanci (facoltativo)"
+        required: false
+        default: ""
+      autotest:
+        description: "Esegui anche l'autotest con guasti simulati"
+        type: boolean
+        default: false
+  push:
+    branches: [main]
+    paths: ["uniqaia/**", "show/_src/**", "ops/nikita/**", ".github/workflows/nikita.yml"]
+permissions:
+  contents: read
+  id-token: write
+concurrency:
+  group: nikita-collaudo
+  cancel-in-progress: false
+jobs:
+  collaudo:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    defaults:
+      run:
+        working-directory: ops/nikita
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Cosa provare
+        id: piano
+        run: |
+          cambiati="$(git diff --name-only HEAD~1 HEAD 2>/dev/null || true)"
+          attendi=false; autotest=false
+          if [ "${{ github.event_name }}" = "push" ] && echo "$cambiati" | grep -qE '^(uniqaia|show/_src)/'; then attendi=true; fi
+          if [ "${{ github.event_name }}" = "push" ] && echo "$cambiati" | grep -qE '^(ops/nikita|\.github/workflows/nikita\.yml)'; then autotest=true; fi
+          if [ "${{ inputs.autotest }}" = "true" ]; then autotest=true; fi
+          if [ "${{ github.event_name }}" = "schedule" ] && [ "$(date -u +%u)" = "1" ] && [ "$(date -u +%H)" -lt 12 ]; then autotest=true; fi
+          echo "attendi=$attendi" >> "$GITHUB_OUTPUT"; echo "autotest=$autotest" >> "$GITHUB_OUTPUT"
+          echo "NIKITA_STARTED=$(date -u +%Y-%m-%dT%H:%M:%SZ)" >> "$GITHUB_ENV"
+          echo "Attendo la pubblicazione: $attendi · autotest: $autotest"
+      - name: Installa Playwright
+        run: |
+          npm install --no-audit --no-fund
+          npx playwright install --with-deps chromium webkit
+      - name: Attendi la pubblicazione su Cloudflare
+        if: steps.piano.outputs.attendi == 'true'
+        run: sleep 480
+      - name: Collaudo
+        id: collaudo
+        continue-on-error: true
+        run: npx playwright test
+      - name: Autotest con guasti simulati
+        if: steps.piano.outputs.autotest == 'true'
+        continue-on-error: true
+        run: node autotest.mjs
+      - name: Consegna gli esiti al registro di Nikita
+        if: always()
+        env:
+          NIKITA_MOTIVO: "${{ github.event_name }} ${{ inputs.motivo }}"
+        run: node consegna.mjs risultati/playwright.json risultati/autotest.json
+      - name: Conserva le prove (schermate e tracce dei fallimenti)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: nikita-prove
+          path: ops/nikita/risultati
+          retention-days: 14
+          if-no-files-found: ignore
+      - name: Esito
+        if: steps.collaudo.outcome == 'failure'
+        run: |
+          echo "::error::Il collaudo ha trovato problemi: il dettaglio è nel registro di Nikita (Supabase, schema ops)."
+          exit 1

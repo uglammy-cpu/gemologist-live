@@ -1,0 +1,13 @@
+{
+  "name": "uniqaia-nikita",
+  "private": true,
+  "type": "module",
+  "description": "Nikita: collaudo con il browser della piattaforma Uniqaia (Playwright).",
+  "scripts": {
+    "collaudo": "playwright test",
+    "autotest": "node autotest.mjs"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.63.0"
+  }
+}

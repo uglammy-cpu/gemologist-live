@@ -9,7 +9,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import http from "node:http";
-import { spawnSync } from "node:child_process";
+import { spawn } from "node:child_process";
 
 const QUI = path.dirname(new URL(import.meta.url).pathname);
 const SITO = path.resolve(QUI, "../../uniqaia");
@@ -57,9 +57,14 @@ const PROVE = [
 ];
 const GREP = "\\[e2e\\.home\\]|\\[e2e\\.home\\.carosello\\]|\\[e2e\\.home\\.link\\]|\\[e2e\\.ruota\\]";
 
-function lancia(base, report) {
-  spawnSync("npx", ["playwright", "test", "--project=computer", "--grep", GREP, "--workers=2"], {
-    cwd: QUI, stdio: "inherit", env: { ...process.env, NIKITA_BASE: base, NIKITA_REPORT: report, NIKITA_NO_RETRY: "1" },
+// ATTENZIONE: niente spawnSync. I server locali vivono in questo processo: se il processo resta bloccato
+// ad aspettare i test, i server non rispondono e ogni pagina va in timeout (successo al primo autotest).
+async function lancia(base, report) {
+  await new Promise((ok) => {
+    const p = spawn("npx", ["playwright", "test", "--project=computer", "--grep", GREP, "--workers=2"], {
+      cwd: QUI, stdio: "inherit", env: { ...process.env, NIKITA_BASE: base, NIKITA_REPORT: report, NIKITA_NO_RETRY: "1" },
+    });
+    p.on("exit", ok); p.on("error", ok);
   });
   const rep = JSON.parse(fs.readFileSync(report, "utf8"));
   const esiti = {};
@@ -75,8 +80,8 @@ fs.mkdirSync(path.join(QUI, "risultati"), { recursive: true });
 const sana = copia("/tmp/nikita-sana"), rotta = copia("/tmp/nikita-guasta");
 guasta(rotta);
 const s1 = await servi(sana, 4801), s2 = await servi(rotta, 4802);
-const controprova = lancia("http://127.0.0.1:4801", path.join(QUI, "risultati/autotest-sana.json"));
-const conGuasti = lancia("http://127.0.0.1:4802", path.join(QUI, "risultati/autotest-guasta.json"));
+const controprova = await lancia("http://127.0.0.1:4801", path.join(QUI, "risultati/autotest-sana.json"));
+const conGuasti = await lancia("http://127.0.0.1:4802", path.join(QUI, "risultati/autotest-guasta.json"));
 s1.close(); s2.close();
 
 const out = PROVE.map((p) => {

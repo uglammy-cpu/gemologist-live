@@ -106,7 +106,7 @@ export async function entra(page, path = "/") {
   await page.addInitScript(() => { try { localStorage.setItem("uniqaia-install", "no"); } catch (e) {} });
   await page.goto(path, { waitUntil: "load" });
   const benvenuto = page.locator("#welcome");
-  if (await benvenuto.isVisible({ timeout: 4000 }).catch(() => false)) {
+  if (await benvenuto.waitFor({ state: "visible", timeout: 4000 }).then(() => true, () => false)) {
     await page.locator("#wGo").click();
     await expect(benvenuto, "il pulsante «Entra» deve chiudere il benvenuto").toBeHidden();
   }

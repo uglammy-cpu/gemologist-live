@@ -41,11 +41,11 @@ test("[e2e.diretta.spettatore] La pagina dello spettatore si apre e «Mi interes
   // primo passo: nome e contatto
   await expect(page.locator("#cf")).toBeVisible();
   await page.locator("#nameIn").fill("Nikita prova");
-  await page.locator("#contactIn").fill("nikita.test@uniqaia.com");
+  await page.locator("#contactIn").fill("nikita.prova@uniqaia.com");
   await page.locator("#cf button[type=submit]").click();
   // secondo passo (diretta non in onda con più pezzi): quale pezzo
   const pezzo = page.locator("#modal [data-p]").first();
-  if (await pezzo.isVisible({ timeout: 3000 }).catch(() => false)) await pezzo.click();
+  if (await pezzo.waitFor({ state: "visible", timeout: 3000 }).then(() => true, () => false)) await pezzo.click();
   await expect.poll(() => st.scritture.some((s) => /^create_request/.test(s.rpc)), { message: "la richiesta deve partire verso il database", timeout: 8000 }).toBe(true);
   const c = st.scritture.find((s) => /^create_request/.test(s.rpc)).corpo;
   expect(c.p_show).toBe(d.id);
@@ -65,7 +65,7 @@ test("[e2e.diretta.porta] Diretta in onda: porta d'ingresso con consenso marketi
   await expect(porta, "a diretta in corso compare la porta d'ingresso").toBeVisible({ timeout: 15_000 });
   await expect(page.locator("#gateCons"), "il consenso marketing deve partire NON spuntato").not.toBeChecked();
   await page.locator("#gateName").fill("Nikita prova");
-  await page.locator("#gateMail").fill("nikita.test@uniqaia.com");
+  await page.locator("#gateMail").fill("nikita.prova@uniqaia.com");
   await page.locator("#gateGo").click();
   await expect.poll(() => st.scritture.some((s) => s.rpc === "enter_show"), { message: "l'ingresso deve essere registrato" }).toBe(true);
   const c = st.scritture.find((s) => s.rpc === "enter_show").corpo;
@@ -108,4 +108,20 @@ test("[e2e.livekit.spettatore] Connessione video reale a LiveKit come spettatore
   expect(esito.canPublish, "lo spettatore non deve poter trasmettere").toBe(false);
   expect(esito.canPublishData, "lo spettatore non deve poter inviare dati nella stanza").toBe(false);
   // publishData senza permesso non solleva errori nel browser: il server scarta il messaggio. Qui conta che il token non lo permetta.
+});
+
+test("[e2e.diretta.porta_email] La porta d'ingresso accetta gli indirizzi email normali (anche con la lettera «s»)", async ({ page }, info) => {
+  test.skip(info.project.name === "iphone", "basta su un dispositivo");
+  controllo("e2e.diretta.porta_email", { area: "interfaccia", gravita: "P1", impatto: "Chi ha una «s» nell'indirizzo email (rossi@…, francesca@…, …gioielleriasilvestri.it) non riesce a entrare in diretta.", correzione: "In viewer.html il controllo dell'email ha perso le barre rovesciate: /^[^@s]+@[^@s]+.[a-z]{2,}$/ va riscritto /^[^@\\s]+@[^@\\s]+\\.[a-z]{2,}$/." });
+  const r = await page.request.get("/_viewer.html");
+  expect(r.status()).toBe(200);
+  const html = await r.text();
+  const m = html.match(/if \(!(\/\^[^\n]*?\/i)\.test\(m\)\)\{ toast\(state\.t\.gateBadEmail\)/);
+  expect(m, "controllo dell'email della porta d'ingresso non trovato nella pagina").not.toBeNull();
+  const rx = eval(m[1]);
+  const buone = ["francesca.rossi@gmail.com", "info@gioielleriasilvestri.it", "mario@libero.it", "anna.bianchi@hotmail.com", "sara@studio-associato.com"];
+  const rifiutate = buone.filter((e) => !rx.test(e));
+  prova(`controllo pubblicato: ${m[1]}`);
+  expect(rifiutate, "indirizzi validi rifiutati dalla porta d'ingresso").toEqual([]);
+  expect(rx.test("non-una-email"), "un testo senza @ deve essere rifiutato").toBe(false);
 });

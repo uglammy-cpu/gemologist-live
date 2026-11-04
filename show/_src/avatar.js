@@ -3,13 +3,19 @@
  * Elena, in versione illustrata, entra nella sezione e spiega in sei passi come si entra in Uniqaia:
  * account, candidatura, valutazione entro 24 ore, link di pagamento, palinsesto, diretta.
  *
- * Per ora NON parla: il fumetto mostra il testo, la bocca resta chiusa. La voce è già predisposta:
+ * Parla: mentre il fumetto si riempie, la bocca dice le parole (sillaba per sillaba, a ritmo di voce), in silenzio
+ * finché non ci sono le registrazioni. La voce vera è già predisposta:
  *  - con i file audio in img/avatar/voce/<lingua>/<passo>.mp3 e la lingua aggiunta a VOICE_LANGS,
  *    compare «Ascolta» e la bocca segue l'audio (lip sync dall'ampiezza, tre aperture);
  *  - con ?avatar=voce si prova subito la sincronia con la voce del browser (solo anteprima).
+ * Si muove: respira, sposta il peso, piega appena il busto, muove la testa e i capelli, alza il diamante e la lente
+ * nei passi giusti (il saluto, la valutazione, la diretta).
  *
  * Animazione: WebGL. Una sola immagine scontornata, deformata da una griglia (respiro, testa, capelli,
- * oscillazione del corpo), più un atlante con gli occhi chiusi e tre aperture della bocca.
+ * avambraccio con il diamante, oscillazione del corpo), più un atlante con gli occhi chiusi e tre aperture della
+ * bocca, e un riflesso che ogni tanto accende il diamante. Quanto ogni punto segue la testa, le punte dei capelli
+ * o l'avambraccio sta in una piccola mappa di pesi (avatar-geometria.json, scritta da ops/avatar/prepara-livelli.py
+ * e inserita da build.mjs al posto del commento GEOMETRIA).
  * Senza WebGL, o con «riduci animazioni», resta l'immagine ferma e il testo si legge passo per passo.
  *
  * Testi: avatar-copione.json, inserito da build.mjs al posto del commento COPIONE qui sotto.
@@ -33,18 +39,15 @@
   var VOICE_LANGS = [];
   var TXT = /*COPIONE*/{};
 
-  // Geometria dell'immagine originale (1254 × 1254). Tutto è in pixel dell'originale.
-  var G = {
-    crop: [258, -16, 694, 1270],                   // posizione e misura di elena.webp
-    eye: [512, 198, 772, 278], eyeAt: [0, 0],      // riquadro occhi e posizione nell'atlante
-    mouth: [582, 318, 742, 442], mouthAt: [[0, 84], [164, 84], [328, 84]],
-    atlas: [488, 208],
-    cx: 615, top: -34                               // centro orizzontale della figura, bordo alto dell'inquadratura
-  };
+  // Geometria dell'illustrazione (1254 × 1254), in pixel dell'illustrazione: ritaglio di elena.webp, riquadri di occhi
+  // e bocca e loro posto nell'atlante, inquadratura, perni (collo, gomito, piedi), riflessi, griglia e mappa dei pesi.
+  var G = /*GEOMETRIA*/null;
+  if (!G) { window.UQAvatar = NOOP; return; }
 
   var RM = false; try { RM = matchMedia("(prefers-reduced-motion: reduce)").matches; } catch (e) {}
   var esc = function (s) { return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); };
-  var now = function () { return (window.performance && performance.now) ? performance.now() : Date.now(); };
+  var VT = { on: false, t: 0 };        // tempo virtuale (solo per girare i video)
+  var now = function () { return VT.on ? VT.t : (window.performance && performance.now) ? performance.now() : Date.now(); };
   var clamp = function (x, a, b) { return x < a ? a : x > b ? b : x; };
 
   // ---------------------------------------------------------------- stile
@@ -104,37 +107,48 @@
   };
 
   // ---------------------------------------------------------------- motore WebGL
+  function f1(v) { return (+v).toFixed(1); }
+  function v2(p) { return "vec2(" + f1(p[0]) + ", " + f1(p[1]) + ")"; }
   var VS = [
     "attribute vec2 aP;",
-    "uniform vec4 uView;",       // x, y, w, h dell'inquadratura (px dell'originale)
+    "attribute vec3 aW;",        // pesi: testa, punte dei capelli, avambraccio alzato (diamante)
+    "attribute vec2 aV;",        // pesi: busto, avambraccio con la lente
+    "uniform vec4 uView;",       // x, y, w, h dell'inquadratura (px dell'illustrazione)
     "uniform vec4 uCrop;",       // posizione e misura della texture di base
     "uniform vec4 uEye;", "uniform vec4 uMouth;",
     "uniform float uBreath;",
     "uniform vec4 uHead;",       // rotazione (rad), dx, dy, cenno (px)
     "uniform float uSway;",
     "uniform vec2 uHair;",       // spostamento delle punte dei capelli: sinistra, destra (px)
-    "varying vec2 vUv; varying vec2 vE; varying vec2 vM;",
+    "uniform float uArm;",       // rotazione dell'avambraccio col diamante sul gomito (rad)
+    "uniform float uLoupe;",     // rotazione della mano con la lente sul polso (rad)
+    "uniform float uLean;",      // busto che si piega di lato sui fianchi (rad)
+    "varying vec2 vUv; varying vec2 vE; varying vec2 vM; varying vec2 vP;",
     "vec2 rot(vec2 p, vec2 c, float a){ float s = sin(a), k = cos(a); p -= c; return c + vec2(k*p.x - s*p.y, s*p.x + k*p.y); }",
     "void main(){",
     "  vec2 p = aP;",
+    "  vP = p;",
     "  vUv = (p - uCrop.xy) / uCrop.zw;",
     "  vE = (p - uEye.xy) / (uEye.zw - uEye.xy);",
     "  vM = (p - uMouth.xy) / (uMouth.zw - uMouth.xy);",
-    // testa e parte alta dei capelli; ai lati i capelli lunghi seguono la testa sempre meno verso le punte
-    "  float side = smoothstep(150.0, 205.0, abs(p.x - 640.0));",
-    "  float wH = mix(1.0 - smoothstep(405.0, 470.0, p.y), 1.0 - smoothstep(400.0, 700.0, p.y), side);",
-    "  vec2 hp = rot(p, vec2(645.0, 455.0), uHead.x) + uHead.yz;",
-    "  hp.y += uHead.w * clamp((455.0 - p.y) / 455.0, 0.0, 1.0);",
-    "  vec2 q = mix(p, hp, wH);",
-    // respiro: si alza il busto, il petto si allarga appena
-    "  q.y -= 2.6 * uBreath * (1.0 - smoothstep(560.0, 790.0, p.y));",
-    "  float chest = smoothstep(450.0, 520.0, p.y) * (1.0 - smoothstep(600.0, 700.0, p.y));",
-    "  q.x += (p.x - 640.0) * 0.010 * uBreath * chest;",
+    // testa, con la parte alta dei capelli; le ciocche lunghe la seguono sempre meno verso le punte (dalla mappa)
+    "  vec2 nk = " + v2(G.neck) + ";",
+    "  vec2 hp = rot(p, nk, uHead.x) + uHead.yz;",
+    "  hp.y += uHead.w * clamp((nk.y - p.y) / nk.y, 0.0, 1.0);",
+    "  vec2 q = mix(p, hp, aW.x);",
+    // l'avambraccio con la mano e il diamante gira appena sul gomito
+    "  q += (rot(p, " + v2(G.elbow) + ", uArm) - p) * aW.z;",
+    "  q += (rot(p, " + v2(G.lwrist) + ", uLoupe) - p) * aV.y;",
+    // respiro: si alza il busto, il petto si allarga appena (solo il torso: le braccia restano intere)
+    "  q.y -= 2.6 * uBreath * (1.0 - smoothstep(" + f1(G.breath[0]) + ", " + f1(G.breath[1]) + ", p.y));",
+    "  float chest = smoothstep(" + f1(G.chest[0]) + ", " + f1(G.chest[1]) + ", p.y) * (1.0 - smoothstep(" + f1(G.chest[2]) + ", " + f1(G.chest[3]) + ", p.y));",
+    "  float dx = p.x - " + f1(G.faceX) + ";",
+    "  q.x += dx * 0.010 * uBreath * chest * (1.0 - smoothstep(110.0, 170.0, abs(dx)));",
     // punte dei capelli
-    "  float tip = smoothstep(380.0, 690.0, p.y) * (1.0 - smoothstep(700.0, 735.0, p.y));",
-    "  q.x += (uHair.x * (1.0 - smoothstep(455.0, 520.0, p.x)) + uHair.y * smoothstep(790.0, 850.0, p.x)) * tip;",
-    // tutto il corpo oscilla appena sui piedi
-    "  q = rot(q, vec2(625.0, 1290.0), uSway);",
+    "  q.x += mix(uHair.x, uHair.y, step(" + f1(G.faceX) + ", p.x)) * aW.y;",
+    // il busto si piega sui fianchi; poi tutto il corpo oscilla sui piedi (spostamento del peso)
+    "  q = mix(q, rot(q, " + v2(G.hips) + ", uLean), aV.x);",
+    "  q = rot(q, " + v2(G.sway) + ", uSway);",
     "  vec2 n = (q - uView.xy) / uView.zw;",
     "  gl_Position = vec4(n.x * 2.0 - 1.0, 1.0 - n.y * 2.0, 0.0, 1.0);",
     "}"
@@ -144,17 +158,23 @@
     "uniform vec4 uEyeA;",       // atlante: origine e misura del riquadro occhi (uv)
     "uniform vec4 uMouthA;",     // atlante: origine e misura del riquadro bocca per l'apertura corrente (uv)
     "uniform float uBlink; uniform float uMouthOn;",
-    "varying vec2 vUv; varying vec2 vE; varying vec2 vM;",
+    "uniform vec4 uGlint;",      // riflesso sul diamante: x, y (px dell'illustrazione), intensità, rotazione
+    "varying vec2 vUv; varying vec2 vE; varying vec2 vM; varying vec2 vP;",
     "float bm(vec2 s, vec2 f){ vec2 a = smoothstep(vec2(0.0), f, s) * (1.0 - smoothstep(vec2(1.0) - f, vec2(1.0), s)); return a.x * a.y; }",
     "void main(){",
     "  vec4 c = texture2D(uBase, vUv);",
     "  if (uBlink > 0.002) { float w = -0.12 + 1.3 * uBlink - 0.38 * (vE.x - 0.5); float m = bm(vE, vec2(0.024, 0.075)) * (1.0 - smoothstep(w - 0.05, w + 0.03, vE.y)); vec3 e = texture2D(uFx, uEyeA.xy + vE * uEyeA.zw).rgb; c.rgb = mix(c.rgb, e * c.a, m); }",
     "  if (uMouthOn > 0.5) { float m = bm(vM, vec2(0.04, 0.05)); vec3 e = texture2D(uFx, uMouthA.xy + vM * uMouthA.zw).rgb; c.rgb = mix(c.rgb, e * c.a, m); }",
+    // stella a quattro punte, più un alone: si somma alla luce (alfa premoltiplicato)
+    "  if (uGlint.z > 0.002) { vec2 d = vP - uGlint.xy; float s = sin(uGlint.w), k = cos(uGlint.w); d = vec2(k*d.x - s*d.y, s*d.x + k*d.y);",
+    "    float r2 = dot(d, d); float ray = exp(-abs(d.x) * 1.1) * exp(-abs(d.y) / 10.0) + exp(-abs(d.y) * 1.1) * exp(-abs(d.x) / 10.0);",
+    "    float g = uGlint.z * clamp(0.85 * ray + exp(-r2 / 5.0) + 0.22 * exp(-r2 / 60.0), 0.0, 1.0);",
+    "    c = vec4(c.rgb * (1.0 - 0.15 * g) + vec3(g), max(c.a, g)); }",
     "  gl_FragColor = c;",
     "}"
   ].join("\n");
 
-  function Engine(canvas) {
+  function Engine(canvas, wpx) {
     var gl = null;
     try { gl = canvas.getContext("webgl", { alpha: true, premultipliedAlpha: true, antialias: true, powerPreference: "low-power" }) || canvas.getContext("experimental-webgl"); } catch (e) {}
     if (!gl) return null;
@@ -165,16 +185,26 @@
     gl.attachShader(pr, sh(gl.VERTEX_SHADER, "precision highp float;\n" + VS)); gl.attachShader(pr, sh(gl.FRAGMENT_SHADER, FS));
     gl.linkProgram(pr); if (!gl.getProgramParameter(pr, gl.LINK_STATUS)) throw new Error("link");
     gl.useProgram(pr);
-    var U = {}; ["uView", "uCrop", "uEye", "uMouth", "uBreath", "uHead", "uSway", "uHair", "uBase", "uFx", "uEyeA", "uMouthA", "uBlink", "uMouthOn"].forEach(function (n) { U[n] = gl.getUniformLocation(pr, n); });
-    // griglia sulla texture di base
-    var cols = 46, rows = 84, x0 = G.crop[0], y0 = G.crop[1], cw = G.crop[2], ch = G.crop[3];
-    var v = new Float32Array((cols + 1) * (rows + 1) * 2), k = 0, i, j;
+    var U = {}; ["uView", "uCrop", "uEye", "uMouth", "uBreath", "uHead", "uSway", "uHair", "uArm", "uLoupe", "uLean", "uBase", "uFx", "uEyeA", "uMouthA", "uBlink", "uMouthOn", "uGlint"].forEach(function (n) { U[n] = gl.getUniformLocation(pr, n); });
+    // griglia sulla texture di base, con i pesi di ogni nodo. Mappa: un pixel per nodo, due metà affiancate;
+    // a sinistra rosso testa, verde punte dei capelli, blu braccio del diamante; a destra rosso busto, verde braccio della lente
+    var cols = G.grid[0], rows = G.grid[1], x0 = G.crop[0], y0 = G.crop[1], cw = G.crop[2], ch = G.crop[3];
+    var nv = (cols + 1) * (rows + 1), v = new Float32Array(nv * 2), wt = new Float32Array(nv * 3), wt2 = new Float32Array(nv * 2), k = 0, i, j;
     for (j = 0; j <= rows; j++) for (i = 0; i <= cols; i++) { v[k++] = x0 + cw * i / cols; v[k++] = y0 + ch * j / rows; }
+    if (wpx) for (j = 0; j <= rows; j++) for (i = 0; i <= cols; i++) {
+      k = j * (cols + 1) + i; var a1 = (j * (cols + 1) * 2 + i) * 4, a2 = a1 + (cols + 1) * 4;
+      wt[k * 3] = wpx[a1] / 255; wt[k * 3 + 1] = wpx[a1 + 1] / 255; wt[k * 3 + 2] = wpx[a1 + 2] / 255;
+      wt2[k * 2] = wpx[a2] / 255; wt2[k * 2 + 1] = wpx[a2 + 1] / 255;
+    }
     var idx = new Uint16Array(cols * rows * 6); k = 0;
     for (j = 0; j < rows; j++) for (i = 0; i < cols; i++) { var a = j * (cols + 1) + i, b = a + 1, c = a + cols + 1, d = c + 1; idx[k++] = a; idx[k++] = c; idx[k++] = b; idx[k++] = b; idx[k++] = c; idx[k++] = d; }
     var vb = gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER, vb); gl.bufferData(gl.ARRAY_BUFFER, v, gl.STATIC_DRAW);
     var ib = gl.createBuffer(); gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, ib); gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, idx, gl.STATIC_DRAW);
     var loc = gl.getAttribLocation(pr, "aP"); gl.enableVertexAttribArray(loc); gl.vertexAttribPointer(loc, 2, gl.FLOAT, false, 0, 0);
+    var wb = gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER, wb); gl.bufferData(gl.ARRAY_BUFFER, wt, gl.STATIC_DRAW);
+    var lw = gl.getAttribLocation(pr, "aW"); gl.enableVertexAttribArray(lw); gl.vertexAttribPointer(lw, 3, gl.FLOAT, false, 0, 0);
+    var wb2 = gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER, wb2); gl.bufferData(gl.ARRAY_BUFFER, wt2, gl.STATIC_DRAW);
+    var lv = gl.getAttribLocation(pr, "aV"); gl.enableVertexAttribArray(lv); gl.vertexAttribPointer(lv, 2, gl.FLOAT, false, 0, 0);
     gl.enable(gl.BLEND); gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
     gl.uniform4f(U.uCrop, G.crop[0], G.crop[1], G.crop[2], G.crop[3]);
     gl.uniform4f(U.uEye, G.eye[0], G.eye[1], G.eye[2], G.eye[3]);
@@ -204,7 +234,8 @@
         gl.clearColor(0, 0, 0, 0); gl.clear(gl.COLOR_BUFFER_BIT);
         gl.uniform4f(U.uView, V.x, V.y, V.w, V.h);
         gl.uniform1f(U.uBreath, st.breath); gl.uniform4f(U.uHead, st.roll, st.dx, st.dy, st.nod);
-        gl.uniform1f(U.uSway, st.sway); gl.uniform2f(U.uHair, st.hairL, st.hairR);
+        gl.uniform1f(U.uSway, st.sway); gl.uniform2f(U.uHair, st.hairL, st.hairR); gl.uniform1f(U.uArm, st.arm); gl.uniform1f(U.uLoupe, st.loupe); gl.uniform1f(U.uLean, st.lean);
+        gl.uniform4f(U.uGlint, st.gx, st.gy, st.glint, st.grot);
         gl.uniform1f(U.uBlink, st.blink);
         var m = st.mouth | 0;
         gl.uniform1f(U.uMouthOn, m > 0 ? 1 : 0);
@@ -227,10 +258,15 @@
     roll: 0, rollV: 0, rollTarget: 0, rollUntil: 0, lastRoll: 0,
     nods: [],                         // cenni in corso: {t0, amp, dur}
     blink: 0, nextBlink: 2.2, blinkT0: -1, dbl: false,
-    mouth: 0, mouthFix: null, mouthSrc: null   // funzione che restituisce l'apertura (0–3) quando la voce è attiva
+    arm: 0, armV: 0, armTarget: 0, armUntil: 0,                  // avambraccio con il diamante (molla)
+    loupe: 0, loupeV: 0, loupeTarget: 0, loupeUntil: 0,          // mano con la lente (molla)
+    lean: 0, leanV: 0, leanTarget: 0, leanUntil: 0,              // busto (molla)
+    glintT0: -1, nextGlint: 1.6, glintP: [0, 0], glintDur: 0.75,  // riflesso sul diamante
+    mouth: 0, mouthFix: null, mouthSrc: null,  // funzione che restituisce l'apertura (0–3) quando la voce è attiva
+    talk: false                       // senza voce: la bocca dice il testo mentre compare
   };
   var P = {                           // racconto
-    i: 0, started: false, playing: !RM, clock: 0, dur: 8000, reveal: 4000, shown: -1, words: [], hover: false,
+    i: 0, started: false, playing: !RM, clock: 0, dur: 8000, reveal: 4000, shown: -1, words: [], hover: false, plan: [],
     visible: false, voice: false, speaking: false, ended: false, endClock: 0
   };
 
@@ -279,10 +315,13 @@
     imgs.base = new Image(); imgs.base.decoding = "async"; imgs.base.src = ASSET + "elena.webp";
     el.img.src = imgs.base.src;
     var waits = [loadImg(imgs.base)];
-    if (!RM) { imgs.fx = new Image(); imgs.fx.src = ASSET + "elena-fx.webp"; waits.push(loadImg(imgs.fx)); }
+    if (!RM) {
+      imgs.fx = new Image(); imgs.fx.src = ASSET + "elena-fx.webp"; waits.push(loadImg(imgs.fx));
+      imgs.w = new Image(); imgs.w.src = G.weights; waits.push(loadImg(imgs.w));
+    }
     Promise.all(waits).then(function () {
       ready = true;
-      if (!RM) { try { eng = Engine(el.cv); } catch (e) { eng = null; } }
+      if (!RM) { try { eng = Engine(el.cv, weights(imgs.w)); } catch (e) { eng = null; } }
       if (!eng) el.cv.style.display = "none";
       layout(); measure(); maybeStart();
     }, function () { el.root.style.display = "none"; });
@@ -295,6 +334,11 @@
     new MutationObserver(function () { maybeStart(); }).observe(document.documentElement, { attributes: true, attributeFilter: ["class"] });
     el.cv.addEventListener("webglcontextlost", function (e) { e.preventDefault(); eng = null; el.cv.style.display = "none"; el.img.style.visibility = ""; });
   }
+  function weights(im) {
+    var c = document.createElement("canvas"); c.width = (G.grid[0] + 1) * 2; c.height = G.grid[1] + 1;
+    var x = c.getContext("2d"); x.drawImage(im, 0, 0);
+    return x.getImageData(0, 0, c.width, c.height).data;
+  }
   function loadImg(im) { return new Promise(function (ok, ko) { if (im.complete && im.naturalWidth) return ok(); im.onload = function () { ok(); }; im.onerror = ko; }); }
   function debounce(f, ms) { var t; return function () { clearTimeout(t); t = setTimeout(f, ms); }; }
 
@@ -302,7 +346,7 @@
   function layout() {
     if (!el.niche) return;
     var w = el.niche.clientWidth, h = el.niche.clientHeight; if (!w || !h) return;
-    var bottom = w / h > 0.8 ? 1004 : 1262;       // nicchia larga (telefono): fino alle mani, con lente e diamante; alta: figura intera
+    var bottom = w / h > 0.8 ? G.bottomWide : G.bottomTall;   // nicchia larga (telefono): fino alla lente; alta: figura intera
     var vh = bottom - G.top, vw = vh * w / h;
     V = { x: G.cx - vw / 2, y: G.top, w: vw, h: vh, pw: w, ph: h };
     var k = w / vw;                                // px CSS per px dell'originale
@@ -346,7 +390,7 @@
   }
 
   // ---------------------------------------------------------------- animazione
-  var ST = { breath: 0, roll: 0, dx: 0, dy: 0, nod: 0, sway: 0, hairL: 0, hairR: 0, blink: 0, mouth: 0 };
+  var ST = { breath: 0, roll: 0, dx: 0, dy: 0, nod: 0, sway: 0, hairL: 0, hairR: 0, arm: 0, loupe: 0, lean: 0, blink: 0, mouth: 0, gx: 0, gy: 0, glint: 0, grot: 0 };
   function enterDir() { return document.documentElement.dir === "rtl" ? 1 : -1; }
   function animate(dt, t) {
     if (!V) return;
@@ -379,7 +423,8 @@
     var kH = 26, cH = 4.2;
     A.hvL += (kH * (tgL - A.hairL) - cH * A.hvL) * dt; A.hairL += A.hvL * dt;
     A.hvR += (kH * (tgR - A.hairR) - cH * A.hvR) * dt; A.hairR += A.hvR * dt;
-    var sway = 0.0028 * Math.sin(tt * 0.5) + 0.0014 * Math.sin(tt * 1.13 + 0.7) + clamp(vxSrc * 0.000005, -0.012, 0.012);
+    // peso che passa da un piede all'altro, e il busto che compensa appena
+    var sway = 0.0042 * Math.sin(tt * 0.45) + 0.0016 * Math.sin(tt * 1.13 + 0.7) + clamp(vxSrc * 0.000005, -0.012, 0.012);
     // battito di ciglia
     if (A.blinkT0 < 0 && tt >= A.nextBlink && !A.entering) { A.blinkT0 = tt; }
     var blink = 0;
@@ -388,21 +433,47 @@
       blink = b < 65 ? b / 65 : b < 115 ? 1 : b < 215 ? 1 - (b - 115) / 100 : 0;
       if (b >= 215) { A.blinkT0 = -1; A.dbl = !A.dbl && Math.random() < 0.18; A.nextBlink = tt + (A.dbl ? 0.16 : 2.4 + Math.random() * 3.4); }
     }
+    // avambraccio: un'oscillazione appena percettibile, più i gesti (molla)
+    if (A.armUntil && t > A.armUntil) { A.armTarget = 0; A.armUntil = 0; }
+    A.armV += (30 * (A.armTarget - A.arm) - 8 * A.armV) * dt; A.arm += A.armV * dt;
+    var arm = A.arm + 0.010 * Math.sin(tt * 0.62 + 0.4) + 0.004 * Math.sin(tt * 1.37) - 0.25 * sway;
+    if (A.loupeUntil && t > A.loupeUntil) { A.loupeTarget = 0; A.loupeUntil = 0; }
+    A.loupeV += (22 * (A.loupeTarget - A.loupe) - 6 * A.loupeV) * dt; A.loupe += A.loupeV * dt;
+    var loupe = A.loupe + 0.010 * Math.sin(tt * 0.47 + 2.0) + 0.5 * sway;                 // la mano che pende segue il peso
+    if (A.leanUntil && t > A.leanUntil) { A.leanTarget = 0; A.leanUntil = 0; }
+    A.leanV += (18 * (A.leanTarget - A.lean) - 6.5 * A.leanV) * dt; A.lean += A.leanV * dt;
+    var lean = A.lean - 0.9 * sway + 0.003 * Math.sin(tt * 0.83 + 1.1) + (A.talk ? 0.0025 * Math.sin(tt * 2.1) : 0);
+    // riflesso sul diamante: ogni tanto, su una faccetta diversa
+    if (A.glintT0 < 0 && tt >= A.nextGlint && !A.entering) { A.glintT0 = tt; A.glintP = G.glints[(Math.random() * G.glints.length) | 0]; }
+    var glint = 0, grot = 0;
+    if (A.glintT0 >= 0) {
+      var gu = (tt - A.glintT0) / A.glintDur;
+      if (gu >= 1) { A.glintT0 = -1; A.nextGlint = tt + 3.2 + Math.random() * 3.6; }
+      else { glint = Math.pow(Math.sin(Math.PI * gu), 2) * 0.95; grot = 0.25 + 0.5 * gu; }
+    }
     // bocca
     var m = 0;
     if (A.mouthFix != null) m = A.mouthFix | 0;
     else if (A.mouthSrc) { try { m = A.mouthSrc() | 0; } catch (e) { m = 0; } }
+    else if (A.talk) m = planMouth(P.plan, P.clock);
     ST.breath = breath; ST.roll = roll; ST.dx = dx; ST.dy = dy + nod * 0.5; ST.nod = nod; ST.sway = sway;
     ST.hairL = clamp(A.hairL, -9, 9); ST.hairR = clamp(A.hairR, -9, 9); ST.blink = A.blinkFix != null ? A.blinkFix : blink; ST.mouth = m;
+    ST.arm = A.armFix != null ? A.armFix : clamp(arm, -0.10, 0.08);
+    ST.loupe = clamp(loupe, -0.06, 0.16); ST.lean = clamp(lean, -0.03, 0.03);
+    ST.gx = A.glintP[0]; ST.gy = A.glintP[1]; ST.glint = glint; ST.grot = grot;
   }
   function drawFrame() {
     if (!eng || !V) return;
     eng.draw(V, ST);
     if (el.img.style.visibility !== "hidden") el.img.style.visibility = "hidden";
   }
+  function side() { return document.documentElement.dir === "rtl" ? -1 : 1; }   // verso il fumetto
   function gesture(name) {
     var t = now();
-    if (name === "hello") { A.rollTarget = 0.045; A.rollUntil = t + 900; A.nods.push({ t0: t + 120, amp: 5, dur: 650 }); }
+    if (name === "hello") { A.rollTarget = 0.045; A.rollUntil = t + 900; A.nods.push({ t0: t + 120, amp: 5, dur: 650 }); A.armTarget = -0.06; A.armUntil = t + 800; A.nextGlint = A.t + 0.5; A.leanTarget = 0.01 * side(); A.leanUntil = t + 900; }
+    else if (name === "show") { A.armTarget = -0.075; A.armUntil = t + 1100; A.nextGlint = A.t + 0.35; A.leanTarget = 0.008 * side(); A.leanUntil = t + 1200; }
+    else if (name === "loupe") { A.loupeTarget = 0.11; A.loupeUntil = t + 1500; A.nods.push({ t0: t + 250, amp: 3, dur: 600 }); }
+    else if (name === "lean") { A.leanTarget = 0.014 * side(); A.leanUntil = t + 1600; A.rollTarget = 0.02 * side(); A.rollUntil = t + 1300; }
     else if (name === "nod") { A.nods.push({ t0: t, amp: 4, dur: 520 }); }
     else if (name === "beat") { A.nods.push({ t0: t, amp: 1.8, dur: 380 }); }
     else if (name === "blink") { A.nextBlink = A.t; A.blinkT0 = -1; }
@@ -462,11 +533,13 @@
     stopVoice();
     P.i = i; P.clock = 0; P.ended = false; P.endClock = 0;
     var len = steps()[i].s.length;
-    P.reveal = Math.max(900, len * 38);      // il testo compare a ritmo di lettura…
-    P.dur = 1300 + len * 66;                 // …e resta il tempo di finirlo
+    P.reveal = Math.max(900, len * 60);      // il testo compare a ritmo di voce, e la bocca lo dice…
+    P.dur = P.reveal + 1500;                 // …poi resta il tempo di finire di leggerlo
+    P.plan = ttsPlan(steps()[i].s, 0, P.reveal / Math.max(1, len), true);
     if (i === steps().length - 1) { P.playing = false; }
     renderStep();
-    if (A.entered && i > 0) gesture(Math.random() < 0.6 ? "nod" : "tilt");
+    var gs = { saluto: "", valutazione: "loupe", palinsesto: "lean", "in-onda": "show", fine: "show" }[steps()[i].id];
+    if (A.entered && i > 0) gesture(gs || (Math.random() < 0.6 ? "nod" : "tilt"));
     if (P.voice) speak();
     if (user) el.sr.setAttribute("aria-live", "polite");
   }
@@ -477,8 +550,9 @@
     syncButtons();
   }
   function story(ms) {
-    if (!T || !A.entered) return;
+    if (!T || !A.entered) { A.talk = false; return; }
     var last = steps().length - 1;
+    if (P.voice) A.talk = false;
     if (P.voice) {
       if (!P.playing) { revealTo(P.chars); return; }
       if (P.speaking) { revealTo(Math.round(voiceProgress() * P.chars)); return; }
@@ -488,10 +562,12 @@
       }
       return;
     }
+    A.talk = false;
     if (!P.playing) { revealTo(P.chars); return; }
     if (P.hover) { P.clock = Math.max(P.clock, P.reveal); revealTo(P.chars); return; }   // chi legge con il mouse sopra non viene incalzato
     if (wheelOpen()) return;
     P.clock += ms;
+    A.talk = P.clock < P.reveal;
     revealTo(Math.round(P.chars * clamp(P.clock / P.reveal, 0, 1)));
     if (P.clock >= P.dur && P.i < last) go(P.i + 1, false);
   }
@@ -570,7 +646,11 @@
       return 0;
     }
   };
-  function ttsPlan(text, offsetMs, msPerChar) {
+  function planMouth(p, t) {
+    for (var k = 0; k < p.length; k++) { if (t < p[k][0]) return 0; if (t < p[k][1]) return p[k][2]; }
+    return 0;
+  }
+  function ttsPlan(text, offsetMs, msPerChar, even) {
     // per ogni sillaba: bocca aperta secondo la vocale, poi un attimo chiusa
     var out = [], t = offsetMs, re = /[^\s]+|\s+/g, m;
     while ((m = re.exec(text))) {
@@ -581,7 +661,7 @@
         var v = syl[k], o = /[aàаا]/.test(v) ? 3 : /[eèéoòóеёэоو]/.test(v) ? 2 : 1;
         out.push([t + k * sd, t + k * sd + sd * 0.72, o]);
       }
-      t += dur; if (/[.,;:!?]$/.test(w)) t += msPerChar * 4;
+      t += dur; if (!even && /[.,;:!?]$/.test(w)) t += msPerChar * 4;
     }
     return out;
   }
@@ -657,6 +737,12 @@
     // fa dire all'avatar una frase con un file audio: la bocca segue l'audio
     say: function (url) { ensureAudio(); AU.el.src = url; A.mouthSrc = audioMouth; return AU.el.play(); },
     _blink: function (v) { A.blinkFix = v == null ? null : +v; },   // solo per i collaudi
+    // per girare i video fotogramma per fotogramma: ferma il ciclo e avanza di ms millisecondi a ogni chiamata
+    _step: function (ms) {
+      if (A.run) { A.run = false; cancelAnimationFrame(A.raf); }
+      if (!VT.on) { VT.t = performance.now(); VT.on = true; }
+      VT.t += ms; A.t += ms / 1000; animate(ms / 1000, VT.t); story(ms); drawFrame();
+    },
     state: function () { return { step: P.i, playing: P.playing, voice: P.voice, webgl: !!eng, lang: lang }; }
   };
   var slot0 = document.getElementById("uqaSlot");

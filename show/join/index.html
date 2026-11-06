@@ -1594,7 +1594,7 @@ function lkAttachRemote(room, tiles, LK){
   // Geometria dell'illustrazione (1254 × 1254), in pixel dell'illustrazione: ritaglio di elena.webp, riquadri di occhi
   // e bocca e loro posto nell'atlante, inquadratura, perni (collo, gomito, piedi), riflessi, griglia e mappa dei pesi.
   // Una per figura: «diamante» (lente e diamante) e «libera» (mani libere).
-  var FIGS = { diamante: {"src":[1254,1254],"crop":[330,0,670,1254],"fig":[348,14,980,1228],"eye":[519,170,733,235],"eyeAt":[0,0],"mouth":[568,266,724,376],"mouthAt":[[0,69],[160,69],[320,69]],"atlas":[476,179],"cx":664,"top":-18,"bottomTall":1246,"bottomWide":1010,"neck":[636,372],"elbow":[925,545],"lwrist":[450,705],"hips":[640,660],"sway":[640,1250],"faceX":636,"breath":[459,640],"chest":[372,427,490,570],"glints":[[862,284],[824,297],[889,300]],"grid":[67,125],"weights":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAIgAAAB+CAIAAABwE84BAAALoElEQVR42u2deWwc1R3HP29m9vQR2zFJ3BAghDYciTh6UaUqiB5/gFRAaak4ipAqoGna/oVACPEHoIo/iMofFVVAlKP8VSiNSg+hlpaWQCn0oGlCsDGpYxzfcew9vcfMvP6xO/aMvRuvs2t7PH5fjaLdzezOzPu+3/17z0Ki4EdoaggUMQqKGEWMf/AlnlTE+A57uO8glypi/IXvc89+blSqzF/Yz/VP8A1lY/zGyrV7uE8Zfx+y8kPXI0QUMSuPN7lkD3sh5vosFiRixGpMyWSJNPErANqduWVAs+RCJTErBgmt/BIA3XX/zSCUKltJbOHnVvm2Y96n0BQxK4a9fG+Q9c67kPOiBQQUFDErg+Ns/CnXOe9m9JgAAZoiZmWQJrqVn7k+iHvFJa/imBUx+GLd3Byl4YiLBgKKipgVwPnssz1Ol+HceVPwrMuqIeZevn6cDu9nMUdcjECKyyogxkI8xjVgV9Jj0aCKyyogZgd7AC8xhmNXIl5xUQHmciFFuJtOkCDn6bGIV1yECjCXD5/kBwCY8/SYcPRYMZCs+JoYiRilHfDGKCU9FnaJywwrcUXMcuA8DkAcwl6JiXnFpcSKDp2UWQwIDH/e1lU8+jEb4WJ4BSRsgPXQCiZoTgKmxEoc2hy2FDEsacvL3W9wiaOmvgMaNDnCLaEIEzAOIWiFOOgBY8WPxDzBbfu5FbZBK4RdQf6M9xWBLoiCCWGIgjYv0Fn9kH46vsujMAlWbadnIQcFyME0TEufPU49h49KywWMCO/CZTWHitKh0HLex5RX1niEMQVdM6NcAwToizlfEXOmeJ+rQXjj/AW5CSlilhwX0bOd3kVmvXRHrdmBbl8SSFFdpYvyANhgS+fDuq6PAF2Us5JSIDW2mv0D8pzF/EqudB8yQMG/+GgnkRzxJC2TGCaA1LD1CgNuWeg6RUjAKUnGRtp1T1ONmE67RrvTSCkFtkEsbTqiUAvski8jA6TWDFsjH8XWmG7GKGKYGAWMYmV3zYY09MEHkqEitjkv87tIcUGnM8SFBtuh3VFhlk5UTORka81ho1a35PqPmHyMcA7CZb0mJISwqsedCTgGb1t0C0y7Xp9ICM6LIMKcJcpZsJLQPLDuwQenHgHdySXXQnKwiCmEkYKQU9ewtQWas1MwDD0mh8As1lfVFQidScHWZhLCUz2+o+mphxIPm1KA7ZTF1haMfAzbwNaxNcwaVHSmFHAXyFmYubpNXAS5jukWMhpp7/D/97LNF7+XW4OUlImZjmPnsXSKoRr7u8iDVUqFpOt1yQhhN5FvJaN7fkyAsKw7tux7buBel/Mn1hIxMSwd3S57wwsa0TSkLYoGZOuz/I4zZTeTbyOjk3TzVUCzufPi+7fvekBm7ZFx8dy/n07mbwleFrm6jYlSiJanopAVgphknpbI7Fw9ZdE7iN2BTEGu3gSqTJItkG8jZZCYMf4ahQiFMEnB2JDd1sTmiNzbdOejr10Lm9YKMckWEEgDwDAxvf6YbdM3yjaXXT4yQPtF9OWQo43oHCoy8RHDF5A6h4Q7ZtIxQwxnmBQUJK0hevM2pNYQMakWTA0ZQuhIDc2aq8k7Oz1D1tnOKEz+BXuo7uhSgMRM0/shV15KVMxeuaQgPxxFhLGKHBvlncMzEb6oXrgIlrtcCGOHKMSYljSXPObqSZk0pPIkexohLgJASjJZJlsJGa4hlwDZCAYks/zjCFMJIDqPgKDxMUtMLgwhslEmLbI2A0U2bDmtuyw58TfMyUYMiCgPbGqY13/D1d8i0lz+H93i+DHyEQoW7x9i8iSybP0yeORKBlaVvTiBYbB9PWYRyyL+aSZPW27ueZ0Tb2NPN+Lidnlgi2mOvUV0EztvRWgAwmLoKJrg+LuM9mFbwGcgDYPzysyhQO6IY0yZYHJykMhmum6kLXlaN8rm2OskDyOtBpW1nRdmlu7fMT7E1m+y/nKKGnYb/a8w9j5WEdgFd8GQl5V10AKtzF1gFqxmjPhOLINE6+nOzo+QHsDON16FSEnuFMNvkEnQtRstzNhrnPoXVg44F74MYzDu+kYbTJf7zssdZcVAESPCAHonRYPpMEQrRzNlAzON2VhWhEt0JHaBxCHSHwFYGWTR6SznhPdrLY7vUYQtDk8iaBKjdxI6G9vCyiPi5KJY+kxhzBts9jXIusxcfBMij5yc7baUBUyPv9cBE3g89jisA6AAZ0M/nOuwFSBi9E6MDYiOcl2jaJAPU9QrO83TWaTtrerWU9KNwBXolyNfxT6ErCyLuldcIo7isp225m3QD2cHzfgbGxDOVOv9I4UMIkLLV5AXVCgc5z5Emi4t1OQ0dp2xHtOQOwndgvUI5u+RU/NpTrrkVoe4y5YMwGbohu1wArqCpspEE5ZJ3weOMsmTKmBUKuxaBRdXGjTXbXEFUsP6BPqzsA/zOWQfFN0zolDJVRlxzhiETuiGC2E4UMRoG0icYnzQsxRVbqQgy50Ss0M0gnXUVbIMwTqYrNddlmCZSANxH9rnsX+CfBdOOvRIt9C62/5HXbdWgG74VKCIGfgfebc93wZXICNIE0JYLgdAvgBHXaqm1GVfd4wpQVrIUhR/GeyGK+E/cBwScHQOk25uxlzTJB+4CmZFVgSA9RTYcIPz+D3elXUti+zNq7TylTycgglkFo5CAvLQBp+DiyAJPXPaCuZwMwE5xyvrD2i3/za4YnZVkPWCIxwvQQKK8KrLopTWqIzNW4bH4rqVOQ5/hrMgD6ZzRcv5WQG3w7PzNeCcqx6DbdAcRGIcVmQzgOyGQXge+qEDWiAN454kStkMmPXlyvphGH4N+8EGA0KQds2ACOyAIwty0wPbg0SMCO1zsSKQR7F2113MPzPcBDeADeOQBQtSzr9PV9SZpQ0YwhAvLWKWDOCDZS0N6acSoQPIncg3se6Bkys+T+A6uLrU8AEpsCEJU/BStS/MciPnZm5qEtocjd0xggyYkIEInFdfrgrfdbo/BNIhJgMWPF8tkp3lRnqynNRW2vYUEmhEKSMHU5CFDEzAHWdUlvBx4u9uaHVqNikw53sBc7mRZFj09pr8s9E3XiImCTZkYRzuchzHQBADbIJbnbwM8AqMno4bufg8RILyrqcNREmPpWASUpCHAnTB48EhpoTrKS80k/D06ZeULDqqGocfL4H9z0AS8pB1TGTpzh6Ha4JDTCn9823Q4TD8fWGPaFGq7HaWYj0pGSf8m4M4/LXcxB+YJvkd8IVqrvMZEjMNu5bgThdcOHQb3Buo1QsCvgp/qELMU7B3cQnvLGxlKRb6LryDggZ/qu5PB6ocK1NgwDgcgB95UxXhecJVBJhYgjJOqVDVVNvuFufDa5VoCBwxpTRTqc/pBHwMPdDrbbABbD57hJRNz1LeTxOsry2IeRK+FmRiZqqdOpgwBGPQC33z7I/NyGG6frt8EXMMYhAB3dkpeg464B2XkBlBIoYpZyMtC3Q4B5ogCjsqGP2WZcyrldIXmSqBcQTiYMEFcD/cTeAgP3aOk8gkMoOcrnJkeexhnz6FDm8FTWLczlYW4tBRVVtv2opfN85lV9BszMl5mqKj6sm5HLGY2q9s2bTAzIvwAs3M0ShCeHs9FDFLSEzY2finBl0Qi5HNojb5WXqUHNJwrRp6yxbU7ktK/tUfwa4ZQ0OKGF/i5ptRWBZ3WS7ueO89JTH+9BViihgFRUzteOYZNQF8aWNaW/FzqTZQxNQO0yQUUqrMf7jqKnze3LAWJUZKNE0Zf/9hYAAFPxr/HTvwf5/WWlRlQqg4xn94+WVWRWfjmpMYw8CylMT4T1wsS0mM/yRG0/xb51+7EnPTTauDlbXlLk9NsbqWNawVVRYKYZqotL+/8MVdq4mVtaLK9u9XY+M/Yg4eVAPjP2L6+9Wo+I8YxYofien+QI2H/4h58RdqMHxGzMgIkYgaCZ9h40Y1BgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKqxr/B2eYQIar9gUeAAAAAElFTkSuQmCC"}, libera: {"id":"libera","img":"elena-libera.webp","fx":"elena-libera-fx.webp","src":[1254,1254],"crop":[270,0,690,1254],"fig":[276,0,934,1254],"eye":[517,201,765,272],"eyeAt":[0,0],"mouth":[573,322,752,451],"mouthAt":[[0,75],[183,75],[366,75]],"atlas":[545,204],"cx":640,"top":-16,"bottomTall":1262,"bottomWide":960,"neck":[639,468],"elbow":[752,545],"lwrist":[522,545],"hips":[640,790],"sway":[622,1252],"faceX":638.5,"breath":[552,767],"chest":[448,514,588,684],"armRange":[-0.15,0.05],"loupeRange":[-0.05,0.15],"glints":[],"grid":[69,125],"weights":"data:image/png;base64,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"} };
+  var FIGS = { diamante: {"src":[1254,1254],"crop":[330,0,670,1254],"fig":[348,14,980,1228],"eye":[519,170,733,235],"eyeAt":[0,0],"mouth":[568,266,724,376],"mouthAt":[[0,69],[160,69],[320,69]],"atlas":[476,179],"cx":664,"top":-18,"bottomTall":1246,"bottomWide":1010,"neck":[636,372],"elbow":[925,545],"lwrist":[450,705],"hips":[640,660],"sway":[640,1250],"faceX":636,"breath":[459,640],"chest":[372,427,490,570],"glints":[[862,284],[824,297],[889,300]],"grid":[67,125],"weights":"data:image/png;base64,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"}, libera: {"id":"libera","img":"elena-libera.webp","fx":"elena-libera-fx.webp","src":[1254,1254],"crop":[270,0,690,1254],"fig":[276,0,934,1254],"eye":[517,201,765,272],"eyeAt":[0,0],"mouth":[573,322,752,451],"mouthAt":[[0,75],[183,75],[366,75]],"atlas":[545,204],"cx":640,"top":-16,"bottomTall":1262,"bottomWide":960,"neck":[639,468],"elbow":[752,545],"lwrist":[522,545],"hips":[640,790],"sway":[622,1252],"faceX":638.5,"breath":[552,767],"chest":[448,514,588,684],"armRange":[-0.17,0.04],"loupeRange":[-0.04,0.17],"tiles":3,"relbow":[804,668],"lelbow":[475,668],"legs":{"feet":1236,"hips":800,"top":872,"knee":1035,"split":612},"foreRange":[[-0.27,0.05],[-0.05,0.27]],"glints":[],"grid":[69,125],"weights":"data:image/png;base64,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"} };
   var FIG = "diamante", G = null;
   function pick(f) {
     f = String(f || "").toLowerCase();
@@ -1669,7 +1669,42 @@ function lkAttachRemote(room, tiles, LK){
   // ---------------------------------------------------------------- motore WebGL
   function f1(v) { return (+v).toFixed(1); }
   function v2(p) { return "vec2(" + f1(p[0]) + ", " + f1(p[1]) + ")"; }
-  function vertexShader() { return [
+  function vertexShader() {
+    var X3 = (G.tiles || 2) >= 3, L = G.legs || {};
+    var ARMS = X3 ? [
+    // braccia della figura a mani libere: girano sulle spalle, e gli avambracci anche sui gomiti (gerarchia: il gomito
+    // segue la spalla); le spalle salgono e scendono
+    "  vec2 qa = rot(p, " + v2(G.elbow) + ", uArm); vec2 qf = rot(qa, rot(" + v2(G.relbow) + ", " + v2(G.elbow) + ", uArm), uFore.x);",
+    "  q += (qa - p) * aW.z + (qf - qa) * aX.x;",
+    "  vec2 qb = rot(p, " + v2(G.lwrist) + ", uLoupe); vec2 qg = rot(qb, rot(" + v2(G.lelbow) + ", " + v2(G.lwrist) + ", uLoupe), uFore.y);",
+    "  q += (qb - p) * aV.y + (qg - qb) * aX.y;",
+    "  q.y -= mix(uShrug.x, uShrug.y, step(" + f1(G.faceX) + ", p.x)) * aX.z;"
+    ] : [
+    // l'avambraccio con la mano e il diamante gira appena sul gomito
+    "  q += (rot(p, " + v2(G.elbow) + ", uArm) - p) * aW.z;",
+    "  q += (rot(p, " + v2(G.lwrist) + ", uLoupe) - p) * aV.y;"
+    ];
+    var BODY = X3 ? [
+    // busto che ruota appena (il centro del petto scorre di lato, il contorno no)
+    "  float tb = smoothstep(450.0, 520.0, p.y) * (1.0 - smoothstep(700.0, 820.0, p.y));",
+    "  q.x += uBody.w * tb * (1.0 - smoothstep(60.0, 190.0, abs(p.x - " + f1(G.faceX) + "))) * (1.0 - max(aW.z, aV.y));",
+    // peso da un piede all'altro: ginocchio della gamba libera verso l'interno, fianco di quella gamba che scende
+    "  float legR = smoothstep(" + f1(L.split - 12) + ", " + f1(L.split + 12) + ", p.x);",
+    "  float sel = mix(1.0 - legR, legR, step(0.0, uBody.y));",
+    "  float kb = p.y < " + f1(L.knee) + " ? smoothstep(" + f1(L.top) + ", " + f1(L.knee) + ", p.y) : 1.0 - smoothstep(" + f1(L.knee) + ", " + f1(L.feet) + ", p.y);",
+    "  float legOnly = 1.0 - max(aV.x, max(aW.z, aV.y));",
+    "  q.x -= uBody.y * kb * sel * legOnly;",
+    "  float selW = mix(1.0 - smoothstep(" + f1(L.split - 70) + ", " + f1(L.split + 70) + ", p.x), smoothstep(" + f1(L.split - 70) + ", " + f1(L.split + 70) + ", p.x), step(0.0, uBody.y));",
+    "  float pd = smoothstep(690.0, 860.0, p.y) * (1.0 - smoothstep(860.0, " + f1(L.feet) + ", p.y));",
+    "  q.y += uBody.z * pd * selW * (1.0 - max(aW.z, aV.y));",
+    // i fianchi si spostano sopra il piede d'appoggio: i piedi restano fermi e le gambe restano dritte
+    "  float hw = max(clamp((" + f1(L.feet) + " - p.y) / " + f1(L.feet - L.hips) + ", 0.0, 1.0), aV.x);",
+    "  q.x += uBody.x * hw;",
+    "  q = mix(q, rot(q, " + v2(G.hips) + " + vec2(uBody.x, 0.0), uLean), aV.x);"
+    ] : [
+    "  q = mix(q, rot(q, " + v2(G.hips) + ", uLean), aV.x);"
+    ];
+    return [
     "attribute vec2 aP;",
     "attribute vec3 aW;",        // pesi: testa, punte dei capelli, avambraccio alzato (diamante)
     "attribute vec2 aV;",        // pesi: busto, avambraccio con la lente
@@ -1683,6 +1718,12 @@ function lkAttachRemote(room, tiles, LK){
     "uniform float uArm;",       // rotazione dell'avambraccio col diamante sul gomito (rad)
     "uniform float uLoupe;",     // rotazione della mano con la lente sul polso (rad)
     "uniform float uLean;",      // busto che si piega di lato sui fianchi (rad)
+    ].concat(X3 ? [
+    "attribute vec3 aX;",        // pesi: avambraccio «arm», avambraccio «loupe», spalle
+    "uniform vec2 uFore;",       // avambracci sui gomiti (rad)
+    "uniform vec2 uShrug;",      // spalle su (px): a sinistra, a destra nell'immagine
+    "uniform vec4 uBody;"        // fianchi di lato (px), ginocchio libero (px, il segno dice la gamba), fianco che scende (px), torsione (px)
+    ] : []).concat([
     "varying vec2 vUv; varying vec2 vE; varying vec2 vM; varying vec2 vP;",
     "vec2 rot(vec2 p, vec2 c, float a){ float s = sin(a), k = cos(a); p -= c; return c + vec2(k*p.x - s*p.y, s*p.x + k*p.y); }",
     "void main(){",
@@ -1696,9 +1737,7 @@ function lkAttachRemote(room, tiles, LK){
     "  vec2 hp = rot(p, nk, uHead.x) + uHead.yz;",
     "  hp.y += uHead.w * clamp((nk.y - p.y) / nk.y, 0.0, 1.0);",
     "  vec2 q = mix(p, hp, aW.x);",
-    // l'avambraccio con la mano e il diamante gira appena sul gomito
-    "  q += (rot(p, " + v2(G.elbow) + ", uArm) - p) * aW.z;",
-    "  q += (rot(p, " + v2(G.lwrist) + ", uLoupe) - p) * aV.y;",
+    ]).concat(ARMS).concat([
     // respiro: si alza il busto, il petto si allarga appena (solo il torso: le braccia restano intere)
     "  q.y -= 2.6 * uBreath * (1.0 - smoothstep(" + f1(G.breath[0]) + ", " + f1(G.breath[1]) + ", p.y));",
     "  float chest = smoothstep(" + f1(G.chest[0]) + ", " + f1(G.chest[1]) + ", p.y) * (1.0 - smoothstep(" + f1(G.chest[2]) + ", " + f1(G.chest[3]) + ", p.y));",
@@ -1707,12 +1746,12 @@ function lkAttachRemote(room, tiles, LK){
     // punte dei capelli
     "  q.x += mix(uHair.x, uHair.y, step(" + f1(G.faceX) + ", p.x)) * aW.y;",
     // il busto si piega sui fianchi; poi tutto il corpo oscilla sui piedi (spostamento del peso)
-    "  q = mix(q, rot(q, " + v2(G.hips) + ", uLean), aV.x);",
+    ]).concat(BODY).concat([
     "  q = rot(q, " + v2(G.sway) + ", uSway);",
     "  vec2 n = (q - uView.xy) / uView.zw;",
     "  gl_Position = vec4(n.x * 2.0 - 1.0, 1.0 - n.y * 2.0, 0.0, 1.0);",
     "}"
-  ].join("\n"); }
+  ]).join("\n"); }
   var FS_BODY = [
     "uniform sampler2D uBase; uniform sampler2D uFx;",
     "uniform vec4 uEyeA;",       // atlante: origine e misura del riquadro occhi (uv)
@@ -1745,16 +1784,17 @@ function lkAttachRemote(room, tiles, LK){
     gl.attachShader(pr, sh(gl.VERTEX_SHADER, "precision highp float;\n" + vertexShader())); gl.attachShader(pr, sh(gl.FRAGMENT_SHADER, FS));
     gl.linkProgram(pr); if (!gl.getProgramParameter(pr, gl.LINK_STATUS)) throw new Error("link");
     gl.useProgram(pr);
-    var U = {}; ["uView", "uCrop", "uEye", "uMouth", "uBreath", "uHead", "uSway", "uHair", "uArm", "uLoupe", "uLean", "uBase", "uFx", "uEyeA", "uMouthA", "uBlink", "uMouthOn", "uGlint"].forEach(function (n) { U[n] = gl.getUniformLocation(pr, n); });
+    var U = {}; ["uView", "uCrop", "uEye", "uMouth", "uBreath", "uHead", "uSway", "uHair", "uArm", "uLoupe", "uLean", "uBase", "uFx", "uEyeA", "uMouthA", "uBlink", "uMouthOn", "uGlint", "uFore", "uShrug", "uBody"].forEach(function (n) { U[n] = gl.getUniformLocation(pr, n); });
     // griglia sulla texture di base, con i pesi di ogni nodo. Mappa: un pixel per nodo, due metà affiancate;
     // a sinistra rosso testa, verde punte dei capelli, blu braccio del diamante; a destra rosso busto, verde braccio della lente
     var cols = G.grid[0], rows = G.grid[1], x0 = G.crop[0], y0 = G.crop[1], cw = G.crop[2], ch = G.crop[3];
-    var nv = (cols + 1) * (rows + 1), v = new Float32Array(nv * 2), wt = new Float32Array(nv * 3), wt2 = new Float32Array(nv * 2), k = 0, i, j;
+    var TL = G.tiles || 2, nv = (cols + 1) * (rows + 1), v = new Float32Array(nv * 2), wt = new Float32Array(nv * 3), wt2 = new Float32Array(nv * 2), wt3 = new Float32Array(nv * 3), k = 0, i, j;
     for (j = 0; j <= rows; j++) for (i = 0; i <= cols; i++) { v[k++] = x0 + cw * i / cols; v[k++] = y0 + ch * j / rows; }
     if (wpx) for (j = 0; j <= rows; j++) for (i = 0; i <= cols; i++) {
-      k = j * (cols + 1) + i; var a1 = (j * (cols + 1) * 2 + i) * 4, a2 = a1 + (cols + 1) * 4;
+      k = j * (cols + 1) + i; var a1 = (j * (cols + 1) * TL + i) * 4, a2 = a1 + (cols + 1) * 4, a3 = a2 + (cols + 1) * 4;
       wt[k * 3] = wpx[a1] / 255; wt[k * 3 + 1] = wpx[a1 + 1] / 255; wt[k * 3 + 2] = wpx[a1 + 2] / 255;
       wt2[k * 2] = wpx[a2] / 255; wt2[k * 2 + 1] = wpx[a2 + 1] / 255;
+      if (TL >= 3) { wt3[k * 3] = wpx[a3] / 255; wt3[k * 3 + 1] = wpx[a3 + 1] / 255; wt3[k * 3 + 2] = wpx[a3 + 2] / 255; }
     }
     var idx = new Uint16Array(cols * rows * 6); k = 0;
     for (j = 0; j < rows; j++) for (i = 0; i < cols; i++) { var a = j * (cols + 1) + i, b = a + 1, c = a + cols + 1, d = c + 1; idx[k++] = a; idx[k++] = c; idx[k++] = b; idx[k++] = b; idx[k++] = c; idx[k++] = d; }
@@ -1765,6 +1805,8 @@ function lkAttachRemote(room, tiles, LK){
     var lw = gl.getAttribLocation(pr, "aW"); gl.enableVertexAttribArray(lw); gl.vertexAttribPointer(lw, 3, gl.FLOAT, false, 0, 0);
     var wb2 = gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER, wb2); gl.bufferData(gl.ARRAY_BUFFER, wt2, gl.STATIC_DRAW);
     var lv = gl.getAttribLocation(pr, "aV"); gl.enableVertexAttribArray(lv); gl.vertexAttribPointer(lv, 2, gl.FLOAT, false, 0, 0);
+    if (TL >= 3) { var wb3 = gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER, wb3); gl.bufferData(gl.ARRAY_BUFFER, wt3, gl.STATIC_DRAW);
+      var lx = gl.getAttribLocation(pr, "aX"); if (lx >= 0) { gl.enableVertexAttribArray(lx); gl.vertexAttribPointer(lx, 3, gl.FLOAT, false, 0, 0); } }
     gl.enable(gl.BLEND); gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
     gl.uniform4f(U.uCrop, G.crop[0], G.crop[1], G.crop[2], G.crop[3]);
     gl.uniform4f(U.uEye, G.eye[0], G.eye[1], G.eye[2], G.eye[3]);
@@ -1795,6 +1837,7 @@ function lkAttachRemote(room, tiles, LK){
         gl.uniform4f(U.uView, V.x, V.y, V.w, V.h);
         gl.uniform1f(U.uBreath, st.breath); gl.uniform4f(U.uHead, st.roll, st.dx, st.dy, st.nod);
         gl.uniform1f(U.uSway, st.sway); gl.uniform2f(U.uHair, st.hairL, st.hairR); gl.uniform1f(U.uArm, st.arm); gl.uniform1f(U.uLoupe, st.loupe); gl.uniform1f(U.uLean, st.lean);
+        if (U.uFore) { gl.uniform2f(U.uFore, st.foreR, st.foreL); gl.uniform2f(U.uShrug, st.shrugL, st.shrugR); gl.uniform4f(U.uBody, st.hip, st.knee, st.drop, st.twist); }
         gl.uniform4f(U.uGlint, st.gx, st.gy, st.glint, st.grot);
         gl.uniform1f(U.uBlink, st.blink);
         var m = st.mouth | 0;
@@ -1895,7 +1938,7 @@ function lkAttachRemote(room, tiles, LK){
     el.cv.addEventListener("webglcontextlost", function (e) { e.preventDefault(); eng = null; el.cv.style.display = "none"; el.img.style.visibility = ""; });
   }
   function weights(im) {
-    var c = document.createElement("canvas"); c.width = (G.grid[0] + 1) * 2; c.height = G.grid[1] + 1;
+    var c = document.createElement("canvas"); c.width = (G.grid[0] + 1) * (G.tiles || 2); c.height = G.grid[1] + 1;
     var x = c.getContext("2d"); x.drawImage(im, 0, 0);
     return x.getImageData(0, 0, c.width, c.height).data;
   }
@@ -1950,7 +1993,8 @@ function lkAttachRemote(room, tiles, LK){
   }
 
   // ---------------------------------------------------------------- animazione
-  var ST = { breath: 0, roll: 0, dx: 0, dy: 0, nod: 0, sway: 0, hairL: 0, hairR: 0, arm: 0, loupe: 0, lean: 0, blink: 0, mouth: 0, gx: 0, gy: 0, glint: 0, grot: 0 };
+  var ST = { breath: 0, roll: 0, dx: 0, dy: 0, nod: 0, sway: 0, hairL: 0, hairR: 0, arm: 0, loupe: 0, lean: 0, blink: 0, mouth: 0, gx: 0, gy: 0, glint: 0, grot: 0,
+    foreR: 0, foreL: 0, shrugL: 0, shrugR: 0, hip: 0, knee: 0, drop: 0, twist: 0 };
   function enterDir() { return document.documentElement.dir === "rtl" ? 1 : -1; }
   function animate(dt, t) {
     if (!V) return;
@@ -2022,6 +2066,7 @@ function lkAttachRemote(room, tiles, LK){
     ST.arm = A.armFix != null ? A.armFix : clamp(arm, ar[0], ar[1]);
     ST.loupe = clamp(loupe, lr[0], lr[1]); ST.lean = clamp(lean, -0.03, 0.03);
     ST.gx = A.glintP[0]; ST.gy = A.glintP[1]; ST.glint = glint; ST.grot = grot;
+    if (FIG === "libera") freeMotion(dt, tt);
   }
   function drawFrame() {
     if (!eng || !V) return;
@@ -2029,18 +2074,135 @@ function lkAttachRemote(room, tiles, LK){
     if (el.img.style.visibility !== "hidden") el.img.style.visibility = "hidden";
   }
   function side() { return document.documentElement.dir === "rtl" ? -1 : 1; }   // verso il fumetto
-  // figura a mani libere: il braccio verso il fumetto è quello a destra nell'immagine («arm», apre con angoli negativi);
-  // con l'arabo il fumetto sta a sinistra e lavora l'altro («loupe», apre con angoli positivi)
-  function reach(t, amount, ms) {
-    if (side() > 0) { A.armTarget = -amount; A.armUntil = t + ms; } else { A.loupeTarget = amount; A.loupeUntil = t + ms; }
+  // ---------------------------------------------------------------- movimento della figura a mani libere
+  // Tre strati, sommati e poi passati da filtri a molla smorzata (niente scatti, niente ritorni meccanici):
+  //  1. la postura: il peso su un piede o sull'altro (fianchi di lato sopra il piede d'appoggio, ginocchio dell'altra
+  //     gamba che cede verso l'interno, fianco libero che scende), busto e spalle che compensano, testa che resta
+  //     dritta, braccia a riposo ogni volta un po' diverse. Cambia ogni 3–6 secondi, con transizioni lente;
+  //  2. i gesti: curve con attacco, tenuta e rilascio, ogni volta con ampiezze e tempi un po' diversi. Le spalle aprono
+  //     le braccia, gli avambracci si piegano sui gomiti e arrivano un attimo dopo (le molle degli avambracci sono più
+  //     lente: è il movimento che segue);
+  //  3. il movimento secondario: le mani che seguono in ritardo i fianchi, micro-movimenti continui non periodici.
+  // I gesti sulle parole importanti (accenti) arrivano da speechBeat: dal testo del fumetto, dalla voce con «Ascolta»
+  // e, nei video, dagli attacchi della registrazione (gira-video.mjs).
+  var FM = { on: false, f: {}, pose: {}, from: {}, to: {}, pt0: 0, pdur: 1.5, next: 1.0, side: 1, gest: [], lastBeat: -9, seed: [] };
+  var FM_KEYS = ["armR", "armL", "foreR", "foreL", "shrugL", "shrugR", "hip", "knee", "drop", "twist", "lean", "roll"];
+  // pulsazione e smorzamento delle molle: gli avambracci più lenti e più elastici delle spalle; il peso lento e pieno
+  var FM_SPRING = { armR: [9, 0.78], armL: [9, 0.78], foreR: [7, 0.68], foreL: [7, 0.68], shrugL: [10, 0.85], shrugR: [10, 0.85],
+    hip: [4.2, 1], knee: [4.6, 1], drop: [4.6, 1], twist: [5, 0.92], lean: [5.5, 0.9], roll: [6, 0.9] };
+  // ampiezza dei micro-movimenti continui
+  var FM_NOISE = { armR: 0.006, armL: 0.006, foreR: 0.014, foreL: 0.014, shrugL: 0.35, shrugR: 0.35, hip: 0.5, knee: 0.25, drop: 0, twist: 0.6, lean: 0.0012, roll: 0.003 };
+  function rnd(a, b) { return a + (b - a) * Math.random(); }
+  function ease(u) { u = clamp(u, 0, 1); return u * u * u * (u * (u * 6 - 15) + 10); }   // smootherstep
+  function fmInit() {
+    FM.on = true;
+    FM_KEYS.forEach(function (k, i) {
+      FM.f[k] = { x: 0, v: 0 }; FM.pose[k] = 0; FM.from[k] = 0; FM.to[k] = 0;
+      FM.seed[i] = [rnd(0, 6.3), rnd(0, 6.3), rnd(0, 6.3), rnd(0.8, 1.25), rnd(0.8, 1.25)];
+    });
+  }
+  // rumore liscio e non periodico (tre sinusoidi con frequenze non multiple, fasi a caso)
+  function sn(t, i) { var q = FM.seed[i]; return (Math.sin(t * 0.37 * q[3] + q[0]) + 0.6 * Math.sin(t * 0.91 * q[4] + q[1]) + 0.35 * Math.sin(t * 1.73 + q[2])) / 1.95; }
+  function newPose(tt) {
+    // il peso passa quasi sempre all'altro piede; ogni tanto resta in mezzo
+    var s0 = Math.random() < 0.2 ? 0 : (FM.side = -FM.side);
+    var to = {
+      hip: s0 * rnd(5, 10),
+      knee: -s0 * rnd(1.6, 3.6),            // il segno dice la gamba libera: quella senza peso
+      drop: s0 ? rnd(1.1, 2.4) : 0,
+      lean: s0 * rnd(0.004, 0.008),        // la spalla dal lato del peso scende (contrapposto)
+      roll: -s0 * rnd(0.002, 0.006) + rnd(-0.006, 0.006),   // la testa compensa e resta quasi dritta
+      twist: rnd(-2.6, 2.6),
+      shrugL: rnd(-0.8, 0.8), shrugR: rnd(-0.8, 0.8),
+      armR: -rnd(0.004, 0.024), armL: rnd(0.004, 0.024),   // braccia a riposo, mai due volte uguali
+      foreR: -rnd(0.0, 0.07), foreL: rnd(0.0, 0.07)
+    };
+    FM_KEYS.forEach(function (k) { FM.from[k] = FM.pose[k]; FM.to[k] = to[k] || 0; });
+    FM.pt0 = tt; FM.pdur = rnd(1.2, 2.0); FM.next = tt + FM.pdur + rnd(1.6, 4.2);
+  }
+  // un gesto: offset per canale, inviluppo attacco–tenuta–rilascio, eventuale oscillazione (il saluto)
+  function addGesture(off, a, h, r, wave) {
+    var k = rnd(0.86, 1.14), d = rnd(0.88, 1.15), o = {};
+    for (var key in off) o[key] = off[key] * k;
+    FM.gest.push({ t0: A.t, a: a * d, h: h * d, r: r * d, off: o, wave: wave || null });
+  }
+  function envelope(g, tt) {
+    var u = tt - g.t0;
+    if (u < 0) return 0;
+    if (u < g.a) return ease(u / g.a);
+    if (u < g.a + g.h) return 1;
+    if (u < g.a + g.h + g.r) return 1 - ease((u - g.a - g.h) / g.r);
+    return -1;                                       // finito
+  }
+  // il braccio dal lato del fumetto (o l'altro): offset di spalla e avambraccio verso l'esterno
+  function armOff(d, sh, fo, o) {
+    o = o || {};
+    if (d > 0) { o.armR = (o.armR || 0) - sh; o.foreR = (o.foreR || 0) - fo; o.shrugR = (o.shrugR || 0) + 0.8; }
+    else { o.armL = (o.armL || 0) + sh; o.foreL = (o.foreL || 0) + fo; o.shrugL = (o.shrugL || 0) + 0.8; }
+    return o;
+  }
+  // accento del parlato: una mano che sale e torna, come quando si sottolinea una parola
+  function speechBeat(k, force) {
+    if (FIG !== "libera" || !A.entered) return;
+    if (!FM.on) fmInit();
+    k = clamp(k == null ? 0.6 : k, 0.2, 1);
+    if (!force && A.t - FM.lastBeat < rnd(0.85, 1.5)) return;   // una parola sottolineata ogni uno o due secondi, non di più
+    FM.lastBeat = A.t;
+    var d = Math.random() < 0.7 ? side() : -side();
+    var o = armOff(d, 0.006 + 0.012 * k, 0.035 + 0.065 * k);
+    if (k > 0.78 && Math.random() < 0.6) { o = armOff(-d, 0.004 + 0.009 * k, 0.03 + 0.05 * k, o); o.twist = 0; A.nods.push({ t0: now() + 60, amp: 2.2, dur: 420 }); }
+    else o.twist = d * rnd(0.6, 1.4);
+    addGesture(o, rnd(0.11, 0.16), rnd(0.03, 0.09), rnd(0.34, 0.5));
   }
   function gestureFree(name, t) {
+    if (!FM.on) fmInit();
+    var d = side();
     if (name === "show") name = "open"; else if (name === "loupe") name = "present";
-    if (name === "hello") { A.rollTarget = 0.04 * side(); A.rollUntil = t + 900; A.nods.push({ t0: t + 120, amp: 5, dur: 650 }); reach(t, 0.12, 1000); A.leanTarget = 0.008 * side(); A.leanUntil = t + 900; }
-    else if (name === "open") { A.armTarget = -0.085; A.armUntil = t + 1300; A.loupeTarget = 0.085; A.loupeUntil = t + 1300; A.nods.push({ t0: t + 200, amp: 3, dur: 600 }); }
-    else if (name === "present") { reach(t, 0.10, 1500); A.leanTarget = 0.012 * side(); A.leanUntil = t + 1500; A.rollTarget = 0.02 * side(); A.rollUntil = t + 1300; }
-    else return false;
+    if (name === "hello") {
+      // saluta: la mano verso il fumetto si alza e fa due cenni
+      addGesture(armOff(d, 0.10, 0.19), 0.42, 1.05, 0.7, { key: d > 0 ? "foreR" : "foreL", amp: 0.045 * (d > 0 ? -1 : 1), hz: rnd(2.0, 2.5) });
+      A.rollTarget = 0.04 * d; A.rollUntil = t + 900; A.nods.push({ t0: t + 120, amp: 5, dur: 650 });
+    } else if (name === "open") {
+      // apre le braccia, palmi verso chi guarda: «eccoci»
+      addGesture({ armR: -0.085, armL: 0.085, foreR: -0.11, foreL: 0.11, shrugL: 1.3, shrugR: 1.3, twist: 0 }, 0.45, 0.8, 0.8);
+      A.nods.push({ t0: t + 220, amp: 3, dur: 600 });
+    } else if (name === "present") {
+      // indica il fumetto con la mano aperta e si gira appena verso di lui
+      addGesture(armOff(d, 0.075, 0.16, { twist: 2.2 * d, lean: 0.005 * d }), 0.5, 1.1, 0.8);
+      A.rollTarget = 0.022 * d; A.rollUntil = t + 1300;
+    } else if (name === "beat") {
+      speechBeat(0.45, true); A.nods.push({ t0: t, amp: 1.8, dur: 380 });
+    } else return false;
     return true;
+  }
+  function freeMotion(dt, tt) {
+    if (!FM.on) fmInit();
+    if (tt >= FM.next && !A.entering) newPose(tt);
+    var u = ease((tt - FM.pt0) / FM.pdur), T = {}, i, k;
+    for (i = 0; i < FM_KEYS.length; i++) { k = FM_KEYS[i]; FM.pose[k] = FM.from[k] + (FM.to[k] - FM.from[k]) * u; T[k] = FM.pose[k] + FM_NOISE[k] * sn(tt, i); }
+    // gesti
+    FM.gest = FM.gest.filter(function (g) {
+      var e = envelope(g, tt); if (e < 0) return false;
+      for (var key in g.off) T[key] += g.off[key] * e;
+      if (g.wave) { var w = tt - g.t0 - g.a * 0.7; if (w > 0) T[g.wave.key] += g.wave.amp * Math.sin(2 * Math.PI * g.wave.hz * w) * e; }
+      return true;
+    });
+    // mentre parla, il corpo accompagna appena (più vivo, senza diventare un ritmo)
+    if (A.talk || P.speaking || A.mouthFix != null) { T.twist += 0.8 * sn(tt * 2.2, 9); T.foreR += 0.012 * sn(tt * 2.6, 2); T.foreL += 0.012 * sn(tt * 2.4, 3); }
+    // le mani seguono in ritardo i fianchi (pendolo)
+    var hv = FM.f.hip.v;
+    T.armR += 0.0016 * hv; T.armL += 0.0016 * hv; T.foreR += 0.003 * hv; T.foreL += 0.003 * hv;
+    for (i = 0; i < FM_KEYS.length; i++) {
+      k = FM_KEYS[i]; var f = FM.f[k], sp = FM_SPRING[k], w = sp[0];
+      f.v += (w * w * (T[k] - f.x) - 2 * sp[1] * w * f.v) * dt; f.x += f.v * dt;
+    }
+    var ar = G.armRange || [-0.17, 0.04], lr = G.loupeRange || [-0.04, 0.17], fr = G.foreRange || [[-0.27, 0.05], [-0.05, 0.27]];
+    ST.arm = clamp(FM.f.armR.x, ar[0], ar[1]); ST.loupe = clamp(FM.f.armL.x, lr[0], lr[1]);
+    ST.foreR = clamp(FM.f.foreR.x, fr[0][0], fr[0][1]); ST.foreL = clamp(FM.f.foreL.x, fr[1][0], fr[1][1]);
+    ST.shrugL = clamp(FM.f.shrugL.x, -2.5, 4); ST.shrugR = clamp(FM.f.shrugR.x, -2.5, 4);
+    ST.hip = clamp(FM.f.hip.x, -11, 11); ST.knee = clamp(FM.f.knee.x, -5, 5); ST.drop = clamp(FM.f.drop.x, 0, 3.5); ST.twist = clamp(FM.f.twist.x, -5, 5);
+    ST.lean = clamp(ST.lean + FM.f.lean.x, -0.035, 0.035); ST.roll += FM.f.roll.x;
+    ST.sway *= 0.3;                                   // il peso lo spostano i fianchi, non il corpo intero come un pendolo
   }
   function gesture(name) {
     var t = now();
@@ -2056,6 +2218,16 @@ function lkAttachRemote(room, tiles, LK){
   }
 
   // ---------------------------------------------------------------- racconto
+  // quanto pesa una parola nel discorso: numeri e nomi (maiuscola) sì, le parole lunghe un po', l'inizio della frase
+  function emph(w, i) {
+    var c = w.replace(/[^0-9A-Za-zÀ-ÿЀ-ӿ؀-ۿ]/g, "");
+    if (!c) return 0;
+    if (/[0-9٠-٩]/.test(c)) return 1;
+    if (i === 0) return 0.5;
+    if (/^[A-ZÀ-ÞЀ-Я]/.test(c)) return 0.8;
+    if (c.length >= 8) return 0.55;
+    return 0;
+  }
   function renderStep() {
     var S = steps()[P.i], n = nSteps(), num = P.i >= 1 && P.i <= n;
     el.eb.textContent = T.ui.eyebrow + (num ? " · " + fmt(T.ui.stepOf, { n: P.i, t: n }) : "");
@@ -2064,7 +2236,7 @@ function lkAttachRemote(room, tiles, LK){
     for (var k = 0; k < words.length; k++) {
       var w = words[k]; if (!w) continue;
       if (/^\s+$/.test(w)) { h += w; pos += w.length; continue; }
-      pos += w.length; P.words.push({ end: pos, p: /[.!?:;]$/.test(w) ? 2 : /,$/.test(w) ? 1 : 0 });
+      pos += w.length; P.words.push({ end: pos, p: /[.!?:;]$/.test(w) ? 2 : /,$/.test(w) ? 1 : 0, e: emph(w, P.words.length) });
       h += '<span class="h">' + esc(w) + '</span>';
     }
     el.s.innerHTML = h; P.spans = el.s.querySelectorAll("span"); P.shown = -1; P.chars = S.s.length;
@@ -2098,7 +2270,8 @@ function lkAttachRemote(room, tiles, LK){
     for (var k = P.shown + 1; k < n; k++) {
       P.spans[k].classList.remove("h");
       // il corpo accompagna le pause del discorso (anche senza voce)
-      if (A.entered && !P.voice && P.words[k].p === 2) gesture("beat");
+      if (A.entered && !P.voice && P.words[k].p === 2) gesture(FIG === "libera" ? "nod" : "beat");
+      if (FIG === "libera" && A.talk && P.words[k].e) speechBeat(P.words[k].e);
     }
     for (var k2 = n; k2 <= P.shown; k2++) P.spans[k2].classList.add("h");
     P.shown = n - 1;
@@ -2182,6 +2355,8 @@ function lkAttachRemote(room, tiles, LK){
     var rms = Math.sqrt(s / AU.buf.length);
     AU.peak = Math.max(rms, AU.peak * 0.995, 0.02);
     var v = rms / AU.peak, l = v > 0.66 ? 3 : v > 0.4 ? 2 : v > 0.15 ? 1 : 0;
+    AU.slow = AU.slow == null ? rms : AU.slow * 0.96 + rms * 0.04;
+    if (FIG === "libera" && rms > AU.slow * 2.0 && v > 0.45 && now() - (AU.lastOn || 0) > 900) { AU.lastOn = now(); speechBeat(clamp((rms / Math.max(AU.slow, 1e-4) - 1.8) / 2.5 + 0.4, 0.3, 1)); }
     var t = now(); if (l !== AU.lvl && t > AU.hold) { AU.lvl = l; AU.hold = t + 55; }
     return AU.lvl;
   }
@@ -2309,6 +2484,8 @@ function lkAttachRemote(room, tiles, LK){
   window.UQAvatar = {
     mount: mount,
     gesture: gesture,
+    // accento del parlato (figura a mani libere): una mano che sottolinea una parola, forza 0–1
+    beat: function (k) { speechBeat(k, true); },
     // per prove e integrazioni future: apertura della bocca 0–3 (null = torna automatica)
     mouth: function (lv) { A.mouthFix = lv == null ? null : lv; },
     // fa dire all'avatar una frase con un file audio: la bocca segue l'audio

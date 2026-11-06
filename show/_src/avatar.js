@@ -126,7 +126,42 @@
   // ---------------------------------------------------------------- motore WebGL
   function f1(v) { return (+v).toFixed(1); }
   function v2(p) { return "vec2(" + f1(p[0]) + ", " + f1(p[1]) + ")"; }
-  function vertexShader() { return [
+  function vertexShader() {
+    var X3 = (G.tiles || 2) >= 3, L = G.legs || {};
+    var ARMS = X3 ? [
+    // braccia della figura a mani libere: girano sulle spalle, e gli avambracci anche sui gomiti (gerarchia: il gomito
+    // segue la spalla); le spalle salgono e scendono
+    "  vec2 qa = rot(p, " + v2(G.elbow) + ", uArm); vec2 qf = rot(qa, rot(" + v2(G.relbow) + ", " + v2(G.elbow) + ", uArm), uFore.x);",
+    "  q += (qa - p) * aW.z + (qf - qa) * aX.x;",
+    "  vec2 qb = rot(p, " + v2(G.lwrist) + ", uLoupe); vec2 qg = rot(qb, rot(" + v2(G.lelbow) + ", " + v2(G.lwrist) + ", uLoupe), uFore.y);",
+    "  q += (qb - p) * aV.y + (qg - qb) * aX.y;",
+    "  q.y -= mix(uShrug.x, uShrug.y, step(" + f1(G.faceX) + ", p.x)) * aX.z;"
+    ] : [
+    // l'avambraccio con la mano e il diamante gira appena sul gomito
+    "  q += (rot(p, " + v2(G.elbow) + ", uArm) - p) * aW.z;",
+    "  q += (rot(p, " + v2(G.lwrist) + ", uLoupe) - p) * aV.y;"
+    ];
+    var BODY = X3 ? [
+    // busto che ruota appena (il centro del petto scorre di lato, il contorno no)
+    "  float tb = smoothstep(450.0, 520.0, p.y) * (1.0 - smoothstep(700.0, 820.0, p.y));",
+    "  q.x += uBody.w * tb * (1.0 - smoothstep(60.0, 190.0, abs(p.x - " + f1(G.faceX) + "))) * (1.0 - max(aW.z, aV.y));",
+    // peso da un piede all'altro: ginocchio della gamba libera verso l'interno, fianco di quella gamba che scende
+    "  float legR = smoothstep(" + f1(L.split - 12) + ", " + f1(L.split + 12) + ", p.x);",
+    "  float sel = mix(1.0 - legR, legR, step(0.0, uBody.y));",
+    "  float kb = p.y < " + f1(L.knee) + " ? smoothstep(" + f1(L.top) + ", " + f1(L.knee) + ", p.y) : 1.0 - smoothstep(" + f1(L.knee) + ", " + f1(L.feet) + ", p.y);",
+    "  float legOnly = 1.0 - max(aV.x, max(aW.z, aV.y));",
+    "  q.x -= uBody.y * kb * sel * legOnly;",
+    "  float selW = mix(1.0 - smoothstep(" + f1(L.split - 70) + ", " + f1(L.split + 70) + ", p.x), smoothstep(" + f1(L.split - 70) + ", " + f1(L.split + 70) + ", p.x), step(0.0, uBody.y));",
+    "  float pd = smoothstep(690.0, 860.0, p.y) * (1.0 - smoothstep(860.0, " + f1(L.feet) + ", p.y));",
+    "  q.y += uBody.z * pd * selW * (1.0 - max(aW.z, aV.y));",
+    // i fianchi si spostano sopra il piede d'appoggio: i piedi restano fermi e le gambe restano dritte
+    "  float hw = max(clamp((" + f1(L.feet) + " - p.y) / " + f1(L.feet - L.hips) + ", 0.0, 1.0), aV.x);",
+    "  q.x += uBody.x * hw;",
+    "  q = mix(q, rot(q, " + v2(G.hips) + " + vec2(uBody.x, 0.0), uLean), aV.x);"
+    ] : [
+    "  q = mix(q, rot(q, " + v2(G.hips) + ", uLean), aV.x);"
+    ];
+    return [
     "attribute vec2 aP;",
     "attribute vec3 aW;",        // pesi: testa, punte dei capelli, avambraccio alzato (diamante)
     "attribute vec2 aV;",        // pesi: busto, avambraccio con la lente
@@ -140,6 +175,12 @@
     "uniform float uArm;",       // rotazione dell'avambraccio col diamante sul gomito (rad)
     "uniform float uLoupe;",     // rotazione della mano con la lente sul polso (rad)
     "uniform float uLean;",      // busto che si piega di lato sui fianchi (rad)
+    ].concat(X3 ? [
+    "attribute vec3 aX;",        // pesi: avambraccio «arm», avambraccio «loupe», spalle
+    "uniform vec2 uFore;",       // avambracci sui gomiti (rad)
+    "uniform vec2 uShrug;",      // spalle su (px): a sinistra, a destra nell'immagine
+    "uniform vec4 uBody;"        // fianchi di lato (px), ginocchio libero (px, il segno dice la gamba), fianco che scende (px), torsione (px)
+    ] : []).concat([
     "varying vec2 vUv; varying vec2 vE; varying vec2 vM; varying vec2 vP;",
     "vec2 rot(vec2 p, vec2 c, float a){ float s = sin(a), k = cos(a); p -= c; return c + vec2(k*p.x - s*p.y, s*p.x + k*p.y); }",
     "void main(){",
@@ -153,9 +194,7 @@
     "  vec2 hp = rot(p, nk, uHead.x) + uHead.yz;",
     "  hp.y += uHead.w * clamp((nk.y - p.y) / nk.y, 0.0, 1.0);",
     "  vec2 q = mix(p, hp, aW.x);",
-    // l'avambraccio con la mano e il diamante gira appena sul gomito
-    "  q += (rot(p, " + v2(G.elbow) + ", uArm) - p) * aW.z;",
-    "  q += (rot(p, " + v2(G.lwrist) + ", uLoupe) - p) * aV.y;",
+    ]).concat(ARMS).concat([
     // respiro: si alza il busto, il petto si allarga appena (solo il torso: le braccia restano intere)
     "  q.y -= 2.6 * uBreath * (1.0 - smoothstep(" + f1(G.breath[0]) + ", " + f1(G.breath[1]) + ", p.y));",
     "  float chest = smoothstep(" + f1(G.chest[0]) + ", " + f1(G.chest[1]) + ", p.y) * (1.0 - smoothstep(" + f1(G.chest[2]) + ", " + f1(G.chest[3]) + ", p.y));",
@@ -164,12 +203,12 @@
     // punte dei capelli
     "  q.x += mix(uHair.x, uHair.y, step(" + f1(G.faceX) + ", p.x)) * aW.y;",
     // il busto si piega sui fianchi; poi tutto il corpo oscilla sui piedi (spostamento del peso)
-    "  q = mix(q, rot(q, " + v2(G.hips) + ", uLean), aV.x);",
+    ]).concat(BODY).concat([
     "  q = rot(q, " + v2(G.sway) + ", uSway);",
     "  vec2 n = (q - uView.xy) / uView.zw;",
     "  gl_Position = vec4(n.x * 2.0 - 1.0, 1.0 - n.y * 2.0, 0.0, 1.0);",
     "}"
-  ].join("\n"); }
+  ]).join("\n"); }
   var FS_BODY = [
     "uniform sampler2D uBase; uniform sampler2D uFx;",
     "uniform vec4 uEyeA;",       // atlante: origine e misura del riquadro occhi (uv)
@@ -202,16 +241,17 @@
     gl.attachShader(pr, sh(gl.VERTEX_SHADER, "precision highp float;\n" + vertexShader())); gl.attachShader(pr, sh(gl.FRAGMENT_SHADER, FS));
     gl.linkProgram(pr); if (!gl.getProgramParameter(pr, gl.LINK_STATUS)) throw new Error("link");
     gl.useProgram(pr);
-    var U = {}; ["uView", "uCrop", "uEye", "uMouth", "uBreath", "uHead", "uSway", "uHair", "uArm", "uLoupe", "uLean", "uBase", "uFx", "uEyeA", "uMouthA", "uBlink", "uMouthOn", "uGlint"].forEach(function (n) { U[n] = gl.getUniformLocation(pr, n); });
+    var U = {}; ["uView", "uCrop", "uEye", "uMouth", "uBreath", "uHead", "uSway", "uHair", "uArm", "uLoupe", "uLean", "uBase", "uFx", "uEyeA", "uMouthA", "uBlink", "uMouthOn", "uGlint", "uFore", "uShrug", "uBody"].forEach(function (n) { U[n] = gl.getUniformLocation(pr, n); });
     // griglia sulla texture di base, con i pesi di ogni nodo. Mappa: un pixel per nodo, due metà affiancate;
     // a sinistra rosso testa, verde punte dei capelli, blu braccio del diamante; a destra rosso busto, verde braccio della lente
     var cols = G.grid[0], rows = G.grid[1], x0 = G.crop[0], y0 = G.crop[1], cw = G.crop[2], ch = G.crop[3];
-    var nv = (cols + 1) * (rows + 1), v = new Float32Array(nv * 2), wt = new Float32Array(nv * 3), wt2 = new Float32Array(nv * 2), k = 0, i, j;
+    var TL = G.tiles || 2, nv = (cols + 1) * (rows + 1), v = new Float32Array(nv * 2), wt = new Float32Array(nv * 3), wt2 = new Float32Array(nv * 2), wt3 = new Float32Array(nv * 3), k = 0, i, j;
     for (j = 0; j <= rows; j++) for (i = 0; i <= cols; i++) { v[k++] = x0 + cw * i / cols; v[k++] = y0 + ch * j / rows; }
     if (wpx) for (j = 0; j <= rows; j++) for (i = 0; i <= cols; i++) {
-      k = j * (cols + 1) + i; var a1 = (j * (cols + 1) * 2 + i) * 4, a2 = a1 + (cols + 1) * 4;
+      k = j * (cols + 1) + i; var a1 = (j * (cols + 1) * TL + i) * 4, a2 = a1 + (cols + 1) * 4, a3 = a2 + (cols + 1) * 4;
       wt[k * 3] = wpx[a1] / 255; wt[k * 3 + 1] = wpx[a1 + 1] / 255; wt[k * 3 + 2] = wpx[a1 + 2] / 255;
       wt2[k * 2] = wpx[a2] / 255; wt2[k * 2 + 1] = wpx[a2 + 1] / 255;
+      if (TL >= 3) { wt3[k * 3] = wpx[a3] / 255; wt3[k * 3 + 1] = wpx[a3 + 1] / 255; wt3[k * 3 + 2] = wpx[a3 + 2] / 255; }
     }
     var idx = new Uint16Array(cols * rows * 6); k = 0;
     for (j = 0; j < rows; j++) for (i = 0; i < cols; i++) { var a = j * (cols + 1) + i, b = a + 1, c = a + cols + 1, d = c + 1; idx[k++] = a; idx[k++] = c; idx[k++] = b; idx[k++] = b; idx[k++] = c; idx[k++] = d; }
@@ -222,6 +262,8 @@
     var lw = gl.getAttribLocation(pr, "aW"); gl.enableVertexAttribArray(lw); gl.vertexAttribPointer(lw, 3, gl.FLOAT, false, 0, 0);
     var wb2 = gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER, wb2); gl.bufferData(gl.ARRAY_BUFFER, wt2, gl.STATIC_DRAW);
     var lv = gl.getAttribLocation(pr, "aV"); gl.enableVertexAttribArray(lv); gl.vertexAttribPointer(lv, 2, gl.FLOAT, false, 0, 0);
+    if (TL >= 3) { var wb3 = gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER, wb3); gl.bufferData(gl.ARRAY_BUFFER, wt3, gl.STATIC_DRAW);
+      var lx = gl.getAttribLocation(pr, "aX"); if (lx >= 0) { gl.enableVertexAttribArray(lx); gl.vertexAttribPointer(lx, 3, gl.FLOAT, false, 0, 0); } }
     gl.enable(gl.BLEND); gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
     gl.uniform4f(U.uCrop, G.crop[0], G.crop[1], G.crop[2], G.crop[3]);
     gl.uniform4f(U.uEye, G.eye[0], G.eye[1], G.eye[2], G.eye[3]);
@@ -252,6 +294,7 @@
         gl.uniform4f(U.uView, V.x, V.y, V.w, V.h);
         gl.uniform1f(U.uBreath, st.breath); gl.uniform4f(U.uHead, st.roll, st.dx, st.dy, st.nod);
         gl.uniform1f(U.uSway, st.sway); gl.uniform2f(U.uHair, st.hairL, st.hairR); gl.uniform1f(U.uArm, st.arm); gl.uniform1f(U.uLoupe, st.loupe); gl.uniform1f(U.uLean, st.lean);
+        if (U.uFore) { gl.uniform2f(U.uFore, st.foreR, st.foreL); gl.uniform2f(U.uShrug, st.shrugL, st.shrugR); gl.uniform4f(U.uBody, st.hip, st.knee, st.drop, st.twist); }
         gl.uniform4f(U.uGlint, st.gx, st.gy, st.glint, st.grot);
         gl.uniform1f(U.uBlink, st.blink);
         var m = st.mouth | 0;
@@ -352,7 +395,7 @@
     el.cv.addEventListener("webglcontextlost", function (e) { e.preventDefault(); eng = null; el.cv.style.display = "none"; el.img.style.visibility = ""; });
   }
   function weights(im) {
-    var c = document.createElement("canvas"); c.width = (G.grid[0] + 1) * 2; c.height = G.grid[1] + 1;
+    var c = document.createElement("canvas"); c.width = (G.grid[0] + 1) * (G.tiles || 2); c.height = G.grid[1] + 1;
     var x = c.getContext("2d"); x.drawImage(im, 0, 0);
     return x.getImageData(0, 0, c.width, c.height).data;
   }
@@ -407,7 +450,8 @@
   }
 
   // ---------------------------------------------------------------- animazione
-  var ST = { breath: 0, roll: 0, dx: 0, dy: 0, nod: 0, sway: 0, hairL: 0, hairR: 0, arm: 0, loupe: 0, lean: 0, blink: 0, mouth: 0, gx: 0, gy: 0, glint: 0, grot: 0 };
+  var ST = { breath: 0, roll: 0, dx: 0, dy: 0, nod: 0, sway: 0, hairL: 0, hairR: 0, arm: 0, loupe: 0, lean: 0, blink: 0, mouth: 0, gx: 0, gy: 0, glint: 0, grot: 0,
+    foreR: 0, foreL: 0, shrugL: 0, shrugR: 0, hip: 0, knee: 0, drop: 0, twist: 0 };
   function enterDir() { return document.documentElement.dir === "rtl" ? 1 : -1; }
   function animate(dt, t) {
     if (!V) return;
@@ -479,6 +523,7 @@
     ST.arm = A.armFix != null ? A.armFix : clamp(arm, ar[0], ar[1]);
     ST.loupe = clamp(loupe, lr[0], lr[1]); ST.lean = clamp(lean, -0.03, 0.03);
     ST.gx = A.glintP[0]; ST.gy = A.glintP[1]; ST.glint = glint; ST.grot = grot;
+    if (FIG === "libera") freeMotion(dt, tt);
   }
   function drawFrame() {
     if (!eng || !V) return;
@@ -486,18 +531,135 @@
     if (el.img.style.visibility !== "hidden") el.img.style.visibility = "hidden";
   }
   function side() { return document.documentElement.dir === "rtl" ? -1 : 1; }   // verso il fumetto
-  // figura a mani libere: il braccio verso il fumetto è quello a destra nell'immagine («arm», apre con angoli negativi);
-  // con l'arabo il fumetto sta a sinistra e lavora l'altro («loupe», apre con angoli positivi)
-  function reach(t, amount, ms) {
-    if (side() > 0) { A.armTarget = -amount; A.armUntil = t + ms; } else { A.loupeTarget = amount; A.loupeUntil = t + ms; }
+  // ---------------------------------------------------------------- movimento della figura a mani libere
+  // Tre strati, sommati e poi passati da filtri a molla smorzata (niente scatti, niente ritorni meccanici):
+  //  1. la postura: il peso su un piede o sull'altro (fianchi di lato sopra il piede d'appoggio, ginocchio dell'altra
+  //     gamba che cede verso l'interno, fianco libero che scende), busto e spalle che compensano, testa che resta
+  //     dritta, braccia a riposo ogni volta un po' diverse. Cambia ogni 3–6 secondi, con transizioni lente;
+  //  2. i gesti: curve con attacco, tenuta e rilascio, ogni volta con ampiezze e tempi un po' diversi. Le spalle aprono
+  //     le braccia, gli avambracci si piegano sui gomiti e arrivano un attimo dopo (le molle degli avambracci sono più
+  //     lente: è il movimento che segue);
+  //  3. il movimento secondario: le mani che seguono in ritardo i fianchi, micro-movimenti continui non periodici.
+  // I gesti sulle parole importanti (accenti) arrivano da speechBeat: dal testo del fumetto, dalla voce con «Ascolta»
+  // e, nei video, dagli attacchi della registrazione (gira-video.mjs).
+  var FM = { on: false, f: {}, pose: {}, from: {}, to: {}, pt0: 0, pdur: 1.5, next: 1.0, side: 1, gest: [], lastBeat: -9, seed: [] };
+  var FM_KEYS = ["armR", "armL", "foreR", "foreL", "shrugL", "shrugR", "hip", "knee", "drop", "twist", "lean", "roll"];
+  // pulsazione e smorzamento delle molle: gli avambracci più lenti e più elastici delle spalle; il peso lento e pieno
+  var FM_SPRING = { armR: [9, 0.78], armL: [9, 0.78], foreR: [7, 0.68], foreL: [7, 0.68], shrugL: [10, 0.85], shrugR: [10, 0.85],
+    hip: [4.2, 1], knee: [4.6, 1], drop: [4.6, 1], twist: [5, 0.92], lean: [5.5, 0.9], roll: [6, 0.9] };
+  // ampiezza dei micro-movimenti continui
+  var FM_NOISE = { armR: 0.006, armL: 0.006, foreR: 0.014, foreL: 0.014, shrugL: 0.35, shrugR: 0.35, hip: 0.5, knee: 0.25, drop: 0, twist: 0.6, lean: 0.0012, roll: 0.003 };
+  function rnd(a, b) { return a + (b - a) * Math.random(); }
+  function ease(u) { u = clamp(u, 0, 1); return u * u * u * (u * (u * 6 - 15) + 10); }   // smootherstep
+  function fmInit() {
+    FM.on = true;
+    FM_KEYS.forEach(function (k, i) {
+      FM.f[k] = { x: 0, v: 0 }; FM.pose[k] = 0; FM.from[k] = 0; FM.to[k] = 0;
+      FM.seed[i] = [rnd(0, 6.3), rnd(0, 6.3), rnd(0, 6.3), rnd(0.8, 1.25), rnd(0.8, 1.25)];
+    });
+  }
+  // rumore liscio e non periodico (tre sinusoidi con frequenze non multiple, fasi a caso)
+  function sn(t, i) { var q = FM.seed[i]; return (Math.sin(t * 0.37 * q[3] + q[0]) + 0.6 * Math.sin(t * 0.91 * q[4] + q[1]) + 0.35 * Math.sin(t * 1.73 + q[2])) / 1.95; }
+  function newPose(tt) {
+    // il peso passa quasi sempre all'altro piede; ogni tanto resta in mezzo
+    var s0 = Math.random() < 0.2 ? 0 : (FM.side = -FM.side);
+    var to = {
+      hip: s0 * rnd(5, 10),
+      knee: -s0 * rnd(1.6, 3.6),            // il segno dice la gamba libera: quella senza peso
+      drop: s0 ? rnd(1.1, 2.4) : 0,
+      lean: s0 * rnd(0.004, 0.008),        // la spalla dal lato del peso scende (contrapposto)
+      roll: -s0 * rnd(0.002, 0.006) + rnd(-0.006, 0.006),   // la testa compensa e resta quasi dritta
+      twist: rnd(-2.6, 2.6),
+      shrugL: rnd(-0.8, 0.8), shrugR: rnd(-0.8, 0.8),
+      armR: -rnd(0.004, 0.024), armL: rnd(0.004, 0.024),   // braccia a riposo, mai due volte uguali
+      foreR: -rnd(0.0, 0.07), foreL: rnd(0.0, 0.07)
+    };
+    FM_KEYS.forEach(function (k) { FM.from[k] = FM.pose[k]; FM.to[k] = to[k] || 0; });
+    FM.pt0 = tt; FM.pdur = rnd(1.2, 2.0); FM.next = tt + FM.pdur + rnd(1.6, 4.2);
+  }
+  // un gesto: offset per canale, inviluppo attacco–tenuta–rilascio, eventuale oscillazione (il saluto)
+  function addGesture(off, a, h, r, wave) {
+    var k = rnd(0.86, 1.14), d = rnd(0.88, 1.15), o = {};
+    for (var key in off) o[key] = off[key] * k;
+    FM.gest.push({ t0: A.t, a: a * d, h: h * d, r: r * d, off: o, wave: wave || null });
+  }
+  function envelope(g, tt) {
+    var u = tt - g.t0;
+    if (u < 0) return 0;
+    if (u < g.a) return ease(u / g.a);
+    if (u < g.a + g.h) return 1;
+    if (u < g.a + g.h + g.r) return 1 - ease((u - g.a - g.h) / g.r);
+    return -1;                                       // finito
+  }
+  // il braccio dal lato del fumetto (o l'altro): offset di spalla e avambraccio verso l'esterno
+  function armOff(d, sh, fo, o) {
+    o = o || {};
+    if (d > 0) { o.armR = (o.armR || 0) - sh; o.foreR = (o.foreR || 0) - fo; o.shrugR = (o.shrugR || 0) + 0.8; }
+    else { o.armL = (o.armL || 0) + sh; o.foreL = (o.foreL || 0) + fo; o.shrugL = (o.shrugL || 0) + 0.8; }
+    return o;
+  }
+  // accento del parlato: una mano che sale e torna, come quando si sottolinea una parola
+  function speechBeat(k, force) {
+    if (FIG !== "libera" || !A.entered) return;
+    if (!FM.on) fmInit();
+    k = clamp(k == null ? 0.6 : k, 0.2, 1);
+    if (!force && A.t - FM.lastBeat < rnd(0.85, 1.5)) return;   // una parola sottolineata ogni uno o due secondi, non di più
+    FM.lastBeat = A.t;
+    var d = Math.random() < 0.7 ? side() : -side();
+    var o = armOff(d, 0.006 + 0.012 * k, 0.035 + 0.065 * k);
+    if (k > 0.78 && Math.random() < 0.6) { o = armOff(-d, 0.004 + 0.009 * k, 0.03 + 0.05 * k, o); o.twist = 0; A.nods.push({ t0: now() + 60, amp: 2.2, dur: 420 }); }
+    else o.twist = d * rnd(0.6, 1.4);
+    addGesture(o, rnd(0.11, 0.16), rnd(0.03, 0.09), rnd(0.34, 0.5));
   }
   function gestureFree(name, t) {
+    if (!FM.on) fmInit();
+    var d = side();
     if (name === "show") name = "open"; else if (name === "loupe") name = "present";
-    if (name === "hello") { A.rollTarget = 0.04 * side(); A.rollUntil = t + 900; A.nods.push({ t0: t + 120, amp: 5, dur: 650 }); reach(t, 0.12, 1000); A.leanTarget = 0.008 * side(); A.leanUntil = t + 900; }
-    else if (name === "open") { A.armTarget = -0.085; A.armUntil = t + 1300; A.loupeTarget = 0.085; A.loupeUntil = t + 1300; A.nods.push({ t0: t + 200, amp: 3, dur: 600 }); }
-    else if (name === "present") { reach(t, 0.10, 1500); A.leanTarget = 0.012 * side(); A.leanUntil = t + 1500; A.rollTarget = 0.02 * side(); A.rollUntil = t + 1300; }
-    else return false;
+    if (name === "hello") {
+      // saluta: la mano verso il fumetto si alza e fa due cenni
+      addGesture(armOff(d, 0.10, 0.19), 0.42, 1.05, 0.7, { key: d > 0 ? "foreR" : "foreL", amp: 0.045 * (d > 0 ? -1 : 1), hz: rnd(2.0, 2.5) });
+      A.rollTarget = 0.04 * d; A.rollUntil = t + 900; A.nods.push({ t0: t + 120, amp: 5, dur: 650 });
+    } else if (name === "open") {
+      // apre le braccia, palmi verso chi guarda: «eccoci»
+      addGesture({ armR: -0.085, armL: 0.085, foreR: -0.11, foreL: 0.11, shrugL: 1.3, shrugR: 1.3, twist: 0 }, 0.45, 0.8, 0.8);
+      A.nods.push({ t0: t + 220, amp: 3, dur: 600 });
+    } else if (name === "present") {
+      // indica il fumetto con la mano aperta e si gira appena verso di lui
+      addGesture(armOff(d, 0.075, 0.16, { twist: 2.2 * d, lean: 0.005 * d }), 0.5, 1.1, 0.8);
+      A.rollTarget = 0.022 * d; A.rollUntil = t + 1300;
+    } else if (name === "beat") {
+      speechBeat(0.45, true); A.nods.push({ t0: t, amp: 1.8, dur: 380 });
+    } else return false;
     return true;
+  }
+  function freeMotion(dt, tt) {
+    if (!FM.on) fmInit();
+    if (tt >= FM.next && !A.entering) newPose(tt);
+    var u = ease((tt - FM.pt0) / FM.pdur), T = {}, i, k;
+    for (i = 0; i < FM_KEYS.length; i++) { k = FM_KEYS[i]; FM.pose[k] = FM.from[k] + (FM.to[k] - FM.from[k]) * u; T[k] = FM.pose[k] + FM_NOISE[k] * sn(tt, i); }
+    // gesti
+    FM.gest = FM.gest.filter(function (g) {
+      var e = envelope(g, tt); if (e < 0) return false;
+      for (var key in g.off) T[key] += g.off[key] * e;
+      if (g.wave) { var w = tt - g.t0 - g.a * 0.7; if (w > 0) T[g.wave.key] += g.wave.amp * Math.sin(2 * Math.PI * g.wave.hz * w) * e; }
+      return true;
+    });
+    // mentre parla, il corpo accompagna appena (più vivo, senza diventare un ritmo)
+    if (A.talk || P.speaking || A.mouthFix != null) { T.twist += 0.8 * sn(tt * 2.2, 9); T.foreR += 0.012 * sn(tt * 2.6, 2); T.foreL += 0.012 * sn(tt * 2.4, 3); }
+    // le mani seguono in ritardo i fianchi (pendolo)
+    var hv = FM.f.hip.v;
+    T.armR += 0.0016 * hv; T.armL += 0.0016 * hv; T.foreR += 0.003 * hv; T.foreL += 0.003 * hv;
+    for (i = 0; i < FM_KEYS.length; i++) {
+      k = FM_KEYS[i]; var f = FM.f[k], sp = FM_SPRING[k], w = sp[0];
+      f.v += (w * w * (T[k] - f.x) - 2 * sp[1] * w * f.v) * dt; f.x += f.v * dt;
+    }
+    var ar = G.armRange || [-0.17, 0.04], lr = G.loupeRange || [-0.04, 0.17], fr = G.foreRange || [[-0.27, 0.05], [-0.05, 0.27]];
+    ST.arm = clamp(FM.f.armR.x, ar[0], ar[1]); ST.loupe = clamp(FM.f.armL.x, lr[0], lr[1]);
+    ST.foreR = clamp(FM.f.foreR.x, fr[0][0], fr[0][1]); ST.foreL = clamp(FM.f.foreL.x, fr[1][0], fr[1][1]);
+    ST.shrugL = clamp(FM.f.shrugL.x, -2.5, 4); ST.shrugR = clamp(FM.f.shrugR.x, -2.5, 4);
+    ST.hip = clamp(FM.f.hip.x, -11, 11); ST.knee = clamp(FM.f.knee.x, -5, 5); ST.drop = clamp(FM.f.drop.x, 0, 3.5); ST.twist = clamp(FM.f.twist.x, -5, 5);
+    ST.lean = clamp(ST.lean + FM.f.lean.x, -0.035, 0.035); ST.roll += FM.f.roll.x;
+    ST.sway *= 0.3;                                   // il peso lo spostano i fianchi, non il corpo intero come un pendolo
   }
   function gesture(name) {
     var t = now();
@@ -513,6 +675,16 @@
   }
 
   // ---------------------------------------------------------------- racconto
+  // quanto pesa una parola nel discorso: numeri e nomi (maiuscola) sì, le parole lunghe un po', l'inizio della frase
+  function emph(w, i) {
+    var c = w.replace(/[^0-9A-Za-zÀ-ÿЀ-ӿ؀-ۿ]/g, "");
+    if (!c) return 0;
+    if (/[0-9٠-٩]/.test(c)) return 1;
+    if (i === 0) return 0.5;
+    if (/^[A-ZÀ-ÞЀ-Я]/.test(c)) return 0.8;
+    if (c.length >= 8) return 0.55;
+    return 0;
+  }
   function renderStep() {
     var S = steps()[P.i], n = nSteps(), num = P.i >= 1 && P.i <= n;
     el.eb.textContent = T.ui.eyebrow + (num ? " · " + fmt(T.ui.stepOf, { n: P.i, t: n }) : "");
@@ -521,7 +693,7 @@
     for (var k = 0; k < words.length; k++) {
       var w = words[k]; if (!w) continue;
       if (/^\s+$/.test(w)) { h += w; pos += w.length; continue; }
-      pos += w.length; P.words.push({ end: pos, p: /[.!?:;]$/.test(w) ? 2 : /,$/.test(w) ? 1 : 0 });
+      pos += w.length; P.words.push({ end: pos, p: /[.!?:;]$/.test(w) ? 2 : /,$/.test(w) ? 1 : 0, e: emph(w, P.words.length) });
       h += '<span class="h">' + esc(w) + '</span>';
     }
     el.s.innerHTML = h; P.spans = el.s.querySelectorAll("span"); P.shown = -1; P.chars = S.s.length;
@@ -555,7 +727,8 @@
     for (var k = P.shown + 1; k < n; k++) {
       P.spans[k].classList.remove("h");
       // il corpo accompagna le pause del discorso (anche senza voce)
-      if (A.entered && !P.voice && P.words[k].p === 2) gesture("beat");
+      if (A.entered && !P.voice && P.words[k].p === 2) gesture(FIG === "libera" ? "nod" : "beat");
+      if (FIG === "libera" && A.talk && P.words[k].e) speechBeat(P.words[k].e);
     }
     for (var k2 = n; k2 <= P.shown; k2++) P.spans[k2].classList.add("h");
     P.shown = n - 1;
@@ -639,6 +812,8 @@
     var rms = Math.sqrt(s / AU.buf.length);
     AU.peak = Math.max(rms, AU.peak * 0.995, 0.02);
     var v = rms / AU.peak, l = v > 0.66 ? 3 : v > 0.4 ? 2 : v > 0.15 ? 1 : 0;
+    AU.slow = AU.slow == null ? rms : AU.slow * 0.96 + rms * 0.04;
+    if (FIG === "libera" && rms > AU.slow * 2.0 && v > 0.45 && now() - (AU.lastOn || 0) > 900) { AU.lastOn = now(); speechBeat(clamp((rms / Math.max(AU.slow, 1e-4) - 1.8) / 2.5 + 0.4, 0.3, 1)); }
     var t = now(); if (l !== AU.lvl && t > AU.hold) { AU.lvl = l; AU.hold = t + 55; }
     return AU.lvl;
   }
@@ -766,6 +941,8 @@
   window.UQAvatar = {
     mount: mount,
     gesture: gesture,
+    // accento del parlato (figura a mani libere): una mano che sottolinea una parola, forza 0–1
+    beat: function (k) { speechBeat(k, true); },
     // per prove e integrazioni future: apertura della bocca 0–3 (null = torna automatica)
     mouth: function (lv) { A.mouthFix = lv == null ? null : lv; },
     // fa dire all'avatar una frase con un file audio: la bocca segue l'audio

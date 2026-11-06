@@ -6,7 +6,7 @@
 
 Elena, in versione illustrata, entra nella sezione «Trasmetti con noi» e spiega in sei passi come si entra in Uniqaia: account, candidatura, valutazione entro 24 ore, link di pagamento, palinsesto, diretta. Alla fine il pulsante «Crea il tuo account» porta al modulo.
 
-Stato al 4 novembre 2026: **in anteprima**, visibile solo con `uniqaia.com/join/?avatar=preview` (dopo il merge in main; per ora è sul ramo `avatar-elena`).
+Stato al 6 novembre 2026, sera: **pubblica**. Gemma si vede da tutti su uniqaia.com/join, nella versione a mani libere e in tutte e cinque le lingue (decisione di Elena; ramo `main`, commit `c02bed4`). Con `?figura=diamante` si prova l'altra versione; con `?avatar=off` la si nasconde per la sessione.
 **Parla** in silenzio: mentre il fumetto si riempie, la bocca dice il testo sillaba per sillaba. Il suono arriva con la registrazione di Elena (o una voce sintetica che lei avrà approvato): vedi «Dare la voce».
 **Si muove**: respira, sposta il peso, piega il busto, muove testa e capelli, alza il diamante e la lente.
 
@@ -14,8 +14,10 @@ Stato al 4 novembre 2026: **in anteprima**, visibile solo con `uniqaia.com/join/
 
 | Figura | Cosa ha in mano | Dove si sceglie |
 | --- | --- | --- |
-| `diamante` (predefinita, quella di /join) | lente 10x e diamante | niente da fare |
-| `libera` | niente: tutte e due le mani libere | `data-figura="libera"` sul contenitore, `UQAvatar.mount(slot, lingua, { figura: "libera" })`, oppure `?figura=libera` per le prove |
+| `diamante` (predefinita del motore) | lente 10x e diamante | niente da fare; su /join, per le prove, `?figura=diamante` |
+| `libera` (quella di /join, dal 6/11/2026) | niente: tutte e due le mani libere | `data-figura="libera"` sul contenitore (così è su /join), `UQAvatar.mount(slot, lingua, { figura: "libera" })`, oppure `?figura=libera` per le prove |
+
+Per le prove `?figura=` vale anche sopra `data-figura`.
 
 La figura `libera` è la prima illustrazione (`elena-volto.png`, il volto che Elena preferisce) senza la pochette: `togli-pochette.py` la toglie con un ritocco classico, senza IA generativa, e scrive `elena-mani-libere.png`. Serve al Marketing Manager per le attività sulla piattaforma e al Social Media Manager per Reel e TikTok.
 
@@ -95,9 +97,9 @@ la testa (con la parte alta dei capelli), le punte dei capelli, l'avambraccio co
 - Arabo: la nicchia passa a destra, frecce e punti si specchiano, si sporge verso il fumetto a sinistra; la figura non si specchia.
 - Passa da solo al passo successivo; si mette in pausa con il pulsante o tenendo il mouse sul fumetto. Il lettore di schermo legge ogni passo intero.
 
-## Accendere per tutti
+## Per tutti, in anteprima o spenta
 
-In `show/_src/avatar.js`: `var MODE = "anteprima";` → `"pubblico"`. Poi `node show/_src/build.mjs`, commit e push. `"spento"` lo toglie del tutto. Con `?avatar=off` lo si nasconde per la sessione. Serve l'OK di Elena.
+In `show/_src/avatar.js`, `var MODE`: dal 6 novembre 2026 è `"pubblico"` (per tutti). `"anteprima"` la mostra solo con `?avatar=preview`; `"spento"` la toglie del tutto. Dopo ogni cambio: `node show/_src/build.mjs`, commit e push. Con `?avatar=off` la si nasconde per la sessione. Ogni cambio di stato lo decide Elena.
 
 ## Dare la voce
 

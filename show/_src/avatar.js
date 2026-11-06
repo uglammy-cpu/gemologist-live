@@ -1,4 +1,7 @@
-/* Uniqaia · Avatar di Elena per la pagina /join (4 novembre 2026)
+/* Uniqaia · Gemma, l'avatar di Elena, per la pagina /join (4 novembre 2026; Gemma dal 6 novembre)
+ *
+ * Gemma è la jewelry expert della piattaforma: mai presentata come gemmologa GIA (decisione legale di Elena).
+ * Contratto del rig: ops/avatar/RIG.md.
  *
  * Elena, in versione illustrata, entra nella sezione e spiega in sei passi come si entra in Uniqaia:
  * account, candidatura, valutazione entro 24 ore, link di pagamento, palinsesto, diretta.
@@ -26,7 +29,8 @@
  *    avatar-geometria-libera.json (ops/avatar/prepara-livelli-libera.py). Le braccia girano sulle spalle.
  * Si sceglie con data-figura="libera" sul contenitore, con mount(slot, lingua, { figura: "libera" }) o, per le prove,
  * con ?figura=libera. Gesti: hello, lean, nod, tilt, beat per tutte e due; show e loupe per la figura col diamante;
- * open (apre le braccia) e present (indica il fumetto) per quella a mani libere. Sulla figura a mani libere show
+ * open (apre le braccia), present (indica il fumetto), listen (ascolta) e think (ci pensa) per quella a mani libere.
+ * Ripetibile: ?seme= (o UQAvatar.seed) e, per i video, window.UQA_TEMPO_VIRTUALE (orologio virtuale da zero). Sulla figura a mani libere show
  * diventa open e loupe diventa present, così il racconto di /join funziona con tutte e due.
  */
 (function () {
@@ -63,7 +67,11 @@
 
   var RM = false; try { RM = matchMedia("(prefers-reduced-motion: reduce)").matches; } catch (e) {}
   var esc = function (s) { return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); };
-  var VT = { on: false, t: 0 };        // tempo virtuale (solo per girare i video)
+  var VT = { on: !!window.UQA_TEMPO_VIRTUALE, t: 0 };   // tempo virtuale (per girare i video): con UQA_TEMPO_VIRTUALE parte da 0 e avanza solo con _step
+  // caso con seme (mulberry32): con lo stesso seme la stessa scena esce identica, fotogramma per fotogramma
+  var RS = (function () { var q = parseInt(QS.get("seme") || "", 10); return isFinite(q) ? q : (Math.random() * 2147483647) | 0; })();
+  var SEED0 = RS;
+  function R() { RS = (RS + 0x6D2B79F5) | 0; var t = Math.imul(RS ^ (RS >>> 15), 1 | RS); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }
   var now = function () { return VT.on ? VT.t : (window.performance && performance.now) ? performance.now() : Date.now(); };
   var clamp = function (x, a, b) { return x < a ? a : x > b ? b : x; };
 
@@ -436,7 +444,7 @@
 
   // ---------------------------------------------------------------- ciclo
   function loop() {
-    var want = ready && P.started && P.visible && !document.hidden;
+    var want = ready && P.started && P.visible && !document.hidden && !VT.on;   // a tempo virtuale il ciclo lo guida _step
     if (want && !A.run) { A.run = true; A.last = now(); A.raf = requestAnimationFrame(tick); }
     else if (!want && A.run) { A.run = false; cancelAnimationFrame(A.raf); }
   }
@@ -492,7 +500,7 @@
     if (A.blinkT0 >= 0) {
       var b = (tt - A.blinkT0) * 1000;
       blink = b < 65 ? b / 65 : b < 115 ? 1 : b < 215 ? 1 - (b - 115) / 100 : 0;
-      if (b >= 215) { A.blinkT0 = -1; A.dbl = !A.dbl && Math.random() < 0.18; A.nextBlink = tt + (A.dbl ? 0.16 : 2.4 + Math.random() * 3.4); }
+      if (b >= 215) { A.blinkT0 = -1; A.dbl = !A.dbl && R() < 0.18; A.nextBlink = tt + (A.dbl ? 0.16 : 2.4 + R() * 3.4); }
     }
     // avambraccio: un'oscillazione appena percettibile, più i gesti (molla)
     if (A.armUntil && t > A.armUntil) { A.armTarget = 0; A.armUntil = 0; }
@@ -505,11 +513,11 @@
     A.leanV += (18 * (A.leanTarget - A.lean) - 6.5 * A.leanV) * dt; A.lean += A.leanV * dt;
     var lean = A.lean - 0.9 * sway + 0.003 * Math.sin(tt * 0.83 + 1.1) + (A.talk ? 0.0025 * Math.sin(tt * 2.1) : 0);
     // riflesso sul diamante: ogni tanto, su una faccetta diversa
-    if (A.glintT0 < 0 && tt >= A.nextGlint && !A.entering && G.glints && G.glints.length) { A.glintT0 = tt; A.glintP = G.glints[(Math.random() * G.glints.length) | 0]; }
+    if (A.glintT0 < 0 && tt >= A.nextGlint && !A.entering && G.glints && G.glints.length) { A.glintT0 = tt; A.glintP = G.glints[(R() * G.glints.length) | 0]; }
     var glint = 0, grot = 0;
     if (A.glintT0 >= 0) {
       var gu = (tt - A.glintT0) / A.glintDur;
-      if (gu >= 1) { A.glintT0 = -1; A.nextGlint = tt + 3.2 + Math.random() * 3.6; }
+      if (gu >= 1) { A.glintT0 = -1; A.nextGlint = tt + 3.2 + R() * 3.6; }
       else { glint = Math.pow(Math.sin(Math.PI * gu), 2) * 0.95; grot = 0.25 + 0.5 * gu; }
     }
     // bocca
@@ -549,7 +557,7 @@
     hip: [4.2, 1], knee: [4.6, 1], drop: [4.6, 1], twist: [5, 0.92], lean: [5.5, 0.9], roll: [6, 0.9] };
   // ampiezza dei micro-movimenti continui
   var FM_NOISE = { armR: 0.006, armL: 0.006, foreR: 0.014, foreL: 0.014, shrugL: 0.35, shrugR: 0.35, hip: 0.5, knee: 0.25, drop: 0, twist: 0.6, lean: 0.0012, roll: 0.003 };
-  function rnd(a, b) { return a + (b - a) * Math.random(); }
+  function rnd(a, b) { return a + (b - a) * R(); }
   function ease(u) { u = clamp(u, 0, 1); return u * u * u * (u * (u * 6 - 15) + 10); }   // smootherstep
   function fmInit() {
     FM.on = true;
@@ -562,7 +570,7 @@
   function sn(t, i) { var q = FM.seed[i]; return (Math.sin(t * 0.37 * q[3] + q[0]) + 0.6 * Math.sin(t * 0.91 * q[4] + q[1]) + 0.35 * Math.sin(t * 1.73 + q[2])) / 1.95; }
   function newPose(tt) {
     // il peso passa quasi sempre all'altro piede; ogni tanto resta in mezzo
-    var s0 = Math.random() < 0.2 ? 0 : (FM.side = -FM.side);
+    var s0 = R() < 0.2 ? 0 : (FM.side = -FM.side);
     var to = {
       hip: s0 * rnd(5, 10),
       knee: -s0 * rnd(1.6, 3.6),            // il segno dice la gamba libera: quella senza peso
@@ -578,10 +586,17 @@
     FM.pt0 = tt; FM.pdur = rnd(1.2, 2.0); FM.next = tt + FM.pdur + rnd(1.6, 4.2);
   }
   // un gesto: offset per canale, inviluppo attacco–tenuta–rilascio, eventuale oscillazione (il saluto)
-  function addGesture(off, a, h, r, wave) {
+  function addGesture(off, a, h, r, wave, delay) {
     var k = rnd(0.86, 1.14), d = rnd(0.88, 1.15), o = {};
-    for (var key in off) o[key] = off[key] * k;
-    FM.gest.push({ t0: A.t, a: a * d, h: h * d, r: r * d, off: o, wave: wave || null });
+    for (var key in off) o[key] = key === "calm" ? off[key] : off[key] * k;
+    FM.gest.push({ t0: A.t + (delay || 0), a: a * d, h: h * d, r: r * d, off: o, wave: wave || null });
+  }
+  // anticipazione: prima del gesto un piccolo movimento contrario (le braccia si raccolgono appena), poi il gesto
+  function withAnticipation(off, a, h, r, wave) {
+    var pre = {};
+    for (var key in off) if (key !== "calm" && key !== "twist") pre[key] = -0.14 * off[key];
+    addGesture(pre, 0.12, 0.02, 0.22);
+    addGesture(off, a, h, r, wave, 0.1);
   }
   function envelope(g, tt) {
     var u = tt - g.t0;
@@ -605,9 +620,9 @@
     k = clamp(k == null ? 0.6 : k, 0.2, 1);
     if (!force && A.t - FM.lastBeat < rnd(0.85, 1.5)) return;   // una parola sottolineata ogni uno o due secondi, non di più
     FM.lastBeat = A.t;
-    var d = Math.random() < 0.7 ? side() : -side();
+    var d = R() < 0.7 ? side() : -side();
     var o = armOff(d, 0.006 + 0.012 * k, 0.035 + 0.065 * k);
-    if (k > 0.78 && Math.random() < 0.6) { o = armOff(-d, 0.004 + 0.009 * k, 0.03 + 0.05 * k, o); o.twist = 0; A.nods.push({ t0: now() + 60, amp: 2.2, dur: 420 }); }
+    if (k > 0.78 && R() < 0.6) { o = armOff(-d, 0.004 + 0.009 * k, 0.03 + 0.05 * k, o); o.twist = 0; A.nods.push({ t0: now() + 60, amp: 2.2, dur: 420 }); }
     else o.twist = d * rnd(0.6, 1.4);
     addGesture(o, rnd(0.11, 0.16), rnd(0.03, 0.09), rnd(0.34, 0.5));
   }
@@ -617,16 +632,25 @@
     if (name === "show") name = "open"; else if (name === "loupe") name = "present";
     if (name === "hello") {
       // saluta: la mano verso il fumetto si alza e fa due cenni
-      addGesture(armOff(d, 0.10, 0.19), 0.42, 1.05, 0.7, { key: d > 0 ? "foreR" : "foreL", amp: 0.045 * (d > 0 ? -1 : 1), hz: rnd(2.0, 2.5) });
+      withAnticipation(armOff(d, 0.10, 0.19), 0.42, 1.05, 0.7, { key: d > 0 ? "foreR" : "foreL", amp: 0.045 * (d > 0 ? -1 : 1), hz: rnd(2.0, 2.5) });
       A.rollTarget = 0.04 * d; A.rollUntil = t + 900; A.nods.push({ t0: t + 120, amp: 5, dur: 650 });
     } else if (name === "open") {
       // apre le braccia, palmi verso chi guarda: «eccoci»
-      addGesture({ armR: -0.085, armL: 0.085, foreR: -0.11, foreL: 0.11, shrugL: 1.3, shrugR: 1.3, twist: 0 }, 0.45, 0.8, 0.8);
+      withAnticipation({ armR: -0.085, armL: 0.085, foreR: -0.11, foreL: 0.11, shrugL: 1.3, shrugR: 1.3, twist: 0 }, 0.45, 0.8, 0.8);
       A.nods.push({ t0: t + 220, amp: 3, dur: 600 });
     } else if (name === "present") {
       // indica il fumetto con la mano aperta e si gira appena verso di lui
-      addGesture(armOff(d, 0.075, 0.16, { twist: 2.2 * d, lean: 0.005 * d }), 0.5, 1.1, 0.8);
+      withAnticipation(armOff(d, 0.075, 0.16, { twist: 2.2 * d, lean: 0.005 * d }), 0.5, 1.1, 0.8);
       A.rollTarget = 0.022 * d; A.rollUntil = t + 1300;
+    } else if (name === "listen") {
+      // ascolta: si sporge appena verso chi parla, testa inclinata, mani ferme; il corpo quasi immobile
+      addGesture({ lean: 0.007 * d, twist: 1.6 * d, shrugL: -0.5, shrugR: -0.5, calm: 0.7 }, 0.6, 2.2, 0.9);
+      A.rollTarget = 0.03 * d; A.rollUntil = t + 2600; A.nods.push({ t0: t + 900, amp: 2, dur: 500 });
+    } else if (name === "think") {
+      // ci pensa: testa dall'altra parte, una spalla che sale, il peso che arretra appena
+      var dd = -d;
+      addGesture(armOff(dd, 0.02, 0.06, { lean: 0.004 * dd, twist: -1.2 * d, calm: 0.5 }), 0.5, 1.6, 0.8);
+      A.rollTarget = 0.035 * dd; A.rollUntil = t + 2000;
     } else if (name === "beat") {
       speechBeat(0.45, true); A.nods.push({ t0: t, amp: 1.8, dur: 380 });
     } else return false;
@@ -634,13 +658,15 @@
   }
   function freeMotion(dt, tt) {
     if (!FM.on) fmInit();
-    if (tt >= FM.next && !A.entering) newPose(tt);
+    if (tt >= FM.next && !A.entering && !FM.gest.some(function (g) { return g.off.calm && envelope(g, tt) > 0; })) newPose(tt);
     var u = ease((tt - FM.pt0) / FM.pdur), T = {}, i, k;
-    for (i = 0; i < FM_KEYS.length; i++) { k = FM_KEYS[i]; FM.pose[k] = FM.from[k] + (FM.to[k] - FM.from[k]) * u; T[k] = FM.pose[k] + FM_NOISE[k] * sn(tt, i); }
+    var calm = 0;
+    FM.gest.forEach(function (g) { var e = envelope(g, tt); if (e > 0 && g.off.calm) calm = Math.max(calm, g.off.calm * e); });
+    for (i = 0; i < FM_KEYS.length; i++) { k = FM_KEYS[i]; FM.pose[k] = FM.from[k] + (FM.to[k] - FM.from[k]) * u; T[k] = FM.pose[k] + FM_NOISE[k] * (1 - calm) * sn(tt, i); }
     // gesti
     FM.gest = FM.gest.filter(function (g) {
       var e = envelope(g, tt); if (e < 0) return false;
-      for (var key in g.off) T[key] += g.off[key] * e;
+      for (var key in g.off) if (key !== "calm") T[key] += g.off[key] * e;
       if (g.wave) { var w = tt - g.t0 - g.a * 0.7; if (w > 0) T[g.wave.key] += g.wave.amp * Math.sin(2 * Math.PI * g.wave.hz * w) * e; }
       return true;
     });
@@ -660,6 +686,7 @@
     ST.hip = clamp(FM.f.hip.x, -11, 11); ST.knee = clamp(FM.f.knee.x, -5, 5); ST.drop = clamp(FM.f.drop.x, 0, 3.5); ST.twist = clamp(FM.f.twist.x, -5, 5);
     ST.lean = clamp(ST.lean + FM.f.lean.x, -0.035, 0.035); ST.roll += FM.f.roll.x;
     ST.sway *= 0.3;                                   // il peso lo spostano i fianchi, non il corpo intero come un pendolo
+    if (A.poseFix) for (var pk in A.poseFix) ST[pk] = A.poseFix[pk];   // solo per il collaudo del rig
   }
   function gesture(name) {
     var t = now();
@@ -671,7 +698,7 @@
     else if (name === "nod") { A.nods.push({ t0: t, amp: 4, dur: 520 }); }
     else if (name === "beat") { A.nods.push({ t0: t, amp: 1.8, dur: 380 }); }
     else if (name === "blink") { A.nextBlink = A.t; A.blinkT0 = -1; }
-    else if (name === "tilt") { A.rollTarget = (Math.random() < 0.5 ? -1 : 1) * (0.018 + Math.random() * 0.016); A.rollUntil = t + 1500 + Math.random() * 900; }
+    else if (name === "tilt") { A.rollTarget = (R() < 0.5 ? -1 : 1) * (0.018 + R() * 0.016); A.rollUntil = t + 1500 + R() * 900; }
   }
 
   // ---------------------------------------------------------------- racconto
@@ -744,7 +771,7 @@
     if (i === steps().length - 1) { P.playing = false; }
     renderStep();
     var gs = { saluto: "", valutazione: "loupe", palinsesto: "lean", "in-onda": "show", fine: "show" }[steps()[i].id];
-    if (A.entered && i > 0) gesture(gs || (Math.random() < 0.6 ? "nod" : "tilt"));
+    if (A.entered && i > 0) gesture(gs || (R() < 0.6 ? "nod" : "tilt"));
     if (P.voice) speak();
     if (user) el.sr.setAttribute("aria-live", "polite");
   }
@@ -806,7 +833,7 @@
   }
   // apertura della bocca dall'ampiezza dell'audio, con controllo automatico del livello e tenuta minima
   function audioMouth() {
-    if (!AU.an) return Math.random() < 0.5 ? 2 : 1;
+    if (!AU.an) return R() < 0.5 ? 2 : 1;
     AU.an.getFloatTimeDomainData(AU.buf);
     var s = 0; for (var k = 0; k < AU.buf.length; k++) s += AU.buf[k] * AU.buf[k];
     var rms = Math.sqrt(s / AU.buf.length);
@@ -948,13 +975,15 @@
     // fa dire all'avatar una frase con un file audio: la bocca segue l'audio
     say: function (url) { ensureAudio(); AU.el.src = url; A.mouthSrc = audioMouth; return AU.el.play(); },
     _blink: function (v) { A.blinkFix = v == null ? null : +v; },   // solo per i collaudi
+    _pose: function (o) { A.poseFix = o || null; },                  // solo per il collaudo del rig: controlli fissati (radianti, px)
+    seed: function (n) { RS = SEED0 = n | 0; },
     // per girare i video fotogramma per fotogramma: ferma il ciclo e avanza di ms millisecondi a ogni chiamata
     _step: function (ms) {
       if (A.run) { A.run = false; cancelAnimationFrame(A.raf); }
       if (!VT.on) { VT.t = performance.now(); VT.on = true; }
       VT.t += ms; A.t += ms / 1000; animate(ms / 1000, VT.t); story(ms); drawFrame();
     },
-    state: function () { return { step: P.i, playing: P.playing, voice: P.voice, webgl: !!eng, lang: lang, figura: FIG }; }
+    state: function () { return { step: P.i, playing: P.playing, voice: P.voice, webgl: !!eng, lang: lang, figura: FIG, started: P.started, entered: A.entered, seme: SEED0 }; }
   };
   var slot0 = document.getElementById("uqaSlot");
   if (slot0) mount(slot0, document.documentElement.lang || "it");

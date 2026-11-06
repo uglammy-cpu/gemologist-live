@@ -1,4 +1,8 @@
-# Avatar di Elena · pagina /join
+# Gemma, l'avatar di Elena · pagina /join
+
+**Gemma** è la jewelry expert di Uniqaia: l'avatar animato di Elena Goglio, con il suo volto, che parla a nome suo (decisioni di Elena del 6 novembre 2026). Il nome vale per tutte e due le versioni. **Per motivi legali Gemma non si presenta mai come gemmologa GIA**: si dice «la jewelry expert della piattaforma» / «Uniqaia's jewelry expert». Contratto del rig (gerarchia, perni, limiti, gesti, collaudo, diritti): `RIG.md`.
+
+> **Da cambiare prima di pubblicare**: il passo `saluto` del copione e il testo alternativo dicono ancora «Ciao, sono Elena» e «la gemmologa GIA di Uniqaia», in tutte le lingue. I video che li dicono (`elena-saluto-it`, `elena-libera-saluto-it`, `elena-libera-saluto-en`) **non si usano**. Le battute nuove le approva Elena.
 
 Elena, in versione illustrata, entra nella sezione «Trasmetti con noi» e spiega in sei passi come si entra in Uniqaia: account, candidatura, valutazione entro 24 ore, link di pagamento, palinsesto, diretta. Alla fine il pulsante «Crea il tuo account» porta al modulo.
 
@@ -43,16 +47,18 @@ Ogni scena in due versioni: `.webm` con sfondo trasparente (da mettere sopra qua
 
 | Scena | Durata | Cosa fa |
 | --- | --- | --- |
-| `elena-saluto-it` | 8 s | saluta (testa, diamante, riflesso) e dice «Sono la gemmologa GIA di Uniqaia. In sei passi ti spiego come si entra…» |
+| `elena-saluto-it` | 8 s | **non si usa** (dice «gemmologa GIA»). Saluta (testa, diamante, riflesso) e dice «Sono la gemmologa GIA di Uniqaia. In sei passi ti spiego come si entra…» |
 | `elena-lente-it` | 7 s | alza la lente e dice «Ti arriva subito un'email di conferma, e valutiamo il tuo brand entro 24 ore.» |
 | `elena-diamante-it` | 8 s | mostra il diamante due volte mentre parla della diretta |
 | `elena-attesa` | 8 s | non parla: respira, si muove, saluta e mostra il diamante (sfondo per un post o una storia) |
-| `elena-libera-saluto-it` | 8 s | mani libere: saluta con la mano verso il fumetto, poi apre le braccia; dice «Sono la gemmologa GIA di Uniqaia. In sei passi ti spiego come si entra…» |
-| `elena-libera-saluto-en` | 8 s | la stessa scena, con la bocca che dice la battuta inglese del copione |
+| `elena-libera-saluto-it` | 8 s | **non si usa** (dice «gemmologa GIA»). Mani libere: saluta con la mano verso il fumetto, poi apre le braccia; dice «Sono la gemmologa GIA di Uniqaia. In sei passi ti spiego come si entra…» |
+| `elena-libera-saluto-en` | 8 s | **non si usa** (dice «GIA gemologist»). La stessa scena, con la bocca che dice la battuta inglese del copione |
 | `elena-libera-presenta-it` | 8 s | apre le braccia, poi indica il fumetto, mentre parla della diretta (passo «Vai in onda») |
-| `elena-libera-attesa` | 8 s | non parla: respira, saluta, apre le braccia (sfondo per un post o una storia) |
+| `elena-libera-attesa` | 8 s | non parla: respira, saluta, apre le braccia (sfondo per un post o una storia). **In loop**: l'ultimo secondo sfuma nel primo, ripetuta non ha scatti |
 
-La bocca dice i testi del copione. Nuove scene mute: si aggiungono in `SCENE` dentro `gira-video.mjs` (figura, passo del copione, lingua, durata, gesti) e si girano con `node ops/avatar/gira-video.mjs --solo <id>`.
+La bocca dice i testi del copione. Nuove scene mute: si aggiungono in `SCENE` dentro `gira-video.mjs` (figura, passo del copione, lingua, durata, gesti) e si girano con `node ops/avatar/gira-video.mjs --solo <id>`, oppure si descrivono in un file JSON e si girano con `--scena` (formato in `RIG.md`).
+
+**Ripetibili**: ogni scena ha un seme (dal suo nome, o `--seme`) e l'orologio virtuale parte da zero, ingresso compreso: la stessa scena esce identica, fotogramma per fotogramma. **Collaudo del rig**: `node ops/avatar/collaudo-rig.mjs` → `ops/avatar/qa/` (pose, estremi, volto, ripetibilità), da rifare dopo ogni modifica.
 
 ## Scene con la voce di Elena
 
@@ -72,10 +78,10 @@ node ops/avatar/gira-video.mjs --audio registrazione.m4a --id smm-012-avatar --f
 Un'unica immagine deformata in WebGL da una griglia di circa 10 px, con una mappa di pesi che dice quanto ogni punto segue:
 la testa (con la parte alta dei capelli), le punte dei capelli, l'avambraccio col diamante (gira sul gomito), la mano con la lente (gira sul polso), il busto (si piega sui fianchi). Più il respiro e lo spostamento del peso sui piedi. Fuori dalla figura ogni punto prende i pesi della parte più vicina, così i contorni si muovono interi.
 
-- Gesti (`UQAvatar.gesture(nome)`): `hello` (saluto: testa, diamante, riflesso), `show` (alza e mostra il diamante), `loupe` (alza la lente), `lean` (si sporge verso il fumetto), `nod`, `tilt`, `beat`.
+- Gesti (`UQAvatar.gesture(nome)`), figura con il diamante: `hello` (saluto: testa, diamante, riflesso), `show` (alza e mostra il diamante), `loupe` (alza la lente), `lean` (si sporge verso il fumetto), `nod`, `tilt`, `beat`.
 - **Figura a mani libere** (movimento rifatto il 6 novembre 2026, richiesta di Elena: gesti naturali e variabili, mani sul parlato, postura, gambe e peso, transizioni morbide). Le braccia girano sulle spalle e gli avambracci anche sui gomiti (perni nella geometria: `elbow`/`lwrist` = spalle, `relbow`/`lelbow` = gomiti); le spalle salgono e scendono; i fianchi passano da un piede all'altro con i piedi fermi. Tre strati, sommati e poi passati da molle smorzate:
   - **postura**, che cambia ogni 3–6 secondi con transizioni di 1,2–2 secondi: peso su un piede (fianchi di lato, ginocchio dell'altra gamba verso l'interno, fianco libero che scende), busto che compensa (contrapposto) e ruota appena, testa che resta dritta, braccia a riposo ogni volta diverse;
-  - **gesti** a curve (attacco, tenuta, rilascio), con ampiezze e tempi che cambiano ogni volta: `hello` (la mano verso il fumetto si alza e fa due cenni), `open` (apre le braccia), `present` (indica il fumetto con la mano aperta e si gira appena), più `lean`, `nod`, `tilt`. Gli avambracci arrivano un attimo dopo le spalle;
+  - **gesti** a curve (anticipazione, attacco, tenuta, rilascio), con ampiezze e tempi che cambiano ogni volta: `hello` (la mano verso il fumetto si alza e fa due cenni), `open` (apre le braccia), `present` (indica il fumetto con la mano aperta e si gira appena), `listen` (ascolta: si sporge, testa inclinata, quasi immobile), `think` (ci pensa: testa dall'altra parte, una spalla su), più `lean`, `nod`, `tilt`. Gli avambracci arrivano un attimo dopo le spalle;
   - **movimento secondario**: le mani seguono in ritardo i fianchi; micro-movimenti continui non periodici, un po' più vivi mentre parla.
 - **Mani sul parlato** (solo a mani libere): una mano sottolinea le parole importanti, al massimo una ogni uno o due secondi. Dal fumetto: numeri, nomi con la maiuscola, parole lunghe, inizio della frase. Con «Ascolta» e nei video con `--audio`: l'inizio di ogni frase dopo una pausa e gli attacchi forti della voce. A mano: `UQAvatar.beat(forza 0–1)`.
 - Limiti del 2D: gli avambracci si piegano al massimo di circa 15° (`foreRange`), perché la mano non può venire verso chi guarda; oltre si schiaccerebbe. Le mani non passano davanti al corpo. Niente riflesso. Su questa figura `show` diventa `open` e `loupe` diventa `present`. Con l'arabo saluta e indica con l'altro braccio, verso il fumetto a sinistra.
@@ -107,9 +113,9 @@ Prova senza file audio: `?avatar=voce` usa la voce del browser e muove la bocca 
 
 ## Regole (valgono per il sito, i video e i social)
 
-- È un avatar: va sempre dichiarato come tale.
+- È un avatar: va sempre dichiarato come tale («Gemma, l'avatar animato di Elena Goglio»).
 - Ogni frase che dice la approva Elena, in ogni lingua.
-- Mai «certificata GIA» (in nessuna lingua): Elena è *GIA Graduate Gemologist*, «gemmologa diplomata GIA».
+- Gemma è «la jewelry expert della piattaforma»: mai «gemmologa GIA», «GIA gemologist», «certificata GIA» né il logo GIA, in nessuna lingua.
 - Voce: solo quella di Elena o una voce sintetica approvata da lei.
 
 ## Se cambia il percorso

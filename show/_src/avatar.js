@@ -19,6 +19,15 @@
  * Senza WebGL, o con «riduci animazioni», resta l'immagine ferma e il testo si legge passo per passo.
  *
  * Testi: avatar-copione.json, inserito da build.mjs al posto del commento COPIONE qui sotto.
+ *
+ * Due figure (6 novembre 2026), stesso motore:
+ *  - «diamante» (predefinita): lente 10x in una mano, diamante nell'altra; geometria in avatar-geometria.json;
+ *  - «libera»: tutte e due le mani libere (prima illustrazione senza la pochette); geometria in
+ *    avatar-geometria-libera.json (ops/avatar/prepara-livelli-libera.py). Le braccia girano sulle spalle.
+ * Si sceglie con data-figura="libera" sul contenitore, con mount(slot, lingua, { figura: "libera" }) o, per le prove,
+ * con ?figura=libera. Gesti: hello, lean, nod, tilt, beat per tutte e due; show e loupe per la figura col diamante;
+ * open (apre le braccia) e present (indica il fumetto) per quella a mani libere. Sulla figura a mani libere show
+ * diventa open e loupe diventa present, così il racconto di /join funziona con tutte e due.
  */
 (function () {
   "use strict";
@@ -41,7 +50,15 @@
 
   // Geometria dell'illustrazione (1254 × 1254), in pixel dell'illustrazione: ritaglio di elena.webp, riquadri di occhi
   // e bocca e loro posto nell'atlante, inquadratura, perni (collo, gomito, piedi), riflessi, griglia e mappa dei pesi.
-  var G = /*GEOMETRIA*/null;
+  // Una per figura: «diamante» (lente e diamante) e «libera» (mani libere).
+  var FIGS = { diamante: /*GEOMETRIA*/null, libera: /*GEOMETRIA_LIBERA*/null };
+  var FIG = "diamante", G = null;
+  function pick(f) {
+    f = String(f || "").toLowerCase();
+    FIG = FIGS[f] ? f : FIGS.diamante ? "diamante" : "libera";
+    G = FIGS[FIG];
+  }
+  pick(QS.get("figura") || ((document.getElementById("uqaSlot") || {}).getAttribute ? document.getElementById("uqaSlot").getAttribute("data-figura") : ""));
   if (!G) { window.UQAvatar = NOOP; return; }
 
   var RM = false; try { RM = matchMedia("(prefers-reduced-motion: reduce)").matches; } catch (e) {}
@@ -109,7 +126,7 @@
   // ---------------------------------------------------------------- motore WebGL
   function f1(v) { return (+v).toFixed(1); }
   function v2(p) { return "vec2(" + f1(p[0]) + ", " + f1(p[1]) + ")"; }
-  var VS = [
+  function vertexShader() { return [
     "attribute vec2 aP;",
     "attribute vec3 aW;",        // pesi: testa, punte dei capelli, avambraccio alzato (diamante)
     "attribute vec2 aV;",        // pesi: busto, avambraccio con la lente
@@ -152,7 +169,7 @@
     "  vec2 n = (q - uView.xy) / uView.zw;",
     "  gl_Position = vec4(n.x * 2.0 - 1.0, 1.0 - n.y * 2.0, 0.0, 1.0);",
     "}"
-  ].join("\n");
+  ].join("\n"); }
   var FS_BODY = [
     "uniform sampler2D uBase; uniform sampler2D uFx;",
     "uniform vec4 uEyeA;",       // atlante: origine e misura del riquadro occhi (uv)
@@ -182,7 +199,7 @@
     var FS = "precision " + (hp && hp.precision > 0 ? "highp" : "mediump") + " float;\n" + FS_BODY;
     function sh(type, src) { var s = gl.createShader(type); gl.shaderSource(s, src); gl.compileShader(s); if (!gl.getShaderParameter(s, gl.COMPILE_STATUS)) throw new Error(gl.getShaderInfoLog(s) || "shader"); return s; }
     var pr = gl.createProgram();
-    gl.attachShader(pr, sh(gl.VERTEX_SHADER, "precision highp float;\n" + VS)); gl.attachShader(pr, sh(gl.FRAGMENT_SHADER, FS));
+    gl.attachShader(pr, sh(gl.VERTEX_SHADER, "precision highp float;\n" + vertexShader())); gl.attachShader(pr, sh(gl.FRAGMENT_SHADER, FS));
     gl.linkProgram(pr); if (!gl.getProgramParameter(pr, gl.LINK_STATUS)) throw new Error("link");
     gl.useProgram(pr);
     var U = {}; ["uView", "uCrop", "uEye", "uMouth", "uBreath", "uHead", "uSway", "uHair", "uArm", "uLoupe", "uLean", "uBase", "uFx", "uEyeA", "uMouthA", "uBlink", "uMouthOn", "uGlint"].forEach(function (n) { U[n] = gl.getUniformLocation(pr, n); });
@@ -279,7 +296,7 @@
   function build() {
     if (built) return; built = true;
     var st = document.createElement("style"); st.textContent = CSS; document.head.appendChild(st);
-    var s = document.createElement("section"); s.className = "uqa"; s.setAttribute("role", "region");
+    var s = document.createElement("section"); s.className = "uqa uqa-" + FIG; s.setAttribute("role", "region");
     s.innerHTML =
       '<div class="uqa-niche"><div class="uqa-fig pre"><img class="uqa-img" alt="" decoding="async"><canvas class="uqa-cv" aria-hidden="true"></canvas></div></div>' +
       '<div class="uqa-talk">' +
@@ -312,11 +329,11 @@
     el.bub.addEventListener("pointerleave", function () { P.hover = false; });
 
     // immagini
-    imgs.base = new Image(); imgs.base.decoding = "async"; imgs.base.src = ASSET + "elena.webp";
+    imgs.base = new Image(); imgs.base.decoding = "async"; imgs.base.src = ASSET + (G.img || "elena.webp");
     el.img.src = imgs.base.src;
     var waits = [loadImg(imgs.base)];
     if (!RM) {
-      imgs.fx = new Image(); imgs.fx.src = ASSET + "elena-fx.webp"; waits.push(loadImg(imgs.fx));
+      imgs.fx = new Image(); imgs.fx.src = ASSET + (G.fx || "elena-fx.webp"); waits.push(loadImg(imgs.fx));
       imgs.w = new Image(); imgs.w.src = G.weights; waits.push(loadImg(imgs.w));
     }
     Promise.all(waits).then(function () {
@@ -444,7 +461,7 @@
     A.leanV += (18 * (A.leanTarget - A.lean) - 6.5 * A.leanV) * dt; A.lean += A.leanV * dt;
     var lean = A.lean - 0.9 * sway + 0.003 * Math.sin(tt * 0.83 + 1.1) + (A.talk ? 0.0025 * Math.sin(tt * 2.1) : 0);
     // riflesso sul diamante: ogni tanto, su una faccetta diversa
-    if (A.glintT0 < 0 && tt >= A.nextGlint && !A.entering) { A.glintT0 = tt; A.glintP = G.glints[(Math.random() * G.glints.length) | 0]; }
+    if (A.glintT0 < 0 && tt >= A.nextGlint && !A.entering && G.glints && G.glints.length) { A.glintT0 = tt; A.glintP = G.glints[(Math.random() * G.glints.length) | 0]; }
     var glint = 0, grot = 0;
     if (A.glintT0 >= 0) {
       var gu = (tt - A.glintT0) / A.glintDur;
@@ -458,8 +475,9 @@
     else if (A.talk) m = planMouth(P.plan, P.clock);
     ST.breath = breath; ST.roll = roll; ST.dx = dx; ST.dy = dy + nod * 0.5; ST.nod = nod; ST.sway = sway;
     ST.hairL = clamp(A.hairL, -9, 9); ST.hairR = clamp(A.hairR, -9, 9); ST.blink = A.blinkFix != null ? A.blinkFix : blink; ST.mouth = m;
-    ST.arm = A.armFix != null ? A.armFix : clamp(arm, -0.10, 0.08);
-    ST.loupe = clamp(loupe, -0.06, 0.16); ST.lean = clamp(lean, -0.03, 0.03);
+    var ar = G.armRange || [-0.10, 0.08], lr = G.loupeRange || [-0.06, 0.16];
+    ST.arm = A.armFix != null ? A.armFix : clamp(arm, ar[0], ar[1]);
+    ST.loupe = clamp(loupe, lr[0], lr[1]); ST.lean = clamp(lean, -0.03, 0.03);
     ST.gx = A.glintP[0]; ST.gy = A.glintP[1]; ST.glint = glint; ST.grot = grot;
   }
   function drawFrame() {
@@ -468,11 +486,25 @@
     if (el.img.style.visibility !== "hidden") el.img.style.visibility = "hidden";
   }
   function side() { return document.documentElement.dir === "rtl" ? -1 : 1; }   // verso il fumetto
+  // figura a mani libere: il braccio verso il fumetto è quello a destra nell'immagine («arm», apre con angoli negativi);
+  // con l'arabo il fumetto sta a sinistra e lavora l'altro («loupe», apre con angoli positivi)
+  function reach(t, amount, ms) {
+    if (side() > 0) { A.armTarget = -amount; A.armUntil = t + ms; } else { A.loupeTarget = amount; A.loupeUntil = t + ms; }
+  }
+  function gestureFree(name, t) {
+    if (name === "show") name = "open"; else if (name === "loupe") name = "present";
+    if (name === "hello") { A.rollTarget = 0.04 * side(); A.rollUntil = t + 900; A.nods.push({ t0: t + 120, amp: 5, dur: 650 }); reach(t, 0.12, 1000); A.leanTarget = 0.008 * side(); A.leanUntil = t + 900; }
+    else if (name === "open") { A.armTarget = -0.085; A.armUntil = t + 1300; A.loupeTarget = 0.085; A.loupeUntil = t + 1300; A.nods.push({ t0: t + 200, amp: 3, dur: 600 }); }
+    else if (name === "present") { reach(t, 0.10, 1500); A.leanTarget = 0.012 * side(); A.leanUntil = t + 1500; A.rollTarget = 0.02 * side(); A.rollUntil = t + 1300; }
+    else return false;
+    return true;
+  }
   function gesture(name) {
     var t = now();
+    if (FIG === "libera" && gestureFree(name, t)) return;
     if (name === "hello") { A.rollTarget = 0.045; A.rollUntil = t + 900; A.nods.push({ t0: t + 120, amp: 5, dur: 650 }); A.armTarget = -0.06; A.armUntil = t + 800; A.nextGlint = A.t + 0.5; A.leanTarget = 0.01 * side(); A.leanUntil = t + 900; }
-    else if (name === "show") { A.armTarget = -0.075; A.armUntil = t + 1100; A.nextGlint = A.t + 0.35; A.leanTarget = 0.008 * side(); A.leanUntil = t + 1200; }
-    else if (name === "loupe") { A.loupeTarget = 0.11; A.loupeUntil = t + 1500; A.nods.push({ t0: t + 250, amp: 3, dur: 600 }); }
+    else if (name === "show" && FIG !== "libera") { A.armTarget = -0.075; A.armUntil = t + 1100; A.nextGlint = A.t + 0.35; A.leanTarget = 0.008 * side(); A.leanUntil = t + 1200; }
+    else if (name === "loupe" && FIG !== "libera") { A.loupeTarget = 0.11; A.loupeUntil = t + 1500; A.nods.push({ t0: t + 250, amp: 3, dur: 600 }); }
     else if (name === "lean") { A.leanTarget = 0.014 * side(); A.leanUntil = t + 1600; A.rollTarget = 0.02 * side(); A.rollUntil = t + 1300; }
     else if (name === "nod") { A.nods.push({ t0: t, amp: 4, dur: 520 }); }
     else if (name === "beat") { A.nods.push({ t0: t, amp: 1.8, dur: 380 }); }
@@ -716,8 +748,10 @@
   }
 
   // ---------------------------------------------------------------- API
-  function mount(slot, l) {
+  function mount(slot, l, opts) {
     if (!slot) return;
+    // la figura si sceglie al primo mount (poi resta quella): opzione, data-figura sul contenitore, ?figura= per le prove
+    if (!built) { var f0 = (opts && opts.figura) || slot.getAttribute("data-figura") || QS.get("figura"); if (f0) pick(f0); }
     build();
     var nl = TXT[l] ? l : (TXT[lang] ? lang : "it"), changed = nl !== lang || !T;
     lang = nl; T = TXT[lang];
@@ -743,7 +777,7 @@
       if (!VT.on) { VT.t = performance.now(); VT.on = true; }
       VT.t += ms; A.t += ms / 1000; animate(ms / 1000, VT.t); story(ms); drawFrame();
     },
-    state: function () { return { step: P.i, playing: P.playing, voice: P.voice, webgl: !!eng, lang: lang }; }
+    state: function () { return { step: P.i, playing: P.playing, voice: P.voice, webgl: !!eng, lang: lang, figura: FIG }; }
   };
   var slot0 = document.getElementById("uqaSlot");
   if (slot0) mount(slot0, document.documentElement.lang || "it");

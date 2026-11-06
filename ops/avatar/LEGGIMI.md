@@ -6,6 +6,15 @@ Stato al 4 novembre 2026: **in anteprima**, visibile solo con `uniqaia.com/join/
 **Parla** in silenzio: mentre il fumetto si riempie, la bocca dice il testo sillaba per sillaba. Il suono arriva con la registrazione di Elena (o una voce sintetica che lei avrà approvato): vedi «Dare la voce».
 **Si muove**: respira, sposta il peso, piega il busto, muove testa e capelli, alza il diamante e la lente.
 
+**Due versioni** (6 novembre 2026, scelta di Elena), stesso motore:
+
+| Figura | Cosa ha in mano | Dove si sceglie |
+| --- | --- | --- |
+| `diamante` (predefinita, quella di /join) | lente 10x e diamante | niente da fare |
+| `libera` | niente: tutte e due le mani libere | `data-figura="libera"` sul contenitore, `UQAvatar.mount(slot, lingua, { figura: "libera" })`, oppure `?figura=libera` per le prove |
+
+La figura `libera` è la prima illustrazione (`elena-volto.png`, il volto che Elena preferisce) senza la pochette: `togli-pochette.py` la toglie con un ritocco classico, senza IA generativa, e scrive `elena-mani-libere.png`. Serve al Marketing Manager per le attività sulla piattaforma e al Social Media Manager per Reel e TikTok.
+
 ## L'immagine (4 novembre 2026)
 
 - `elena-illustrazione.png`: la figura nuova — giacca nera, lente 10x nella mano destra, diamante fra pollice e indice nella sinistra alzata.
@@ -24,10 +33,13 @@ Stato al 4 novembre 2026: **in anteprima**, visibile solo con `uniqaia.com/join/
 | Video per i social | `node ops/avatar/gira-video.mjs` → `ops/avatar/video/` |
 | Immagini fisse | `ops/avatar/immagini/elena-avatar-trasparente.png` (sfondo trasparente), `elena-avatar-avorio.png` |
 | Voce | `ops/avatar/genera-voce.mjs` → `show/img/avatar/voce/<lingua>/<passo>.mp3` |
+| Figura a mani libere: immagine | `ops/avatar/togli-pochette.py` → `elena-mani-libere.png` |
+| Figura a mani libere: livelli | `python3 ops/avatar/prepara-livelli-libera.py` → `show/img/avatar/elena-libera.webp`, `elena-libera-fx.webp`, `show/_src/avatar-geometria-libera.json`, immagini fisse `elena-libera-*.png` |
+| Occhi chiusi e bocca aperta (tutte e due le figure) | `ops/avatar/volto_varianti.py` |
 
 ## Video pronti (`ops/avatar/video/`)
 
-Ogni scena in due versioni: `.webm` con sfondo trasparente (da mettere sopra qualsiasi grafica, 1076×1756) e `.mp4` su sfondo avorio Uniqaia. Senza audio.
+Ogni scena in due versioni: `.webm` con sfondo trasparente (da mettere sopra qualsiasi grafica, 1076×1756) e `.mp4` su sfondo avorio Uniqaia. Senza audio. Le scene a mani libere hanno anche `-9x16.mp4`: 1080×1920 su avorio a 30 fps, per Reels e TikTok, con la figura in basso e lo spazio sopra per i testi (le aree sicure dell'Editor restano: niente testo nei 250 px in alto).
 
 | Scena | Durata | Cosa fa |
 | --- | --- | --- |
@@ -35,8 +47,25 @@ Ogni scena in due versioni: `.webm` con sfondo trasparente (da mettere sopra qua
 | `elena-lente-it` | 7 s | alza la lente e dice «Ti arriva subito un'email di conferma, e valutiamo il tuo brand entro 24 ore.» |
 | `elena-diamante-it` | 8 s | mostra il diamante due volte mentre parla della diretta |
 | `elena-attesa` | 8 s | non parla: respira, si muove, saluta e mostra il diamante (sfondo per un post o una storia) |
+| `elena-libera-saluto-it` | 8 s | mani libere: saluta con la mano verso il fumetto, poi apre le braccia; dice «Sono la gemmologa GIA di Uniqaia. In sei passi ti spiego come si entra…» |
+| `elena-libera-saluto-en` | 8 s | la stessa scena, con la bocca che dice la battuta inglese del copione |
+| `elena-libera-presenta-it` | 8 s | apre le braccia, poi indica il fumetto, mentre parla della diretta (passo «Vai in onda») |
+| `elena-libera-attesa` | 8 s | non parla: respira, saluta, apre le braccia (sfondo per un post o una storia) |
 
-La bocca dice i testi del copione. Per un video con la voce: si registra la frase, si gira la scena con la bocca sull'audio (`UQAvatar.say(url)`) oppure si monta l'audio su una scena che dice le stesse parole. Nuove scene: si aggiungono in `SCENE` dentro `gira-video.mjs` (passo del copione, lingua, durata, gesti).
+La bocca dice i testi del copione. Nuove scene mute: si aggiungono in `SCENE` dentro `gira-video.mjs` (figura, passo del copione, lingua, durata, gesti) e si girano con `node ops/avatar/gira-video.mjs --solo <id>`.
+
+## Scene con la voce di Elena
+
+Per un Reel o un TikTok con la sua voce:
+
+```
+node ops/avatar/gira-video.mjs --audio registrazione.m4a --id smm-012-avatar --figura libera --gesti "0.3:hello,4:open,9:present"
+```
+
+- La bocca segue la registrazione, fotogramma per fotogramma, con le stesse tre aperture del pulsante «Ascolta» sul sito; l'audio entra nei tre file (`.webm`, `.mp4`, `-9x16.mp4`). La scena dura quanto l'audio, più mezzo secondo.
+- `--gesti`: secondo e nome, separati da virgole. Mani libere: `hello`, `open`, `present`, `lean`, `nod`, `tilt`, `beat`. Diamante: `hello`, `show`, `loupe`, `lean`, `nod`, `tilt`, `beat`.
+- `--out` per scegliere la cartella (predefinita `ops/avatar/video/`). I video con la voce non vanno nel repository pubblico finché Elena non li ha approvati: si girano in una cartella di lavoro.
+- Solo la voce di Elena, o una voce sintetica che lei ha approvato. Le parole sono quelle dello script approvato.
 
 ## Come si muove
 
@@ -44,6 +73,7 @@ Un'unica immagine deformata in WebGL da una griglia di circa 10 px, con una mapp
 la testa (con la parte alta dei capelli), le punte dei capelli, l'avambraccio col diamante (gira sul gomito), la mano con la lente (gira sul polso), il busto (si piega sui fianchi). Più il respiro e lo spostamento del peso sui piedi. Fuori dalla figura ogni punto prende i pesi della parte più vicina, così i contorni si muovono interi.
 
 - Gesti (`UQAvatar.gesture(nome)`): `hello` (saluto: testa, diamante, riflesso), `show` (alza e mostra il diamante), `loupe` (alza la lente), `lean` (si sporge verso il fumetto), `nod`, `tilt`, `beat`.
+- **Figura a mani libere**: le braccia girano sulle spalle (perni nella geometria: `elbow` = spalla a destra nell'immagine, `lwrist` = spalla a sinistra). Gesti: `hello` (inclina la testa, fa un cenno e apre la mano verso il fumetto), `open` (apre tutte e due le braccia, «eccoci»), `present` (indica il fumetto con la mano e si sporge), più `lean`, `nod`, `tilt`, `beat`. Niente riflesso. Su questa figura `show` diventa `open` e `loupe` diventa `present`, così il racconto di /join funziona con tutte e due. Con l'arabo saluta e indica con l'altro braccio, verso il fumetto a sinistra.
 - Nei passi: saluto → `hello`; valutazione → `loupe`; palinsesto → `lean`; diretta e fine → `show`; gli altri un cenno.
 - Ogni tanto un riflesso accende il diamante, su faccette diverse.
 - Battito di ciglia: la palpebra scende, non dissolve.

@@ -49,6 +49,10 @@
   function pal(key){ var h = 0; for (var i = 0; i < key.length; i++) h = (h * 31 + key.charCodeAt(i)) >>> 0; return PAL[h % PAL.length].split(","); }
   function title(s){ var i = s.title_i18n || {}; return i[lang] || (lang !== "it" && i.en) || s.title; }
   function kindLabel(j){ return j.kind === "gems" ? t.gems : t.shop; }
+  // Home, 6/11/2026: restano visibili solo queste 6 categorie e queste 6 slide, con il titolo qui sotto e senza sottotitolo. Le altre sono intatte nel database.
+  var HOME = {"cats":{"nuovi-talenti":"Independent Designers","gemme-di-colore":"Specials: Paraiba","perle":"Pearls & Corals","fatto-a-mano":"The Gem Room","made-in-italy":"Precious Objects","gioielli-indiani":"Collection"},"slides":{"h0006b902-4b5a-4b09-8da3-a43c4e6b23b9":"Independent Designers","h571995b3-38c4-489f-84ff-b4b8116badfd":"Specials: Paraiba","s1de93cf4-1489-46bb-8eec-4e83d822c02a":"Pearls & Corals","hdf891468-4660-490a-b3a7-a3f06d5cc865":"The Gem Room","hb874aefd-1994-4ad7-8263-d24e4e1b5068":"Precious Objects","he39c5743-9aa6-4c42-b626-400a32319a1c":"Collection"}};
+  function shownCat(c){ return HOME.cats.hasOwnProperty(c.slug); }
+  function tileName(slug){ return HOME.cats.hasOwnProperty(slug) ? HOME.cats[slug] : catName(slug); }
   function catName(slug){ var c = null; for (var i = 0; i < state.cats.length; i++) if (state.cats[i].slug === slug) c = state.cats[i]; if (!c) return slug; var n = c.name_i18n || {}; return n[lang] || n.en || n.it || slug; }
   var FOLLOWS = []; try { FOLLOWS = JSON.parse(localStorage.getItem("vetrina-follows") || "[]"); } catch(e){}
   function followed(j){ return FOLLOWS.indexOf(j.slug) >= 0; }
@@ -59,19 +63,19 @@
   function renderCats(){
     var box = $("cats"); box.innerHTML = "";
     var all = document.createElement("button"); all.type = "button"; all.className = state.cat ? "" : "on"; all.textContent = t.catAll; all.addEventListener("click", function(){ setCat(""); }); box.appendChild(all);
-    state.cats.forEach(function(c){
+    state.cats.filter(shownCat).forEach(function(c){
       var n = state.shows.filter(function(s){ return (s.categories || []).indexOf(c.slug) >= 0; }).length;
-      var b = document.createElement("button"); b.type = "button"; b.className = state.cat === c.slug ? "on" : ""; b.innerHTML = esc(catName(c.slug)) + (n ? '<small>' + n + '</small>' : '');
+      var b = document.createElement("button"); b.type = "button"; b.className = state.cat === c.slug ? "on" : ""; b.innerHTML = esc(tileName(c.slug)) + (n ? '<small>' + n + '</small>' : '');
       b.addEventListener("click", function(){ setCat(c.slug); }); box.appendChild(b);
     });
   }
   function renderTiles(){
     var box = $("tiles"); box.innerHTML = "";
-    state.cats.forEach(function(c){
+    state.cats.filter(shownCat).forEach(function(c){
       var n = state.shows.filter(function(s){ return (s.categories || []).indexOf(c.slug) >= 0; }).length;
       var p = pal(c.slug);
       var b = document.createElement("button"); b.type = "button"; b.className = "tile" + (state.cat === c.slug ? " on" : ""); b.style.cssText = "--c1:" + p[0] + ";--c2:" + p[1];
-      b.innerHTML = (CFG.art[c.art] || CFG.art.ring) + '<b>' + esc(catName(c.slug)) + '</b><small>' + esc(nShows(n)) + '</small>';
+      b.innerHTML = (CFG.art[c.art] || CFG.art.ring) + '<b>' + esc(tileName(c.slug)) + '</b>';
       b.addEventListener("click", function(){ setCat(c.slug); var el = $("live"); if (el) el.scrollIntoView({ behavior:"smooth", block:"start" }); });
       box.appendChild(b);
     });
@@ -113,7 +117,7 @@
     // voce che pulsa a vuoto e' una bugia, e dopo due volte non la guarda piu' nessuno.
     var tLive = document.querySelector('.tab[data-to="live"]');
     if (tLive) tLive.classList.toggle("haslive", rows.length > 0);
-    $("emptyLive").innerHTML = state.cat ? '<b>' + esc(catName(state.cat)) + '</b>' + esc(t.noneCat) : '<b>' + esc(t.emptyLiveT) + '</b>' + esc(t.emptyLive);
+    $("emptyLive").innerHTML = state.cat ? '<b>' + esc(tileName(state.cat)) + '</b>' + esc(t.noneCat) : '<b>' + esc(t.emptyLiveT) + '</b>' + esc(t.emptyLive);
   }
   function renderSoon(){
     var g = $("gridSoon"); g.innerHTML = "";
@@ -126,7 +130,7 @@
       g.appendChild(d);
     });
     $("emptySoon").hidden = true; $("soon").hidden = rows.length === 0;
-    $("emptySoon").innerHTML = state.cat ? '<b>' + esc(catName(state.cat)) + '</b>' + esc(t.noneCat) : '<b>' + esc(t.emptySoonT) + '</b>' + esc(t.emptySoon);
+    $("emptySoon").innerHTML = state.cat ? '<b>' + esc(tileName(state.cat)) + '</b>' + esc(t.noneCat) : '<b>' + esc(t.emptySoonT) + '</b>' + esc(t.emptySoon);
   }
   function icsUrl(s, j){
     function z(d){ return d.toISOString().replace(/[-:]/g, "").replace(/\.\d{3}/, ""); }
@@ -152,13 +156,15 @@
   function slides(){
     var hl = [], sh = [];
     state.highlights.forEach(function(h){
+      if (!HOME.slides.hasOwnProperty("h" + h.id)) return;
       var l = h.link || "", art = l.indexOf("cat:") === 0 ? catArt(l.slice(4)) : CFG.art.sparkle;
-      hl.push({ key: "h" + h.id, img: h.image || "", video: h.video_url || "", art: art, eyebrow: "", title: i18n(h.title_i18n), sub: i18n(h.subtitle_i18n), cta: t.discover, href: linkOf(h), live: false });
+      hl.push({ key: "h" + h.id, img: h.image || "", video: h.video_url || "", art: art, eyebrow: "", title: HOME.slides["h" + h.id], sub: "", cta: t.discover, href: linkOf(h), live: false });
     });
     weekShows().forEach(function(s){
+      if (!HOME.slides.hasOwnProperty("s" + s.id)) return;
       var j = state.jewelers[s.jeweler_id], live = s.status === "live";
       var firstCat = (s.categories || [])[0];
-      sh.push({ key: "s" + s.id, img: state.covers[s.id] || state.photos[s.id] || "", art: s.pieces && s.pieces[0] ? (CFG.art[s.pieces[0].art] || CFG.art.ring) : catArt(firstCat), eyebrow: (firstCat ? catName(firstCat) + " · " : "") + j.name, title: title(s), sub: live ? t.heroLive : t.liveOn.replace("{day}", fweek(s.scheduled_at)).replace("{time}", ftime(s.scheduled_at)), cta: live ? t.enter : t.discover, href: showUrl(s, j), live: live });
+      sh.push({ key: "s" + s.id, img: state.covers[s.id] || state.photos[s.id] || "", art: s.pieces && s.pieces[0] ? (CFG.art[s.pieces[0].art] || CFG.art.ring) : catArt(firstCat), eyebrow: (firstCat ? catName(firstCat) + " · " : "") + j.name, title: HOME.slides["s" + s.id], sub: "", cta: live ? t.enter : t.discover, href: showUrl(s, j), live: live });
     });
     // una slide editoriale, una diretta: così le dirette della settimana restano in vista
     var out = [], i = 0, j = 0;

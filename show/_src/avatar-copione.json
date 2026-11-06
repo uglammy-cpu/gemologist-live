@@ -1,9 +1,9 @@
 {
-  "_nota": "Copione dell'avatar di Elena sulla pagina /join (4 novembre 2026). Unica fonte dei testi: lo legge avatar.js (fumetto) e lo leggerà ops/avatar/genera-voce.mjs (voce). Russo e arabo da far rivedere a un madrelingua. Se cambia un passo del percorso seller, va aggiornato qui.",
+  "_nota": "Copione di Gemma, la jewelry expert di Uniqaia e avatar animato di Elena, sulla pagina /join (4 novembre 2026; saluto cambiato il 6 novembre 2026: per motivi legali Gemma non si presenta mai come gemmologa GIA). Unica fonte dei testi: lo legge avatar.js (fumetto) e lo leggerà ops/avatar/genera-voce.mjs (voce). Russo e arabo da far rivedere a un madrelingua. Se cambia un passo del percorso seller, va aggiornato qui.",
   "it": {
-    "ui": { "eyebrow": "Come si entra", "region": "Elena ti spiega come si entra in Uniqaia", "alt": "Elena, la gemmologa GIA di Uniqaia, in versione illustrata", "stepOf": "Passo {n} di {t}", "prev": "Indietro", "next": "Avanti", "pause": "Pausa", "play": "Riprendi", "replay": "Ricomincia", "listen": "Ascolta", "stopVoice": "Ferma la voce", "cta": "Crea il tuo account", "voicePreview": "Anteprima con la voce del browser: la voce vera sarà quella registrata" },
+    "ui": { "eyebrow": "Come si entra", "region": "Gemma ti spiega come si entra in Uniqaia", "alt": "Gemma, la jewelry expert di Uniqaia, avatar animato di Elena Goglio", "stepOf": "Passo {n} di {t}", "prev": "Indietro", "next": "Avanti", "pause": "Pausa", "play": "Riprendi", "replay": "Ricomincia", "listen": "Ascolta", "stopVoice": "Ferma la voce", "cta": "Crea il tuo account", "voicePreview": "Anteprima con la voce del browser: la voce vera sarà quella registrata" },
     "steps": [
-      { "id": "saluto", "t": "Ciao, sono Elena", "s": "Sono la gemmologa GIA di Uniqaia. In sei passi ti spiego come si entra e come si va in onda." },
+      { "id": "saluto", "t": "Ciao, sono Gemma", "s": "Sono la jewelry expert di Uniqaia. In sei passi ti spiego come si entra e come si va in onda." },
       { "id": "account", "t": "Crea il tuo account", "s": "Bastano email e password. L'account conserva la tua candidatura e l'eventuale regalo di benvenuto, su qualunque dispositivo." },
       { "id": "candidatura", "t": "Compila la candidatura", "s": "Raccontaci chi sei: brand, ragione sociale e partita IVA, da una a tre categorie, il logo e due foto dei tuoi pezzi. Scegli anche la serata in cui vorresti andare in onda." },
       { "id": "valutazione", "t": "La valutiamo entro 24 ore", "s": "Ti arriva subito un'email di conferma, e valutiamo il tuo brand entro 24 ore." },
@@ -14,9 +14,9 @@
     ]
   },
   "en": {
-    "ui": { "eyebrow": "How to join", "region": "Elena explains how to join Uniqaia", "alt": "Elena, Uniqaia's GIA gemologist, as an illustration", "stepOf": "Step {n} of {t}", "prev": "Back", "next": "Next", "pause": "Pause", "play": "Resume", "replay": "Start again", "listen": "Listen", "stopVoice": "Stop the voice", "cta": "Create your account", "voicePreview": "Preview with the browser's voice: the real voice will be the recorded one" },
+    "ui": { "eyebrow": "How to join", "region": "Gemma explains how to join Uniqaia", "alt": "Gemma, Uniqaia's jewelry expert, Elena Goglio's animated avatar", "stepOf": "Step {n} of {t}", "prev": "Back", "next": "Next", "pause": "Pause", "play": "Resume", "replay": "Start again", "listen": "Listen", "stopVoice": "Stop the voice", "cta": "Create your account", "voicePreview": "Preview with the browser's voice: the real voice will be the recorded one" },
     "steps": [
-      { "id": "saluto", "t": "Hi, I'm Elena", "s": "I'm Uniqaia's GIA gemologist. In six steps, I'll show you how to join and go live." },
+      { "id": "saluto", "t": "Hi, I'm Gemma", "s": "I'm Uniqaia's jewelry expert. In six steps, I'll show you how to join and go live." },
       { "id": "account", "t": "Create your account", "s": "All it takes is an email and a password. Your account keeps your application and any welcome gift, on any device." },
       { "id": "candidatura", "t": "Fill in your application", "s": "Tell us who you are: brand, company name and VAT number, one to three categories, your logo and two photos of your pieces. Pick the evening you'd like to go live, too." },
       { "id": "valutazione", "t": "We review it within 24 hours", "s": "You'll get a confirmation email straight away, and we review your brand within 24 hours." },
@@ -27,9 +27,9 @@
     ]
   },
   "fr": {
-    "ui": { "eyebrow": "Comment nous rejoindre", "region": "Elena vous explique comment rejoindre Uniqaia", "alt": "Elena, la gemmologue GIA d'Uniqaia, en illustration", "stepOf": "Étape {n} sur {t}", "prev": "Retour", "next": "Suivant", "pause": "Pause", "play": "Reprendre", "replay": "Recommencer", "listen": "Écouter", "stopVoice": "Arrêter la voix", "cta": "Créer votre compte", "voicePreview": "Aperçu avec la voix du navigateur : la vraie voix sera celle enregistrée" },
+    "ui": { "eyebrow": "Comment nous rejoindre", "region": "Gemma vous explique comment rejoindre Uniqaia", "alt": "Gemma, l'experte en joaillerie d'Uniqaia, avatar animé d'Elena Goglio", "stepOf": "Étape {n} sur {t}", "prev": "Retour", "next": "Suivant", "pause": "Pause", "play": "Reprendre", "replay": "Recommencer", "listen": "Écouter", "stopVoice": "Arrêter la voix", "cta": "Créer votre compte", "voicePreview": "Aperçu avec la voix du navigateur : la vraie voix sera celle enregistrée" },
     "steps": [
-      { "id": "saluto", "t": "Bonjour, je suis Elena", "s": "Je suis la gemmologue GIA d'Uniqaia. En six étapes, je vous explique comment nous rejoindre et passer en direct." },
+      { "id": "saluto", "t": "Bonjour, je suis Gemma", "s": "Je suis l'experte en joaillerie d'Uniqaia. En six étapes, je vous explique comment nous rejoindre et passer en direct." },
       { "id": "account", "t": "Créez votre compte", "s": "Un e-mail et un mot de passe suffisent. Votre compte conserve votre candidature et votre éventuel cadeau de bienvenue, sur tous vos appareils." },
       { "id": "candidatura", "t": "Remplissez votre candidature", "s": "Présentez-vous : marque, raison sociale et numéro de TVA, une à trois catégories, votre logo et deux photos de vos pièces. Choisissez aussi la soirée où vous aimeriez passer en direct." },
       { "id": "valutazione", "t": "Nous l'examinons sous 24 heures", "s": "Vous recevez tout de suite un e-mail de confirmation, et nous examinons votre marque sous 24 heures." },
@@ -40,9 +40,9 @@
     ]
   },
   "ru": {
-    "ui": { "eyebrow": "Как присоединиться", "region": "Элена рассказывает, как присоединиться к Uniqaia", "alt": "Элена, геммолог GIA платформы Uniqaia, иллюстрация", "stepOf": "Шаг {n} из {t}", "prev": "Назад", "next": "Далее", "pause": "Пауза", "play": "Продолжить", "replay": "Сначала", "listen": "Слушать", "stopVoice": "Остановить голос", "cta": "Создать аккаунт", "voicePreview": "Предпросмотр с голосом браузера: настоящим будет записанный голос" },
+    "ui": { "eyebrow": "Как присоединиться", "region": "Джемма рассказывает, как присоединиться к Uniqaia", "alt": "Джемма, ювелирный эксперт Uniqaia, анимированный аватар Элены Гольо", "stepOf": "Шаг {n} из {t}", "prev": "Назад", "next": "Далее", "pause": "Пауза", "play": "Продолжить", "replay": "Сначала", "listen": "Слушать", "stopVoice": "Остановить голос", "cta": "Создать аккаунт", "voicePreview": "Предпросмотр с голосом браузера: настоящим будет записанный голос" },
     "steps": [
-      { "id": "saluto", "t": "Здравствуйте, я Элена", "s": "Я геммолог GIA платформы Uniqaia. За шесть шагов расскажу, как присоединиться и выйти в эфир." },
+      { "id": "saluto", "t": "Здравствуйте, я Джемма", "s": "Я ювелирный эксперт Uniqaia. За шесть шагов расскажу, как присоединиться и выйти в эфир." },
       { "id": "account", "t": "Создайте аккаунт", "s": "Нужны только email и пароль. В аккаунте сохраняются ваша заявка и приветственный подарок, если он есть, — на любом устройстве." },
       { "id": "candidatura", "t": "Заполните заявку", "s": "Расскажите о себе: бренд, название компании и номер плательщика НДС, от одной до трёх категорий, логотип и две фотографии ваших изделий. Выберите и вечер, в который хотели бы выйти в эфир." },
       { "id": "valutazione", "t": "Рассмотрим за 24 часа", "s": "Сразу придёт письмо с подтверждением, а ваш бренд мы рассмотрим в течение 24 часов." },
@@ -53,9 +53,9 @@
     ]
   },
   "ar": {
-    "ui": { "eyebrow": "كيف تنضم", "region": "إيلينا تشرح لك كيف تنضم إلى Uniqaia", "alt": "إيلينا، خبيرة الأحجار الكريمة الحاصلة على دبلوم GIA في Uniqaia، في رسم توضيحي", "stepOf": "الخطوة {n} من {t}", "prev": "السابق", "next": "التالي", "pause": "إيقاف مؤقت", "play": "متابعة", "replay": "من البداية", "listen": "استمع", "stopVoice": "إيقاف الصوت", "cta": "أنشئ حسابك", "voicePreview": "معاينة بصوت المتصفح: الصوت الحقيقي سيكون الصوت المسجّل" },
+    "ui": { "eyebrow": "كيف تنضم", "region": "جيما تشرح لك كيف تنضم إلى Uniqaia", "alt": "جيما، خبيرة المجوهرات في Uniqaia، الشخصية الرمزية المتحركة لإيلينا غوليو", "stepOf": "الخطوة {n} من {t}", "prev": "السابق", "next": "التالي", "pause": "إيقاف مؤقت", "play": "متابعة", "replay": "من البداية", "listen": "استمع", "stopVoice": "إيقاف الصوت", "cta": "أنشئ حسابك", "voicePreview": "معاينة بصوت المتصفح: الصوت الحقيقي سيكون الصوت المسجّل" },
     "steps": [
-      { "id": "saluto", "t": "مرحبًا، أنا إيلينا", "s": "أنا خبيرة الأحجار الكريمة الحاصلة على دبلوم GIA في Uniqaia. في ست خطوات أشرح لك كيف تنضم وتبدأ البث المباشر." },
+      { "id": "saluto", "t": "مرحبًا، أنا جيما", "s": "أنا خبيرة المجوهرات في Uniqaia. في ست خطوات أشرح لك كيف تنضم وتبدأ البث المباشر." },
       { "id": "account", "t": "أنشئ حسابك", "s": "يكفي بريد إلكتروني وكلمة مرور. يحتفظ حسابك بطلبك وبهدية الترحيب إن وُجدت، على أي جهاز." },
       { "id": "candidatura", "t": "املأ طلب الانضمام", "s": "عرّفنا بنفسك: العلامة التجارية، والاسم القانوني للشركة، ورقم ضريبة القيمة المضافة، ومن فئة إلى ثلاث فئات، والشعار وصورتين لقطعك. واختر أيضًا الأمسية التي تودّ البث فيها." },
       { "id": "valutazione", "t": "نراجع طلبك خلال 24 ساعة", "s": "تصلك فورًا رسالة تأكيد بالبريد الإلكتروني، ونراجع علامتك التجارية خلال 24 ساعة." },

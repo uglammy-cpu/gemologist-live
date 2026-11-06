@@ -2,7 +2,7 @@
 
 **Gemma** è la jewelry expert di Uniqaia: l'avatar animato di Elena Goglio, con il suo volto, che parla a nome suo (decisioni di Elena del 6 novembre 2026). Il nome vale per tutte e due le versioni. **Per motivi legali Gemma non si presenta mai come gemmologa GIA**: si dice «la jewelry expert della piattaforma» / «Uniqaia's jewelry expert». Contratto del rig (gerarchia, perni, limiti, gesti, collaudo, diritti): `RIG.md`.
 
-> **Da cambiare prima di pubblicare**: il passo `saluto` del copione e il testo alternativo dicono ancora «Ciao, sono Elena» e «la gemmologa GIA di Uniqaia», in tutte le lingue. I video che li dicono (`elena-saluto-it`, `elena-libera-saluto-it`, `elena-libera-saluto-en`) **non si usano**. Le battute nuove le approva Elena.
+> **Saluto nuovo** (approvato da Elena il 6 novembre 2026): «Ciao, sono Gemma» / «Sono la jewelry expert di Uniqaia. In sei passi ti spiego come si entra e come si va in onda.» In inglese «Hi, I'm Gemma» / «I'm Uniqaia's jewelry expert. In six steps, I'll show you how to join and go live.» Applicato nel copione in tutte e cinque le lingue, con il testo alternativo e il titolo della sezione; le tre scene del saluto sono state rigirate. Francese da verificare da Elena; russo e arabo dal madrelingua, come il resto.
 
 Elena, in versione illustrata, entra nella sezione «Trasmetti con noi» e spiega in sei passi come si entra in Uniqaia: account, candidatura, valutazione entro 24 ore, link di pagamento, palinsesto, diretta. Alla fine il pulsante «Crea il tuo account» porta al modulo.
 
@@ -47,12 +47,12 @@ Ogni scena in due versioni: `.webm` con sfondo trasparente (da mettere sopra qua
 
 | Scena | Durata | Cosa fa |
 | --- | --- | --- |
-| `elena-saluto-it` | 8 s | **non si usa** (dice «gemmologa GIA»). Saluta (testa, diamante, riflesso) e dice «Sono la gemmologa GIA di Uniqaia. In sei passi ti spiego come si entra…» |
+| `elena-saluto-it` | 8 s | Saluta (testa, diamante, riflesso) e dice «Sono la jewelry expert di Uniqaia. In sei passi ti spiego come si entra…» (rigirata il 6/11) |
 | `elena-lente-it` | 7 s | alza la lente e dice «Ti arriva subito un'email di conferma, e valutiamo il tuo brand entro 24 ore.» |
 | `elena-diamante-it` | 8 s | mostra il diamante due volte mentre parla della diretta |
 | `elena-attesa` | 8 s | non parla: respira, si muove, saluta e mostra il diamante (sfondo per un post o una storia) |
-| `elena-libera-saluto-it` | 8 s | **non si usa** (dice «gemmologa GIA»). Mani libere: saluta con la mano verso il fumetto, poi apre le braccia; dice «Sono la gemmologa GIA di Uniqaia. In sei passi ti spiego come si entra…» |
-| `elena-libera-saluto-en` | 8 s | **non si usa** (dice «GIA gemologist»). La stessa scena, con la bocca che dice la battuta inglese del copione |
+| `elena-libera-saluto-it` | 8 s | Mani libere: saluta con la mano verso il fumetto, poi apre le braccia; dice «Sono la jewelry expert di Uniqaia. In sei passi ti spiego come si entra…» (rigirata il 6/11) |
+| `elena-libera-saluto-en` | 8 s | La stessa scena, con la bocca che dice «I'm Uniqaia's jewelry expert…» (rigirata il 6/11) |
 | `elena-libera-presenta-it` | 8 s | apre le braccia, poi indica il fumetto, mentre parla della diretta (passo «Vai in onda») |
 | `elena-libera-attesa` | 8 s | non parla: respira, saluta, apre le braccia (sfondo per un post o una storia). **In loop**: l'ultimo secondo sfuma nel primo, ripetuta non ha scatti |
 

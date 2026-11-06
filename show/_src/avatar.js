@@ -3,7 +3,7 @@
  * Gemma è la jewelry expert della piattaforma: mai presentata come gemmologa GIA (decisione legale di Elena).
  * Contratto del rig: ops/avatar/RIG.md.
  *
- * Elena, in versione illustrata, entra nella sezione e spiega in sei passi come si entra in Uniqaia:
+ * Gemma (il volto di Elena, in versione illustrata) entra nella sezione e spiega in sei passi come si entra in Uniqaia:
  * account, candidatura, valutazione entro 24 ore, link di pagamento, palinsesto, diretta.
  *
  * Parla: mentre il fumetto si riempie, la bocca dice le parole (sillaba per sillaba, a ritmo di voce), in silenzio

@@ -11,6 +11,7 @@
     <button class="tab" type="button" data-to="soon" data-t="tabSoon"></button>
     <button class="tab" type="button" data-to="browse" data-t="tabCats"></button>
     <button class="tab" type="button" data-to="shops" data-t="tabShops"></button>
+    <button class="tabjoin" type="button" id="tabJoin" data-t="jTitle" style="flex:none;align-self:center;margin-inline-start:6px;position:sticky;inset-inline-end:0;z-index:1;box-shadow:-14px 0 12px -4px var(--paper);padding:8px 16px;font-size:14px;font-weight:600;letter-spacing:.02em;color:var(--gold-ink);background:linear-gradient(180deg,var(--gold-hi),var(--gold));border:1px solid var(--gold-edge);border-radius:999px;white-space:nowrap;cursor:pointer"></button>
   </nav>
   <div class="cats" id="cats"></div>
   <div class="hero" id="hero"><div class="track" id="track"></div><button class="arr prev" type="button" id="prevSlide" aria-label="‹">‹</button><button class="arr next" type="button" id="nextSlide" aria-label="›">›</button><div class="dots" id="dots"></div></div>
@@ -48,6 +49,10 @@
   function pal(key){ var h = 0; for (var i = 0; i < key.length; i++) h = (h * 31 + key.charCodeAt(i)) >>> 0; return PAL[h % PAL.length].split(","); }
   function title(s){ var i = s.title_i18n || {}; return i[lang] || (lang !== "it" && i.en) || s.title; }
   function kindLabel(j){ return j.kind === "gems" ? t.gems : t.shop; }
+  // Home, 6/11/2026: restano visibili solo queste 6 categorie e queste 6 slide, con il titolo qui sotto e senza sottotitolo. Le altre sono intatte nel database.
+  var HOME = {"cats":{"nuovi-talenti":"Independent Designers","gemme-di-colore":"Specials: Paraiba","perle":"Pearls & Corals","fatto-a-mano":"The Gem Room","made-in-italy":"Precious Objects","gioielli-indiani":"Collection"},"slides":{"h0006b902-4b5a-4b09-8da3-a43c4e6b23b9":"Independent Designers","h571995b3-38c4-489f-84ff-b4b8116badfd":"Specials: Paraiba","s1de93cf4-1489-46bb-8eec-4e83d822c02a":"Pearls & Corals","hdf891468-4660-490a-b3a7-a3f06d5cc865":"The Gem Room","hb874aefd-1994-4ad7-8263-d24e4e1b5068":"Precious Objects","he39c5743-9aa6-4c42-b626-400a32319a1c":"Collection"}};
+  function shownCat(c){ return HOME.cats.hasOwnProperty(c.slug); }
+  function tileName(slug){ return HOME.cats.hasOwnProperty(slug) ? HOME.cats[slug] : catName(slug); }
   function catName(slug){ var c = null; for (var i = 0; i < state.cats.length; i++) if (state.cats[i].slug === slug) c = state.cats[i]; if (!c) return slug; var n = c.name_i18n || {}; return n[lang] || n.en || n.it || slug; }
   var FOLLOWS = []; try { FOLLOWS = JSON.parse(localStorage.getItem("vetrina-follows") || "[]"); } catch(e){}
   function followed(j){ return FOLLOWS.indexOf(j.slug) >= 0; }
@@ -58,19 +63,19 @@
   function renderCats(){
     var box = $("cats"); box.innerHTML = "";
     var all = document.createElement("button"); all.type = "button"; all.className = state.cat ? "" : "on"; all.textContent = t.catAll; all.addEventListener("click", function(){ setCat(""); }); box.appendChild(all);
-    state.cats.forEach(function(c){
+    state.cats.filter(shownCat).forEach(function(c){
       var n = state.shows.filter(function(s){ return (s.categories || []).indexOf(c.slug) >= 0; }).length;
-      var b = document.createElement("button"); b.type = "button"; b.className = state.cat === c.slug ? "on" : ""; b.innerHTML = esc(catName(c.slug)) + (n ? '<small>' + n + '</small>' : '');
+      var b = document.createElement("button"); b.type = "button"; b.className = state.cat === c.slug ? "on" : ""; b.innerHTML = esc(tileName(c.slug)) + (n ? '<small>' + n + '</small>' : '');
       b.addEventListener("click", function(){ setCat(c.slug); }); box.appendChild(b);
     });
   }
   function renderTiles(){
     var box = $("tiles"); box.innerHTML = "";
-    state.cats.forEach(function(c){
+    state.cats.filter(shownCat).forEach(function(c){
       var n = state.shows.filter(function(s){ return (s.categories || []).indexOf(c.slug) >= 0; }).length;
       var p = pal(c.slug);
-      var b = document.createElement("button"); b.type = "button"; b.className = "tile" + (state.cat === c.slug ? " on" : ""); b.style.cssText = "--c1:" + p[0] + ";--c2:" + p[1];
-      b.innerHTML = (CFG.art[c.art] || CFG.art.ring) + '<b>' + esc(catName(c.slug)) + '</b><small>' + esc(nShows(n)) + '</small>';
+      var b = document.createElement("button"); b.type = "button"; b.className = "tile ph" + (state.cat === c.slug ? " on" : ""); b.style.cssText = "--c1:" + p[0] + ";--c2:" + p[1];
+      b.innerHTML = '<img class="ti" alt="" loading="lazy" src="' + CFG.base + "/show/img/tiles/" + c.slug + '.jpg" onerror="this.parentNode.classList.remove(\'ph\');this.remove()">' + (CFG.art[c.art] || CFG.art.ring) + '<b>' + esc(tileName(c.slug)) + '</b>';
       b.addEventListener("click", function(){ setCat(c.slug); var el = $("live"); if (el) el.scrollIntoView({ behavior:"smooth", block:"start" }); });
       box.appendChild(b);
     });
@@ -112,7 +117,7 @@
     // voce che pulsa a vuoto e' una bugia, e dopo due volte non la guarda piu' nessuno.
     var tLive = document.querySelector('.tab[data-to="live"]');
     if (tLive) tLive.classList.toggle("haslive", rows.length > 0);
-    $("emptyLive").innerHTML = state.cat ? '<b>' + esc(catName(state.cat)) + '</b>' + esc(t.noneCat) : '<b>' + esc(t.emptyLiveT) + '</b>' + esc(t.emptyLive);
+    $("emptyLive").innerHTML = state.cat ? '<b>' + esc(tileName(state.cat)) + '</b>' + esc(t.noneCat) : '<b>' + esc(t.emptyLiveT) + '</b>' + esc(t.emptyLive);
   }
   function renderSoon(){
     var g = $("gridSoon"); g.innerHTML = "";
@@ -125,7 +130,7 @@
       g.appendChild(d);
     });
     $("emptySoon").hidden = true; $("soon").hidden = rows.length === 0;
-    $("emptySoon").innerHTML = state.cat ? '<b>' + esc(catName(state.cat)) + '</b>' + esc(t.noneCat) : '<b>' + esc(t.emptySoonT) + '</b>' + esc(t.emptySoon);
+    $("emptySoon").innerHTML = state.cat ? '<b>' + esc(tileName(state.cat)) + '</b>' + esc(t.noneCat) : '<b>' + esc(t.emptySoonT) + '</b>' + esc(t.emptySoon);
   }
   function icsUrl(s, j){
     function z(d){ return d.toISOString().replace(/[-:]/g, "").replace(/\.\d{3}/, ""); }
@@ -151,13 +156,15 @@
   function slides(){
     var hl = [], sh = [];
     state.highlights.forEach(function(h){
+      if (!HOME.slides.hasOwnProperty("h" + h.id)) return;
       var l = h.link || "", art = l.indexOf("cat:") === 0 ? catArt(l.slice(4)) : CFG.art.sparkle;
-      hl.push({ key: "h" + h.id, img: h.image || "", video: h.video_url || "", art: art, eyebrow: "", title: i18n(h.title_i18n), sub: i18n(h.subtitle_i18n), cta: t.discover, href: linkOf(h), live: false });
+      hl.push({ key: "h" + h.id, img: h.image || "", video: h.video_url || "", art: art, eyebrow: "", title: HOME.slides["h" + h.id], sub: "", cta: t.discover, href: linkOf(h), live: false });
     });
     weekShows().forEach(function(s){
+      if (!HOME.slides.hasOwnProperty("s" + s.id)) return;
       var j = state.jewelers[s.jeweler_id], live = s.status === "live";
       var firstCat = (s.categories || [])[0];
-      sh.push({ key: "s" + s.id, img: state.covers[s.id] || state.photos[s.id] || "", art: s.pieces && s.pieces[0] ? (CFG.art[s.pieces[0].art] || CFG.art.ring) : catArt(firstCat), eyebrow: (firstCat ? catName(firstCat) + " · " : "") + j.name, title: title(s), sub: live ? t.heroLive : t.liveOn.replace("{day}", fweek(s.scheduled_at)).replace("{time}", ftime(s.scheduled_at)), cta: live ? t.enter : t.discover, href: showUrl(s, j), live: live });
+      sh.push({ key: "s" + s.id, img: state.covers[s.id] || state.photos[s.id] || "", art: s.pieces && s.pieces[0] ? (CFG.art[s.pieces[0].art] || CFG.art.ring) : catArt(firstCat), eyebrow: (firstCat ? catName(firstCat) + " · " : "") + j.name, title: HOME.slides["s" + s.id], sub: "", cta: live ? t.enter : t.discover, href: showUrl(s, j), live: live });
     });
     // una slide editoriale, una diretta: così le dirette della settimana restano in vista
     var out = [], i = 0, j = 0;
@@ -335,6 +342,11 @@
   Array.prototype.forEach.call(document.querySelectorAll(".tab"), function(tb){
     tb.addEventListener("click", function(){ Array.prototype.forEach.call(document.querySelectorAll(".tab"), function(x){ x.classList.remove("on"); }); tb.classList.add("on"); var el = $(tb.getAttribute("data-to")); if (el && el.hidden) el = $("hero"); if (el) el.scrollIntoView({ behavior:"smooth", block:"start" }); });
   });
+  // «Trasmetti con noi»: apre la ruota di benvenuto; se la ruota non c'è (spenta o non caricata) porta a /join
+  $("tabJoin").addEventListener("click", function(){
+    var st = window.UQWheel && UQWheel.state && UQWheel.state();
+    if (st && st.mode && st.mode !== "off") UQWheel.open(); else location.href = CFG.base + '/live/join?lang=' + lang;
+  });
   $("q").addEventListener("input", function(){ var q = this.value.trim().toLowerCase(); Array.prototype.forEach.call(document.querySelectorAll(".grid > *"), function(c){ c.hidden = q && c.textContent.toLowerCase().indexOf(q) < 0; }); });
 
   // presenze (spettatori) per ogni diretta in corso
@@ -396,5 +408,8 @@
   }
   renderStatic(); boot();
 })();
+</script>
+<script>
+{{WHEEL}}
 </script>
 </body></html>

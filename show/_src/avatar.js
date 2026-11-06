@@ -39,7 +39,7 @@
 
   // ---------------------------------------------------------------- visibilità
   // "anteprima": solo con ?avatar=preview (o ?avatar=voce); "pubblico": per tutti; "spento": per nessuno.
-  var MODE = "anteprima";
+  var MODE = "pubblico";   // per tutti dal 6 novembre 2026 (decisione di Elena); ?avatar=off la spegne
   var QS = new URLSearchParams(location.search), q = (QS.get("avatar") || "").toLowerCase();
   try { if (q) sessionStorage.setItem("uqa-q", q); else q = sessionStorage.getItem("uqa-q") || ""; } catch (e) {}
   var NOOP = { mount: function () {}, say: function () { return Promise.resolve(); }, gesture: function () {}, mouth: function () {} };
@@ -952,8 +952,8 @@
   // ---------------------------------------------------------------- API
   function mount(slot, l, opts) {
     if (!slot) return;
-    // la figura si sceglie al primo mount (poi resta quella): opzione, data-figura sul contenitore, ?figura= per le prove
-    if (!built) { var f0 = (opts && opts.figura) || slot.getAttribute("data-figura") || QS.get("figura"); if (f0) pick(f0); }
+    // la figura si sceglie al primo mount (poi resta quella): opzione, ?figura= per le prove, data-figura sul contenitore
+    if (!built) { var f0 = (opts && opts.figura) || QS.get("figura") || slot.getAttribute("data-figura"); if (f0) pick(f0); }
     build();
     var nl = TXT[l] ? l : (TXT[lang] ? lang : "it"), changed = nl !== lang || !T;
     lang = nl; T = TXT[lang];

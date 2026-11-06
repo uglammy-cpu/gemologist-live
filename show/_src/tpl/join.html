@@ -248,12 +248,12 @@
     Array.prototype.forEach.call(document.querySelectorAll("#langMenu button"), function(b){ b.classList.toggle("on", b.getAttribute("data-lang") === lang); });
     collect();
     $("page").innerHTML = '<span class="eyebrow">' + esc(t.jEyebrow) + '</span><h1>' + esc(t.jTitle) + '</h1><p class="lead">' + esc(t.jLead) + '</p>' +
-      '<div id="uqaSlot" style="display:contents"></div>' +
+      '<div id="uqaSlot" data-figura="libera" style="display:contents"></div>' +
       '<h3>' + esc(t.jWhatH) + '</h3>' + li(t.jWhat) + '<h3>' + esc(t.jWhoH) + '</h3>' + li(t.jWho) +
       '<div class="price"><b>' + esc(eur(((ST.terms && ST.terms.price_cents) || 14900))) + '</b> ' + esc(t.jPrice) + '</div>' +
       '<section class="acct" id="acct" aria-live="polite"></section>';
     renderAcct();
-    // l'avatar di Elena (avatar.js) si rimette nel suo posto a ogni ridisegno, senza ripartire da capo
+    // Gemma, l'avatar di Elena (avatar.js), a mani libere su /join dal 6/11/2026, si rimette nel suo posto a ogni ridisegno, senza ripartire da capo
     if (window.UQAvatar) UQAvatar.mount($("uqaSlot"), lang);
   }
 

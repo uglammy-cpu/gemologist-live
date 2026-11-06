@@ -227,6 +227,10 @@ body.dark{background:#0E0B07;color:#F7EBCB;padding:0}
 .tile b{font-family:var(--display);font-size:17px;line-height:1.15;position:relative;text-shadow:0 2px 10px rgba(0,0,0,.55);font-weight:400}
 .tile small{font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;opacity:.85;position:relative}
 .tile.on{outline:3px solid var(--gold);outline-offset:-3px}
+.tile img.ti{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:0}
+.tile.ph::before{display:none}.tile.ph svg{display:none}
+.tile.ph::after{content:"";position:absolute;inset:0;z-index:1;background:linear-gradient(to top,rgba(0,0,0,.74) 0%,rgba(0,0,0,.32) 36%,transparent 62%)}
+.tile.ph b{z-index:2}
 .ctitle small{display:block;font-family:var(--body);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:#EDD596;margin-bottom:3px;text-shadow:none}
 .phead{display:flex;gap:16px;align-items:flex-start;margin-top:18px}
 .phead .big{width:72px;height:72px;border-radius:50%;background:var(--soft-2);color:var(--gold-edge);display:grid;place-items:center;font-family:var(--display);font-size:28px;border:2px solid var(--gold);flex:none}
@@ -773,12 +777,12 @@ function lkAttachRemote(room, tiles, LK){
     Array.prototype.forEach.call(document.querySelectorAll("#langMenu button"), function(b){ b.classList.toggle("on", b.getAttribute("data-lang") === lang); });
     collect();
     $("page").innerHTML = '<span class="eyebrow">' + esc(t.jEyebrow) + '</span><h1>' + esc(t.jTitle) + '</h1><p class="lead">' + esc(t.jLead) + '</p>' +
-      '<div id="uqaSlot" style="display:contents"></div>' +
+      '<div id="uqaSlot" data-figura="libera" style="display:contents"></div>' +
       '<h3>' + esc(t.jWhatH) + '</h3>' + li(t.jWhat) + '<h3>' + esc(t.jWhoH) + '</h3>' + li(t.jWho) +
       '<div class="price"><b>' + esc(eur(((ST.terms && ST.terms.price_cents) || 14900))) + '</b> ' + esc(t.jPrice) + '</div>' +
       '<section class="acct" id="acct" aria-live="polite"></section>';
     renderAcct();
-    // l'avatar di Elena (avatar.js) si rimette nel suo posto a ogni ridisegno, senza ripartire da capo
+    // Gemma, l'avatar di Elena (avatar.js), a mani libere su /join dal 6/11/2026, si rimette nel suo posto a ogni ridisegno, senza ripartire da capo
     if (window.UQAvatar) UQAvatar.mount($("uqaSlot"), lang);
   }
 
@@ -1037,9 +1041,11 @@ function lkAttachRemote(room, tiles, LK){
 @media (max-width:640px){.jform{grid-template-columns:1fr}.files{grid-template-columns:1fr}.userbar{text-align:start}}
 </style>
 <script>
-/* THE JEWELER'S WHEEL — pop-up di benvenuto della pagina /join (4 novembre 2026, percorso con account)
+/* THE JEWELER'S WHEEL — pop-up di benvenuto della pagina /join e della home (4 novembre 2026, percorso con account)
  *
- * Script autonomo accanto alla pagina /join.
+ * Script autonomo accanto alla pagina /join e alla home (vetrina).
+ * - In home si apre dopo la schermata di benvenuto della prima visita, e anche dal pulsante «Trasmetti con noi»
+ *   (window.UQWheel.open). REGISTER & APPLY dalla home porta all'area account di /join.
  * - Il premio lo decide il server (wheel_spin); qui si disegna solo l'animazione.
  * - Modalità "demo": visibile solo con ?wheel=preview, con l'etichetta "demo" ben in vista.
  * - Modalità "live": compare a tutti appena si apre la pagina.
@@ -1051,7 +1057,8 @@ function lkAttachRemote(room, tiles, LK){
  */
 (function () {
   "use strict";
-  var W = { url: "https://itoxzepuukyvdxxtfetf.supabase.co", key: "sb_publishable_Y6m8EWUZt97nSTmYBsRwYg_Fnzidatk" };
+  // join: indirizzo della pagina /join (la build lo riscrive con il prefisso del sito)
+  var W = { url: "https://itoxzepuukyvdxxtfetf.supabase.co", key: "sb_publishable_Y6m8EWUZt97nSTmYBsRwYg_Fnzidatk", join: "/join/?lang=" };
   if (!window.fetch || !W.url || /\{\{/.test(W.url)) return;
 
   // ---------------------------------------------------------------- testi
@@ -1425,7 +1432,8 @@ function lkAttachRemote(room, tiles, LK){
   function apply() {
     track("claim_click"); close(true);
     var box = document.getElementById("acct");
-    if (!box) { location.href = (location.pathname.replace(/[^/]*$/, "") || "/") + "#acct"; return; }
+    // fuori da /join (per esempio dalla home) si va all'area account della pagina /join
+    if (!box) { location.href = W.join + lang() + "#acct"; return; }
     var top = box.getBoundingClientRect().top + window.pageYOffset - 12;
     window.scrollTo({ top: top, behavior: window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" });
     setTimeout(function () { var f = box.querySelector("input:not([type=hidden]):not([disabled]),select,textarea,button.btn"); if (f) f.focus({ preventScroll: true }); }, 450);
@@ -1535,7 +1543,17 @@ function lkAttachRemote(room, tiles, LK){
     build(); observe(); changed();
     var dead = S.spin && (S.spin.status === "void" || S.spin.status === "redeemed");
     // chiuso in questa sessione: non si riapre da solo; nuova sessione: si riapre, con il premio già assegnato
-    if (get(SS, "uqw-closed") !== "1" && !dead && !/#acct$/.test(location.hash)) open(true); else syncFab();
+    function auto() { if (get(SS, "uqw-closed") !== "1" && !dead && !/#acct$/.test(location.hash)) open(true); else syncFab(); }
+    // in home, alla prima visita, c'è la schermata di benvenuto: la ruota si apre quando la si chiude
+    var wl = document.getElementById("welcome");
+    // se il benvenuto non compare entro 4 secondi (per esempio un servizio esterno lento), la ruota si apre lo stesso
+    if (wl && get(LS, "vetrina-welcomed") !== "1") {
+      var t0 = Date.now(), seen = false;
+      var iv = setInterval(function () {
+        if (!wl.hidden && wl.innerHTML) seen = true;
+        if (get(LS, "vetrina-welcomed") === "1" || (seen && wl.hidden) || (!seen && Date.now() - t0 > 4000)) { clearInterval(iv); auto(); }
+      }, 400);
+    } else auto();
   }).catch(function () {});
 })();
 
@@ -1582,7 +1600,7 @@ function lkAttachRemote(room, tiles, LK){
 
   // ---------------------------------------------------------------- visibilità
   // "anteprima": solo con ?avatar=preview (o ?avatar=voce); "pubblico": per tutti; "spento": per nessuno.
-  var MODE = "anteprima";
+  var MODE = "pubblico";   // per tutti dal 6 novembre 2026 (decisione di Elena); ?avatar=off la spegne
   var QS = new URLSearchParams(location.search), q = (QS.get("avatar") || "").toLowerCase();
   try { if (q) sessionStorage.setItem("uqa-q", q); else q = sessionStorage.getItem("uqa-q") || ""; } catch (e) {}
   var NOOP = { mount: function () {}, say: function () { return Promise.resolve(); }, gesture: function () {}, mouth: function () {} };
@@ -2495,8 +2513,8 @@ function lkAttachRemote(room, tiles, LK){
   // ---------------------------------------------------------------- API
   function mount(slot, l, opts) {
     if (!slot) return;
-    // la figura si sceglie al primo mount (poi resta quella): opzione, data-figura sul contenitore, ?figura= per le prove
-    if (!built) { var f0 = (opts && opts.figura) || slot.getAttribute("data-figura") || QS.get("figura"); if (f0) pick(f0); }
+    // la figura si sceglie al primo mount (poi resta quella): opzione, ?figura= per le prove, data-figura sul contenitore
+    if (!built) { var f0 = (opts && opts.figura) || QS.get("figura") || slot.getAttribute("data-figura"); if (f0) pick(f0); }
     build();
     var nl = TXT[l] ? l : (TXT[lang] ? lang : "it"), changed = nl !== lang || !T;
     lang = nl; T = TXT[lang];

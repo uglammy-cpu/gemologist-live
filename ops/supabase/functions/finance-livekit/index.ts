@@ -4,9 +4,14 @@
 // Accetta solo chiamate firmate da LiveKit: JWT HS256 con la chiave API del progetto (iss) e lo sha256 del corpo.
 // Non salva nomi, metadati o attributi dei partecipanti: solo identità tecniche (staff:/viewer:/agent-) e orari.
 // Installata il 6 novembre 2026 con l'autorizzazione di Elena. Verify JWT di Supabase disattivato: la firma la controlla questa funzione.
+// Fine diretta: quando si chiude la stanza di una diretta vera il database la mette in coda (finance.report_dirette)
+// e questa funzione avvia l'agente FINANCE con il suo avvio via API, se sono impostati i segreti
+// FINANCE_FIRE_URL e FINANCE_FIRE_TOKEN (generati da Elena su claude.ai/code/routines). Senza segreti resta solo la coda.
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL") ?? "";
 const SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
+const FIRE_URL = Deno.env.get("FINANCE_FIRE_URL") ?? "";
+const FIRE_TOKEN = Deno.env.get("FINANCE_FIRE_TOKEN") ?? "";
 const enc = new TextEncoder();
 const dec = new TextDecoder();
 
@@ -69,6 +74,39 @@ async function verify(token: string, body: string, cfg: LkConfig): Promise<strin
   return null;
 }
 
+// Avvia l'agente FINANCE per le dirette vere appena concluse. Non fa mai fallire la ricezione del webhook.
+async function avviaFinance(): Promise<void> {
+  if (!FIRE_URL || !FIRE_TOKEN) return;
+  let url: URL;
+  try { url = new URL(FIRE_URL); } catch { console.error("FINANCE_FIRE_URL non valido"); return; }
+  if (url.protocol !== "https:" || url.hostname !== "api.anthropic.com") { console.error("FINANCE_FIRE_URL non ammesso"); return; }
+  const dirette = (await rpc("finance_report_da_avviare", {})) as { show_id: string; stato: string }[];
+  if (!Array.isArray(dirette) || dirette.length === 0) return;
+  const ids = dirette.map((d) => d.show_id);
+  let ok = false;
+  let esito = "";
+  try {
+    const r = await fetch(url, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${FIRE_TOKEN}`,
+        "anthropic-version": "2023-06-01",
+        "anthropic-beta": "experimental-cc-routine-2026-04-01",
+        "content-type": "application/json",
+      },
+      body: JSON.stringify({ text: `Fine diretta: report da fare per ${dirette.map((d) => `show ${d.show_id} (${d.stato})`).join(", ")}.` }),
+      signal: AbortSignal.timeout(15_000),
+    });
+    ok = r.ok;
+    esito = `${ok ? "avviata" : "avvio non riuscito"} (HTTP ${r.status})`;
+    if (!ok) console.error("avvio FINANCE", r.status, (await r.text()).slice(0, 300));
+  } catch (e) {
+    esito = `avvio non riuscito (${String(e).slice(0, 120)})`;
+    console.error("avvio FINANCE", String(e));
+  }
+  await rpc("finance_report_avvio_esito", { p_ids: ids, p_ok: ok, p_esito: esito });
+}
+
 Deno.serve(async (req: Request) => {
   if (req.method !== "POST") return new Response("Method not allowed", { status: 405 });
   const body = await req.text();
@@ -105,6 +143,9 @@ Deno.serve(async (req: Request) => {
 
   try {
     const r = await rpc("finance_livekit_ingest", { p: slim });
+    if (slim.event === "room_finished") {
+      try { await avviaFinance(); } catch (e) { console.error("avvio FINANCE", String(e)); }
+    }
     return json(r);
   } catch (e) {
     // 500: LiveKit ritenta l'invio qualche volta

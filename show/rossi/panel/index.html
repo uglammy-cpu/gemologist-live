@@ -525,6 +525,14 @@ label input,label select,label textarea{width:100%}
       <div class="clock" id="clock" hidden><b id="clockT">60:00</b><span id="clockS"></span></div>
       <div class="cam-actions"><button class="btn dark sm" type="button" id="camBtn">Accendi la camera</button><button class="btn sm" type="button" id="micBtn" hidden>Microfono: on</button><button class="btn sm" type="button" id="flipBtn" hidden>Cambia camera</button></div>
       <p class="hint" id="camWho"></p>
+      <p class="eyebrow" style="margin-top:6px">Anche su Instagram</p>
+      <div id="social" style="display:flex;flex-direction:column;gap:8px">
+        <p class="hint" style="text-align:start;margin:0">Una copia di questa diretta va in onda anche sul tuo Instagram (account professionale). Da computer apri instagram.com, poi <b>+ Crea → Diretta → Streaming via RTMP</b>: copia qui l’URL e la chiave dello stream, premi «Avvia» e su Instagram premi «Vai in diretta». La chiave vale una sola volta.</p>
+        <input id="socUrl" type="url" inputmode="url" placeholder="URL dello stream (rtmps://…)" autocomplete="off" spellcheck="false">
+        <input id="socKey" type="password" placeholder="Chiave dello stream" autocomplete="off" spellcheck="false">
+        <div class="cam-actions"><button class="btn dark sm" type="button" id="socBtn">Avvia su Instagram</button></div>
+        <p class="hint" style="text-align:start;margin:0" id="socState"></p>
+      </div>
       <p class="eyebrow" style="margin-top:6px">Pezzo in primo piano</p>
       <div class="pieces" id="pieces"></div>
       <button class="btn sm" type="button" id="addPiece">Aggiungi un pezzo</button>
@@ -753,7 +761,7 @@ function lkAttachRemote(room, tiles, LK){
     $("visHint").textContent = s.visibility === "public" ? "Compare nella vetrina pubblica: chiunque può entrare." : "Entra solo chi ha il link o un invito personale.";
     $("stats").hidden = false; $("likesN").textContent = s.likes || 0;
     $("jinfo").textContent = state.jeweler.name + " · " + (state.jeweler.city || "città non indicata") + " · " + (KINDS[state.jeweler.kind] || "Gioielleria") + ((state.jeweler.categories || []).length ? " · " + state.jeweler.categories.map(catName).join(", ") : "");
-    renderHeader(); renderPieces();
+    renderHeader(); renderPieces(); socSync();
     document.title = "Pannello · " + s.title;
   }
   function renderPieces(){
@@ -833,6 +841,42 @@ function lkAttachRemote(room, tiles, LK){
       camUi();
     }).then(function(){ cam.busy = false; $("camBtn").disabled = false; });
   }
+  // ---- Anche su Instagram: una copia della diretta via LiveKit (rotta /social della funzione video)
+  var soc = { on:false, busy:false, checked:"" };
+  function socEndpoint(){ return CFG.tokenUrl.replace(/\/token$/, "/social"); }
+  function socCall(action, extra){
+    var body = { show: state.show.id, k: CFG.token, action: action }; if (extra) for (var x in extra) body[x] = extra[x];
+    return fetch(socEndpoint(), { method:"POST", headers:{ "content-type":"application/json" }, body: JSON.stringify(body), cache:"no-store" }).then(function(r){ return r.json().catch(function(){ return { error: "Risposta non valida (" + r.status + ")" }; }); });
+  }
+  function socUi(){
+    $("socBtn").textContent = soc.on ? "Ferma la copia su Instagram" : "Avvia su Instagram";
+    $("socBtn").className = soc.on ? "btn sm" : "btn dark sm";
+    $("socUrl").disabled = soc.on; $("socKey").disabled = soc.on;
+    $("socState").textContent = soc.on ? "Copia attiva. Su Instagram premi «Vai in diretta» quando vedi l’anteprima. Quando termini la diretta qui, si ferma anche lì." : "";
+  }
+  function socSync(){
+    var s = state.show; if (!s) return;
+    if (s.status !== "live"){ soc.on = false; soc.checked = ""; socUi(); return; }
+    if (soc.checked === s.id){ socUi(); return; }
+    soc.checked = s.id;
+    socCall("status").then(function(j){ if (j && !j.error){ soc.on = !!j.on; socUi(); } }).catch(function(){});
+  }
+  function socStop(){ if (!soc.on) return; socCall("stop").then(function(){ soc.on = false; socUi(); }).catch(function(){}); }
+  $("socBtn").addEventListener("click", function(){
+    if (soc.busy || !state.show) return;
+    var start = !soc.on, u = ($("socUrl").value || "").trim(), k = ($("socKey").value || "").trim();
+    if (start){
+      if (state.show.status !== "live"){ toast("Prima premi «Inizia la diretta»"); return; }
+      if (!cam.room){ toast("Prima accendi la camera"); return; }
+      if (!/^rtmps?:\/\//i.test(u) || !k){ toast("Incolla URL e chiave dello stream da Instagram"); return; }
+    }
+    soc.busy = true; $("socBtn").disabled = true;
+    socCall(start ? "start" : "stop", start ? { url: u, key: k } : null).then(function(j){
+      if (!j || j.error){ toast((j && j.error) || "Errore"); return; }
+      soc.on = !!j.on; if (!soc.on) $("socKey").value = "";
+      socUi(); toast(soc.on ? "Copia avviata verso Instagram" : "Copia su Instagram fermata");
+    }).catch(function(){ toast("Collegamento non riuscito: riprova"); }).then(function(){ soc.busy = false; $("socBtn").disabled = false; });
+  });
   function stopCam(){ if (!cam.room) return; var r = cam.room; cam.room = null; r.disconnect(); if (cam.tiles) cam.tiles.clear(); camUi(); camWho(); stopCovers(); toast("Camera spenta"); }
   // Copertina per la vetrina: un fotogramma della camera ogni 20 secondi
   function captureCover(){
@@ -1110,7 +1154,7 @@ function lkAttachRemote(room, tiles, LK){
     if (s.status === "scheduled") next = "live";
     else if (s.status === "live"){ if (!state.pendingStop){ state.pendingStop = true; this.textContent = "Confermi? Termina la diretta"; return; } next = "ended"; }
     else next = "scheduled";
-    sb.rpc("set_show_status", { p_show: s.id, p_token: CFG.token, p_status: next }).then(function(r){ if (!err(r)){ s.status = next; renderShow(); if (next === "ended" && cam.room) stopCam(); toast(next === "live" ? "Sei in diretta" : (next === "ended" ? "Diretta terminata" : "Diretta riaperta: in programma")); } });
+    sb.rpc("set_show_status", { p_show: s.id, p_token: CFG.token, p_status: next }).then(function(r){ if (!err(r)){ s.status = next; renderShow(); if (next === "ended"){ if (cam.room) stopCam(); socStop(); } toast(next === "live" ? "Sei in diretta" : (next === "ended" ? "Diretta terminata" : "Diretta riaperta: in programma")); } });
   });
   $("form").addEventListener("submit", function(e){
     e.preventDefault(); var body = ($("msg").value || "").trim(); if (!body) return; $("msg").value = "";

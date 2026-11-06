@@ -74,8 +74,8 @@
     state.cats.filter(shownCat).forEach(function(c){
       var n = state.shows.filter(function(s){ return (s.categories || []).indexOf(c.slug) >= 0; }).length;
       var p = pal(c.slug);
-      var b = document.createElement("button"); b.type = "button"; b.className = "tile" + (state.cat === c.slug ? " on" : ""); b.style.cssText = "--c1:" + p[0] + ";--c2:" + p[1];
-      b.innerHTML = (CFG.art[c.art] || CFG.art.ring) + '<b>' + esc(tileName(c.slug)) + '</b>';
+      var b = document.createElement("button"); b.type = "button"; b.className = "tile ph" + (state.cat === c.slug ? " on" : ""); b.style.cssText = "--c1:" + p[0] + ";--c2:" + p[1];
+      b.innerHTML = '<img class="ti" alt="" loading="lazy" src="' + CFG.base + "/show/img/tiles/" + c.slug + '.jpg" onerror="this.parentNode.classList.remove(\'ph\');this.remove()">' + (CFG.art[c.art] || CFG.art.ring) + '<b>' + esc(tileName(c.slug)) + '</b>';
       b.addEventListener("click", function(){ setCat(c.slug); var el = $("live"); if (el) el.scrollIntoView({ behavior:"smooth", block:"start" }); });
       box.appendChild(b);
     });

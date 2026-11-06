@@ -1,5 +1,6 @@
 // Edge function "live": renderer delle pagine (template in tabella app_pages) + token LiveKit.
 // Rotte: /live (vetrina) · /live/join · /live/<slug> (viewer) · /live/<slug>/panel?k= · /live/<slug>/token
+//        POST /live/<slug>/social: copia della diretta su Instagram, Facebook o YouTube (LiveKit Egress)
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL") ?? "";
 const ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY") ?? "";
 const SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
@@ -142,6 +143,105 @@ async function tokenRoute(slug: string, url: URL): Promise<Response> {
   return json({ url: cfg.url, token, identity, role: "viewer" });
 }
 
+// ---- Diretta anche sui social: una copia del video verso Instagram, Facebook o YouTube (LiveKit Egress, RTMP) ----
+// La chiave di trasmissione la incolla il venditore dal suo account: si usa per questa diretta e non si salva.
+const SOCIAL_HOSTS = [/\.fbcdn\.net$/, /\.facebook\.com$/, /\.instagram\.com$/, /(^|\.)youtube\.com$/];
+function socialDest(rawUrl: unknown, rawKey: unknown): string | null {
+  let u = String(rawUrl ?? "").trim();
+  const k = String(rawKey ?? "").trim();
+  if (!/^rtmps?:\/\//i.test(u)) return null;
+  if (k) u = u.replace(/\/+$/, "") + "/" + k.replace(/^\/+/, "");
+  if (u.length > 600 || /[\s"'<>]/.test(u)) return null;
+  let host = "";
+  try { host = new URL(u.replace(/^rtmps?:/i, "https:")).hostname.toLowerCase(); } catch { return null; }
+  return SOCIAL_HOSTS.some((re) => re.test(host)) ? u : null;
+}
+async function lkJwt(cfg: LkConfig, video: Record<string, unknown>, ttlSec = 600): Promise<string> {
+  const enc = new TextEncoder();
+  const now = Math.floor(Date.now() / 1000);
+  const header = b64url(enc.encode(JSON.stringify({ alg: "HS256", typ: "JWT" })));
+  const payload = b64url(enc.encode(JSON.stringify({ iss: cfg.api_key, sub: "uniqaia-social", nbf: now - 30, exp: now + ttlSec, jti: crypto.randomUUID(), video })));
+  const key = await crypto.subtle.importKey("raw", enc.encode(cfg.api_secret), { name: "HMAC", hash: "SHA-256" }, false, ["sign"]);
+  const sig = new Uint8Array(await crypto.subtle.sign("HMAC", key, enc.encode(`${header}.${payload}`)));
+  return `${header}.${payload}.${b64url(sig)}`;
+}
+// deno-lint-ignore no-explicit-any
+async function egress(cfg: LkConfig, room: string, method: string, body: Record<string, unknown>): Promise<any> {
+  const host = cfg.url.replace(/^wss:/, "https:").replace(/^ws:/, "http:").replace(/\/+$/, "");
+  const r = await fetch(`${host}/twirp/livekit.Egress/${method}`, {
+    method: "POST",
+    headers: { Authorization: `Bearer ${await lkJwt(cfg, { room, roomRecord: true })}`, "content-type": "application/json" },
+    body: JSON.stringify(body),
+  });
+  const text = await r.text();
+  // deno-lint-ignore no-explicit-any
+  let j: any = {};
+  try { j = JSON.parse(text); } catch { /* risposta non JSON */ }
+  if (!r.ok) throw new Error(String(j.msg || j.message || text || r.status));
+  return j;
+}
+// deno-lint-ignore no-explicit-any
+function isSocialEgress(e: any): boolean {
+  const rc = e?.room_composite ?? e?.roomComposite ?? {};
+  const outs = rc.stream_outputs ?? rc.streamOutputs ?? [];
+  const res = e?.stream_results ?? e?.streamResults ?? [];
+  return (Array.isArray(outs) && outs.length > 0) || (Array.isArray(res) && res.length > 0) || !!e?.stream;
+}
+async function socialRoute(slug: string, req: Request): Promise<Response> {
+  // deno-lint-ignore no-explicit-any
+  let b: any = {};
+  try { b = await req.json(); } catch { return json({ error: "Richiesta non valida" }, 400); }
+  const showId = String(b?.show ?? "");
+  if (!UUID.test(showId)) return json({ error: "Diretta non valida" }, 400);
+  const staffKey = String(b?.k ?? "").replace(/[^a-f0-9]/g, "").slice(0, 64);
+  if (!staffKey) return json({ error: "Chiave del pannello mancante" }, 403);
+  const action = String(b?.action ?? "status");
+
+  const jewelers = (await rest(`jewelers?slug=eq.${slug}&select=id`)) as { id: string }[];
+  if (!jewelers[0]) return json({ error: "Gioielleria non trovata" }, 404);
+  const shows = (await rest(`shows?id=eq.${showId}&jeweler_id=eq.${jewelers[0].id}&select=id,status`)) as { id: string; status: string }[];
+  const show = shows[0];
+  if (!show) return json({ error: "Diretta non trovata" }, 404);
+  const staff = (await rpc("staff_check", { p_token: staffKey, p_show: show.id })) as { role: string }[];
+  if (!staff[0]) return json({ error: "Chiave del pannello non valida" }, 403);
+
+  const room = `show-${show.id}`;
+  const cfg = await livekitConfig();
+  const active = async () => {
+    const j = await egress(cfg, room, "ListEgress", { room_name: room, active: true });
+    // deno-lint-ignore no-explicit-any
+    return ((j.items ?? []) as any[]).filter(isSocialEgress);
+  };
+  try {
+    if (action === "status") return json({ on: (await active()).length > 0 });
+    if (action === "stop") {
+      for (const e of await active()) {
+        const id = e.egress_id ?? e.egressId;
+        if (id) await egress(cfg, room, "StopEgress", { egress_id: id });
+      }
+      return json({ on: false });
+    }
+    if (action !== "start") return json({ error: "Azione non valida" }, 400);
+    if (show.status !== "live") return json({ error: "Prima premi «Inizia la diretta» su Uniqaia" }, 409);
+    const dest = socialDest(b?.url, b?.key);
+    if (!dest) return json({ error: "Indirizzo o chiave non validi: copiali di nuovo da Instagram (anche Facebook e YouTube vanno bene)" }, 400);
+    if ((await active()).length) return json({ error: "La copia sui social è già attiva: fermala prima di avviarne un'altra" }, 409);
+    const j = await egress(cfg, room, "StartRoomCompositeEgress", {
+      room_name: room,
+      layout: "speaker",
+      stream_outputs: [{ protocol: "RTMP", urls: [dest] }],
+      // verticale, come la diretta di Instagram
+      advanced: { width: 720, height: 1280, framerate: 30, video_bitrate: 3500, audio_bitrate: 128, audio_frequency: 48000, key_frame_interval: 2 },
+    });
+    return json({ on: true, id: j.egress_id ?? j.egressId ?? "" });
+  } catch (e) {
+    const msg = String((e as Error)?.message ?? e);
+    console.error("social", msg);
+    if (/exhaust|limit|quota|concurren/i.test(msg)) return json({ error: "Limite del piano video raggiunto: per trasmettere anche sui social serve il piano a pagamento" }, 429);
+    return json({ error: "Collegamento con i social non riuscito: " + msg.slice(0, 160) }, 502);
+  }
+}
+
 function pickLang(url: URL, req: Request): string {
   const q = (url.searchParams.get("lang") ?? "").toLowerCase();
   if (LANGS.includes(q)) return q;
@@ -152,13 +252,17 @@ function pickLang(url: URL, req: Request): string {
 
 Deno.serve(async (req: Request) => {
   const url = new URL(req.url);
-  if (req.method === "OPTIONS") return new Response(null, { status: 204, headers: { "access-control-allow-origin": "*", "access-control-allow-methods": "GET, OPTIONS", "access-control-allow-headers": "content-type", "access-control-max-age": "86400" } });
-  if (req.method !== "GET" && req.method !== "HEAD") return new Response("Method not allowed", { status: 405 });
+  if (req.method === "OPTIONS") return new Response(null, { status: 204, headers: { "access-control-allow-origin": "*", "access-control-allow-methods": "GET, POST, OPTIONS", "access-control-allow-headers": "content-type", "access-control-max-age": "86400" } });
 
-  // Path visto dalla funzione: "/live[/join | /<slug>[/panel|/token]]" (con o senza prefisso "/functions/v1")
+  // Path visto dalla funzione: "/live[/join | /<slug>[/panel|/token|/social]]" (con o senza prefisso "/functions/v1")
   let path = url.pathname.replace(/^\/functions\/v1/, "").replace(/\/+$/, "");
   path = path.replace(/^\/live/, "");
   const parts = path.split("/").filter(Boolean);
+
+  if (req.method === "POST" && parts.length === 2 && parts[1] === "social" && SLUG.test(parts[0])) {
+    try { return await socialRoute(parts[0], req); } catch (e) { console.error(e); return json({ error: "errore interno" }, 500); }
+  }
+  if (req.method !== "GET" && req.method !== "HEAD") return new Response("Method not allowed", { status: 405 });
 
   // Dietro il proxy di Supabase la richiesta arriva in http: i link pubblici devono essere https (altrimenti mixed content)
   const proto = /^(localhost|127\.0\.0\.1)$/.test(url.hostname) ? url.protocol : "https:";

@@ -13,6 +13,7 @@
     <div class="waitv" id="wait" hidden><div><b id="waitT"></b><span id="waitS"></span></div></div>
     <form class="gate" id="gate"><b id="gateT"></b><p id="gateL"></p><input id="gateName" type="text" maxlength="60" autocomplete="name"><input id="gateMail" type="email" maxlength="254" autocomplete="email" inputmode="email" required><label class="cons"><input id="gateCons" type="checkbox"><span id="gateConsT"></span></label><button type="submit" id="gateGo"></button><p class="fine" id="gateP"></p></form>
     <button class="audio-btn" type="button" id="audioBtn" hidden></button>
+    <div class="idlev" id="idle" hidden aria-live="polite"><div><b id="idleT"></b><p id="idleS" dir="auto"></p><button type="button" id="idleGo"></button></div></div>
     <div class="pchat" id="msgs" aria-live="polite"></div>
     <div class="hearts" id="hearts"></div>
     <div class="rail">
@@ -87,7 +88,7 @@
   }
   function connectVideo(){
     var LK = window.LivekitClient;
-    if (video.room || video.connecting) return;
+    if (video.room || video.connecting || pres.paused) return;
     if (!LK){ video.tries++; if (video.tries < 20 && state.show && state.show.status === "live") setTimeout(connectVideo, 1500); return; }
     video.connecting = true;
     if (!video.tiles) video.tiles = new LkTiles($("videos"), { onChange: function(n){ $("videos").className = "videos" + (n ? " on" : ""); $("art").hidden = n > 0; $("poster").hidden = n > 0 || !$("poster").getAttribute("src"); } });
@@ -103,11 +104,84 @@
         if (video.tiles) video.tiles.clear();
         riprova(2000);
       });
-      return room.connect(j.url, j.token).then(function(){ video.room = room; $("audioBtn").hidden = room.canPlaybackAudio; });
+      return room.connect(j.url, j.token).then(function(){ video.room = room; $("audioBtn").hidden = room.canPlaybackAudio; if (pres.paused) disconnectVideo(); });
     }).catch(function(e){ console.warn("video", e); riprova(3000); }).then(function(){ video.connecting = false; });
   }
   function disconnectVideo(){ if (video.room){ var r = video.room; video.room = null; r.disconnect(); } if (video.tiles) video.tiles.clear(); $("audioBtn").hidden = true; }
   $("audioBtn").addEventListener("click", function(){ if (video.room) video.room.startAudio().then(function(){ $("audioBtn").hidden = true; }); });
+
+  // ---- presenza: niente spettatori fantasma ----
+  // Chi non sta guardando esce dalla stanza video e dal conteggio degli spettatori:
+  // altrimenti paga minuti di collegamento, occupa un posto nella stanza e gonfia i numeri.
+  // Vale sul sito e nell'app installata, che apre questa stessa pagina.
+  //  - schermo nascosto (telefonata, altra app, telefono bloccato, altra scheda) da 5 minuti:
+  //    si esce; quando lo schermo torna visibile si rientra da soli.
+  //  - schermo acceso ma nessun tocco, clic o tasto da 15 minuti: «Sei ancora qui?» per 60 secondi,
+  //    poi pausa; basta un tocco per rientrare.
+  // Con lo schermo nascosto il video si ferma gia' da solo (adaptiveStream), ma il collegamento resta.
+  // I tempi si misurano con l'orologio e non con i timer, che il telefono rallenta in secondo piano.
+  var PRES = { hiddenMs: 5 * 60000, idleMs: 15 * 60000, askMs: 60000 };
+  var pres = { paused:"", hiddenAt: document.hidden ? Date.now() : 0, lastAct: Date.now(), askUntil: 0 };
+  function isLive(){ return !!(state.show && state.show.status === "live"); }
+  function presTrack(on){
+    var ch = state.channel; if (!ch) return;
+    try { var p = on ? ch.track({ at: Date.now() }) : ch.untrack(); if (p && p.catch) p.catch(function(){}); } catch(e){}
+  }
+  function presShow(kind){
+    var el = $("idle"), t = state.t;
+    if (!kind){ el.hidden = true; return; }
+    var ask = kind === "ask";
+    el.setAttribute("dir", state.lang === "ar" ? "rtl" : "ltr");
+    $("idleT").textContent = ask ? t.idleT : t.pausedT;
+    $("idleS").textContent = ask ? t.idleS.replace("{n}", Math.max(0, Math.ceil((pres.askUntil - Date.now()) / 1000))) : t.pausedS;
+    $("idleGo").textContent = ask ? t.idleGo : t.pausedGo;
+    el.hidden = false;
+  }
+  function presPause(why){
+    if (pres.paused) return;
+    pres.paused = why; pres.askUntil = 0;
+    disconnectVideo(); presTrack(false);
+    presShow(why === "idle" ? "paused" : "");
+  }
+  function presResume(){
+    if (!pres.paused) return;
+    pres.paused = ""; pres.askUntil = 0; pres.lastAct = Date.now();
+    presShow(""); presTrack(true);
+    if (isLive()) connectVideo();
+  }
+  // Ogni gesto vero conta come «ci sono». Lo scorrimento no: la chat scorre da sola quando arrivano i messaggi.
+  function presAct(){
+    pres.lastAct = Date.now();
+    if (pres.askUntil){ pres.askUntil = 0; presShow(""); }
+    if (pres.paused === "idle") presResume();
+  }
+  ["pointerdown", "touchstart", "keydown", "wheel"].forEach(function(ev){ document.addEventListener(ev, presAct, { capture:true, passive:true }); });
+  document.addEventListener("visibilitychange", function(){
+    if (document.hidden){ pres.hiddenAt = Date.now(); return; }
+    // Tornare sulla pagina vale come un gesto: si rientra e l'eventuale «Sei ancora qui?» sparisce.
+    pres.hiddenAt = 0;
+    if (pres.paused === "hidden") presResume(); else presAct();
+  });
+  setInterval(function(){
+    var now = Date.now();
+    if (document.hidden){
+      if (pres.hiddenAt && now - pres.hiddenAt >= PRES.hiddenMs) presPause("hidden");
+      return;
+    }
+    if (!isLive()){
+      // Prima dell'inizio e dopo la fine non arriva video: si azzera tutto.
+      pres.lastAct = now;
+      if (pres.askUntil){ pres.askUntil = 0; presShow(""); }
+      if (pres.paused) presResume();
+      return;
+    }
+    if (pres.paused) return;
+    if (pres.askUntil){
+      if (now >= pres.askUntil) presPause("idle"); else presShow("ask");
+      return;
+    }
+    if (now - pres.lastAct >= PRES.idleMs){ pres.askUntil = now + PRES.askMs; presShow("ask"); }
+  }, 1000);
 
   // ---- nome ospite ----
   function guestName(){ return state.invite ? state.invite.client_name : state.name; }
@@ -294,7 +368,7 @@
     e.preventDefault();
     var m = ($("gateMail").value || "").trim().toLowerCase();
     var n = ($("gateName").value || "").trim();
-    if (!/^[^@s]+@[^@s]+.[a-z]{2,}$/i.test(m)){ toast(state.t.gateBadEmail); $("gateMail").focus(); return; }
+    if (!/^[^@\s]+@[^@\s]+\.[a-z]{2,}$/i.test(m)){ toast(state.t.gateBadEmail); $("gateMail").focus(); return; }
     $("gateGo").disabled = true;
     registraIngresso(m, n, $("gateCons").checked).then(function(r){
       $("gateGo").disabled = false;
@@ -463,7 +537,7 @@
       .on("postgres_changes", { event:"*", schema:"public", table:"pieces", filter:"show_id=eq." + state.show.id }, function(){ sb.from("pieces").select("*").eq("show_id", state.show.id).order("position").then(function(r){ state.pieces = r.data || []; render(); }); })
       .on("postgres_changes", { event:"*", schema:"public", table:"show_covers", filter:"show_id=eq." + state.show.id }, function(p){ if (p.new && p.new.data) setPoster(p.new.data); })
       .on("presence", { event:"sync" }, function(){ var n = Object.keys(ch.presenceState()).length; $("viewers").textContent = n; })
-      .subscribe(function(status){ if (status === "SUBSCRIBED") ch.track({ at: Date.now() }); });
+      .subscribe(function(status){ if (status === "SUBSCRIBED" && !pres.paused) ch.track({ at: Date.now() }); });
     state.channel = ch;
   }
   function setPoster(data){ var img = $("poster"); img.setAttribute("src", data); img.hidden = !!(video.tiles && video.tiles.count()); $("art").hidden = !img.hidden || $("art").hidden; }

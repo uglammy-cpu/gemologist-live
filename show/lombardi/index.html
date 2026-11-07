@@ -456,6 +456,161 @@ body.dark .demo{color:rgba(247,235,203,.55)}body.dark .demo b{color:var(--gold-h
 .brand small .tl1,.brand small .tl2{display:block;overflow:hidden;text-overflow:ellipsis}
 .brand small .tl2{margin-top:2px}
 .tlive{color:#D31A2B;font-weight:600}
+</style><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@600..800&display=swap"><style id="restyle">
+/* =====================================================================
+   UNIQAIA — pagina della diretta, interfacce del visitatore (ANTEPRIMA, non in produzione)
+   Brief di Elena del 7/11/2026: «Entra in diretta» chiara ed elegante, player scuro e immersivo.
+   Solo trattamento visivo: stessi elementi, stesse posizioni, stessi testi, stesse funzioni.
+   Stessi colori e caratteri della home V2 (nessun design system nuovo).
+   ===================================================================== */
+
+/* ---------- 1. Token (gli stessi della home) ---------- */
+body.dark{
+  --paper:#F8F2EB; --cream:#FFFCF8; --ink:#1D1A1F; --anth:#2E2A31; --muted:#5B5560;
+  --edge:#D8CDBD; --line:#E8DFD3;
+  --red:#E11D2E; --red-text:#D31A2B; --livered:#E11D2E;
+  --gold:#C9A45C; --gold-hi:#E6CF97;
+  --ivory:#F8F2EB;                         /* testo e icone sul fondo scuro */
+  --ivory-2:rgba(248,242,235,.78);         /* testo secondario sul fondo scuro */
+  --glass:rgba(29,26,31,.58);              /* superfici sopra il video */
+  --hair:rgba(248,242,235,.16);            /* bordi e separatori sul fondo scuro */
+  --sans:"Manrope",system-ui,sans-serif;
+  background:var(--ink);color:var(--ivory);
+}
+
+/* ---------- 2. Player: antracite, il video protagonista ---------- */
+.phone{background:var(--ink)}
+@media (min-width:760px){.phone{box-shadow:0 30px 80px rgba(0,0,0,.5),0 0 0 6px var(--anth)}}
+.vid{background:linear-gradient(180deg,var(--anth),var(--ink))}
+.vid::before{display:none}                                   /* via l'alone dorato decorativo */
+.vid .poster{filter:none}                                    /* copertina vera, non sfocata */
+.videos .main{background:var(--ink)}
+/* ombre solo dove servono: in alto per l'intestazione, in basso per chat e comandi */
+.shade{background:linear-gradient(to top,rgba(20,18,22,.74) 0%,rgba(20,18,22,.3) 24%,transparent 42%),linear-gradient(to bottom,rgba(20,18,22,.46),transparent 16%)}
+.videos.on ~ .shade{background:linear-gradient(to top,rgba(20,18,22,.66) 0%,rgba(20,18,22,.22) 22%,transparent 38%),linear-gradient(to bottom,rgba(20,18,22,.42),transparent 15%)}
+
+/* ---------- 3. Intestazione della diretta ---------- */
+.ptop .pill{background:var(--glass);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);border:1px solid var(--hair);color:var(--ivory);padding:5px 13px 5px 5px}
+.ptop .pill b{font-family:var(--sans);font-weight:700;font-size:13px;letter-spacing:-.01em}
+.ptop .pill .who span{font-size:12px;color:var(--ivory-2)}
+.av{background:var(--cream);color:var(--ink);border:1px solid var(--edge);font-family:var(--sans);font-weight:700}
+.ptop .eye,.ptop .x{background:var(--glass);border:1px solid var(--hair);color:var(--ivory)}
+.ptop .x{font-weight:300}
+/* LIVE rosso solo quando è davvero in onda; pulsa solo il punto. In programma e Terminata restano neutre */
+.lbl{font-family:var(--body);font-weight:600;letter-spacing:.08em;border-radius:6px;padding:5px 8px}
+.lbl:not(.off){background:var(--livered);animation:none}
+.lbl i{animation:pulsew 1.6s ease-out infinite}
+.lbl.off{background:var(--glass);border:1px solid var(--hair);color:var(--ivory)}
+.lbl.off i{animation:none;background:var(--ivory);opacity:.7}
+@media (prefers-reduced-motion:reduce){.lbl i{animation:none}}
+.pchip{background:var(--glass);border:1px solid var(--hair);color:var(--ivory)}
+.pchip i{background:var(--gold)}
+
+/* ---------- 4. Attesa, fine diretta, pagina non trovata ---------- */
+/* la copertina resta leggibile: un velo solo dietro al testo, non su tutta l'immagine */
+.waitv{background:linear-gradient(to bottom,rgba(20,18,22,.08) 0%,rgba(20,18,22,.5) 38%,rgba(20,18,22,.5) 62%,rgba(20,18,22,.12) 100%);color:var(--ivory);padding-inline-end:90px;padding-inline-start:20px}
+.waitv b{font-family:var(--sans);font-weight:800;font-size:26px;letter-spacing:-.02em;line-height:1.15;margin-bottom:8px;text-shadow:0 1px 18px rgba(0,0,0,.35)}
+.waitv span{font-size:15.5px;line-height:1.5;color:var(--ivory);text-shadow:0 1px 12px rgba(0,0,0,.4)}
+
+/* ---------- 5. Barra degli strumenti: icone lineari avorio, stesso peso per tutte ---------- */
+.rail{gap:13px}
+/* etichette su due righe se lunghe, così non invadono la chat */
+.rail button{color:var(--ivory);font-family:var(--body);font-size:11.5px;font-weight:500;letter-spacing:.01em;line-height:1.2;text-align:center;max-width:66px;text-shadow:0 1px 6px rgba(0,0,0,.55)}
+.rail .ic{width:46px;height:46px;background:var(--glass);border:1px solid var(--hair);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);color:var(--ivory);transition:background .2s,color .2s,border-color .2s}
+.rail .ic svg{width:21px;height:21px}
+/* il cuore come le altre icone: a filo, pieno solo quando si è toccato */
+.rail .ic.heart svg path{fill:none;stroke:currentColor;stroke-width:1.8;stroke-linejoin:round}
+.rail .ic.heart.on{background:var(--ivory);color:var(--ink);border-color:var(--ivory)}
+.rail .ic.heart.on svg path{fill:currentColor;stroke:none}
+/* «Mi interessa» e «Acquista»: superficie scura, icona avorio, un filo d'oro che le distingue come azioni commerciali */
+.rail .ic.goldbg{background:var(--glass);color:var(--ivory);border:1.5px solid var(--gold);box-shadow:none}
+/* stato attivo (sottotitoli accesi) distinto e leggibile */
+.rail button.on .ic{background:var(--ivory);color:var(--ink);border-color:var(--ivory)}
+.rail button:focus-visible{outline:none}
+.rail button:focus-visible .ic{outline:2px solid var(--ivory);outline-offset:3px}
+.rail button:disabled{opacity:.45}
+/* i cuoricini che volano restano rossi (decisione di Elena, 7/11) */
+
+/* ---------- 6. Chat e campo per scrivere ---------- */
+.pm{background:var(--glass);border:1px solid var(--hair);color:var(--ivory);font-family:var(--body);font-size:13.5px;line-height:1.35}
+.pm b{color:var(--gold-hi);font-weight:600}
+.pm.shop b{color:var(--ivory)}
+.pm.gemologist{border-color:rgba(201,164,92,.6)}
+.pm.gemologist b{color:var(--gold-hi)}
+.pm.me{background:rgba(248,242,235,.94);color:var(--ink);border-color:transparent}
+.pm.me b{color:var(--muted)}
+.pin input{background:var(--glass);border:1px solid rgba(248,242,235,.3);color:var(--ivory);font-family:var(--body)}
+.pin input::placeholder{color:var(--ivory-2)}
+.pin input:focus{border-color:var(--ivory)}
+.pin button{background:var(--ivory);color:var(--ink);font-family:var(--body);font-weight:600}
+.pin button:disabled,.pin input:disabled{opacity:.55}
+.audio-btn{background:var(--ivory);color:var(--ink);font-family:var(--body);font-weight:600}
+
+/* ---------- 7. Sottotitoli: fascia sotto l'immagine ---------- */
+.subsbar{background:var(--ink);border-top-color:var(--hair)}
+.subsbar .st{color:var(--ivory)}
+.subsbar .sl{background:var(--ink);border-color:var(--hair);color:var(--ivory-2)}
+
+/* ---------- 8. «Ci sei ancora?» e diretta in pausa ---------- */
+.idlev{background:rgba(20,18,22,.8);color:var(--ivory)}
+.idlev b{font-family:var(--sans);font-weight:800;font-size:25px;letter-spacing:-.02em}
+.idlev p{color:var(--ivory-2)}
+.idlev button{background:var(--ivory);color:var(--ink);font-family:var(--body);font-weight:600}
+
+/* ---------- 9. Pannelli (Come funziona, Prenota, Mi interessa, Sottotitoli, Pagamento): scuri come il player ---------- */
+.modal{background:rgba(12,11,14,.62)}
+.mcard{background:var(--ink);color:var(--ivory);border:1px solid var(--hair);border-radius:20px;box-shadow:0 24px 60px rgba(0,0,0,.45);font-family:var(--body)}
+.mcard h3{font-family:var(--sans);font-weight:800;letter-spacing:-.02em;color:var(--ivory)}
+.mcard .eyebrow{color:var(--gold-hi);font-weight:600;letter-spacing:.14em}
+.mcard .muted{color:var(--ivory-2)}
+.mcard p{color:var(--ivory)}
+.mcard .x{color:var(--ivory-2)}
+.mcard input,.mcard select,.mcard textarea{background:rgba(248,242,235,.06);border:1px solid rgba(248,242,235,.24);color:var(--ivory);border-radius:12px}
+.mcard input::placeholder{color:rgba(248,242,235,.6)}
+.mcard input:focus{outline:none;border-color:var(--ivory)}
+.mcard .btn.dark{background:var(--ivory);color:var(--ink);border-color:var(--ivory);font-weight:600}
+.mcard .btn.dark:hover{background:#FFFFFF}
+.mcard .btn.sm,.mcard .btn:not(.dark){color:var(--ivory);border-color:rgba(248,242,235,.4)}
+.mcard .btn:focus-visible{outline:2px solid var(--ivory);outline-offset:3px}
+.mcard .slot{background:rgba(248,242,235,.05);border:1px solid rgba(248,242,235,.2);color:var(--ivory)}
+.mcard .slot:hover{border-color:var(--gold);background:rgba(201,164,92,.12)}
+.mcard .sublist button{border-color:rgba(248,242,235,.2);color:var(--ivory)}
+.mcard .sublist button.on{border-color:var(--gold);background:rgba(201,164,92,.14)}
+.mcard .ok{color:var(--gold-hi)}
+.toast{background:var(--ivory);color:var(--ink);font-family:var(--body);font-weight:500;box-shadow:0 10px 30px rgba(0,0,0,.35)}
+.toast i{background:var(--gold)}
+.credit{color:rgba(248,242,235,.55)}
+
+/* =====================================================================
+   «Entra in diretta»: chiara, luminosa, elegante
+   ===================================================================== */
+.gate{background:var(--paper);color:var(--ink);justify-content:flex-start;align-items:center;gap:12px;padding:28px 22px calc(28px + env(safe-area-inset-bottom,0px));
+  --logo-gold:#A47F3A;--logo-gem:#D43F52}
+.gate > *{width:100%;max-width:360px}
+.gate .glogo{height:34px;flex:none;color:var(--ink);margin:auto 0 14px;display:flex;justify-content:center}
+.gate .fine{margin-bottom:auto}
+.gate .glogo svg{height:100%;width:auto;display:block;overflow:visible}
+.gate b{font-family:var(--sans);font-weight:800;font-size:28px;letter-spacing:-.025em;line-height:1.12;color:var(--ink);text-align:center}
+.gate p{color:var(--anth);font-size:15px;line-height:1.5;text-align:center}
+.gate input[type=email],.gate input[type=text]{background:#FFFFFF;border:1px solid var(--edge);color:var(--ink);border-radius:12px;padding:13px 14px;min-height:50px;font-family:var(--body);font-size:16px;transition:border-color .15s,box-shadow .15s}
+.gate input::placeholder{color:#6E6872}
+.gate input[type=email]:focus,.gate input[type=text]:focus{outline:none;border-color:var(--ink);box-shadow:0 0 0 3px rgba(29,26,31,.1)}
+/* errore: bordo rosso solo dopo che si è scritto qualcosa di non valido */
+.gate input[type=email]:user-invalid,.gate input[type=text]:user-invalid{border-color:var(--red-text);box-shadow:0 0 0 3px rgba(211,26,43,.12)}
+/* casella accanto al suo testo (una regola generale delle etichette la metteva sopra) */
+.gate .cons{flex-direction:row;color:var(--anth);font-size:14px;line-height:1.5;gap:12px;padding:4px 0;min-height:44px;align-items:flex-start}
+.gate .cons input{width:22px;height:22px;min-height:0;margin:0;accent-color:var(--ink);cursor:pointer}
+.gate .fine{color:var(--muted);font-size:12.5px;line-height:1.55;text-align:center}
+.gate button{background:var(--ink);color:var(--cream);font-family:var(--body);font-weight:600;font-size:16px;min-height:52px;border-radius:999px;transition:background .2s}
+.gate button:hover{background:var(--anth)}
+.gate button:focus-visible{outline:2px solid var(--ink);outline-offset:3px}
+.gate button:disabled{opacity:.6;cursor:progress}
+.gate[dir="rtl"] .cons{text-align:right}
+/* al computer, mentre si entra, anche il fondo intorno diventa chiaro */
+body.dark:has(#gate.on),.phone:has(#gate.on){background:var(--paper)}
+@media (min-width:760px){.phone:has(#gate.on){box-shadow:0 24px 60px rgba(60,30,20,.14),0 0 0 1px var(--line)}}
+body.dark:has(#gate.on) .credit{color:var(--muted)}
+body.dark:has(#gate.on) .toast{background:var(--ink);color:var(--paper)}
 </style></head>
 <body class="dark">
 <div class="stagev">
@@ -469,7 +624,7 @@ body.dark .demo{color:rgba(247,235,203,.55)}body.dark .demo b{color:var(--gold-h
     </div>
     <div class="pchip" id="pchip" hidden><i></i><span id="pchipTxt" dir="auto"></span></div>
     <div class="waitv" id="wait" hidden><div><b id="waitT"></b><span id="waitS"></span></div></div>
-    <form class="gate" id="gate"><b id="gateT"></b><p id="gateL"></p><input id="gateName" type="text" maxlength="60" autocomplete="name"><input id="gateMail" type="email" maxlength="254" autocomplete="email" inputmode="email" required><label class="cons"><input id="gateCons" type="checkbox"><span id="gateConsT"></span></label><button type="submit" id="gateGo"></button><p class="fine" id="gateP"></p></form>
+    <form class="gate" id="gate"><div class="glogo"><svg class="ulogo" xmlns="http://www.w3.org/2000/svg" viewBox="88 32 830 190" role="img" aria-label="Uniqaia"><g font-family="'Cormorant Garamond',Garamond,'Times New Roman',serif" font-weight="500" font-size="150" fill="currentColor" text-anchor="middle"><text x="151" y="160">U</text><text x="283" y="160">N</text><text x="386" y="160">I</text><text x="659" y="160">A</text><text x="756" y="160">I</text><text x="853" y="160">A</text></g><path fill="var(--logo-gold,#A47F3A)" fill-rule="evenodd" d="M 435 112.5 A 75 75 0 1 0 585 112.5 A 75 75 0 1 0 435 112.5 Z M 453 112.5 A 57 67 0 1 0 567 112.5 A 57 67 0 1 0 453 112.5 Z"/><path fill="var(--logo-gold,#A47F3A)" d="M 521.7 186.6 C 545 196 575 203 610 202 C 575 214 540 212 512 196 Z"/><path d="M 470.1 90.5 A 44 52 0 0 1 495 63.6" fill="none" stroke="var(--logo-gold,#A47F3A)" stroke-width="5" stroke-linecap="round"/><circle cx="510" cy="112.5" r="14" fill="var(--logo-gem,#D43F52)"/></svg></div><b id="gateT"></b><p id="gateL"></p><input id="gateName" type="text" maxlength="60" autocomplete="name"><input id="gateMail" type="email" maxlength="254" autocomplete="email" inputmode="email" required><label class="cons"><input id="gateCons" type="checkbox"><span id="gateConsT"></span></label><button type="submit" id="gateGo"></button><p class="fine" id="gateP"></p></form>
     <button class="audio-btn" type="button" id="audioBtn" hidden></button>
     <div class="idlev" id="idle" hidden aria-live="polite"><div><b id="idleT"></b><p id="idleS" dir="auto"></p><button type="button" id="idleGo"></button></div></div>
     <div class="pchat" id="msgs" aria-live="polite"></div>
@@ -580,7 +735,7 @@ function lkAttachRemote(room, tiles, LK){
   var LOC = { it:"it-IT", en:"en-GB", fr:"fr-FR", ar:"ar-AE-u-nu-latn", ru:"ru-RU" };
   var state = { jeweler:null, show:null, pieces:[], photos:{}, invite:null, name:"", contact:"", lang:"it", t:TT.it, likes:0, channel:null, lastTap:0, queued:0 };
   try { state.name = localStorage.getItem("live-name") || ""; state.contact = localStorage.getItem("live-contact") || ""; } catch(e){}
-  $("heartIc").innerHTML = ICON.heart; $("gemIc").innerHTML = ICON.gem; $("calIc").innerHTML = ICON.cal; $("shareIc").innerHTML = ICON.share; $("eyeIc").innerHTML = ICON.eye; $("bagIc").innerHTML = ICON.bag; $("helpIc").innerHTML = ICON.help;
+  $("heartIc").innerHTML = ICON.heart; $("gemIc").innerHTML = ICON.gem; $("calIc").innerHTML = ICON.cal; $("shareIc").innerHTML = ICON.share; $("eyeIc").innerHTML = ICON.eye; $("bagIc").innerHTML = ICON.bag; $("helpIc").innerHTML = ICON.help; if (ICON.cc) $("ccIc").innerHTML = ICON.cc;
 
   function fmtDate(iso){ try { return new Intl.DateTimeFormat(LOC[state.lang] || "it-IT", { weekday:"long", day:"numeric", month:"long", hour:"2-digit", minute:"2-digit", hour12:false }).format(new Date(iso)); } catch(e){ return iso; } }
   function currentPiece(){ var id = state.show && state.show.current_piece_id; for (var i = 0; i < state.pieces.length; i++) if (state.pieces[i].id === id) return state.pieces[i]; return state.pieces[0] || null; }

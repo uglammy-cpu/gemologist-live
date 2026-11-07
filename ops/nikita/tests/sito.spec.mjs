@@ -31,13 +31,13 @@ test("[e2e.home.benvenuto] Alla prima visita compare il benvenuto, «Entra» lo 
   nessunErrore(st);
 });
 
-test("[e2e.home.schede] Le schede Live, In programma, Categorie, Chi trasmette rispondono", async ({ page }, info) => {
+test("[e2e.home.schede] Le schede Live, In programma, Categorie rispondono", async ({ page }, info) => {
   controllo(`e2e.home.schede.${info.project.name}`, { area: "interfaccia", gravita: "P2" });
   const st = await prepara(page);
   await entra(page, "/");
   const schede = page.locator("#tabs button.tab");
-  await expect(schede).toHaveCount(4);
-  for (const dest of ["soon", "browse", "shops", "live"]) {
+  await expect(schede).toHaveCount(3);   // dal 7/11 senza «Chi trasmette»
+  for (const dest of ["soon", "browse", "live"]) {
     const b = page.locator(`#tabs button[data-to="${dest}"]`);
     await b.click();
     await expect(b, `la scheda «${dest}» si accende al clic`).toHaveClass(/\bon\b/, { timeout: 5000 });

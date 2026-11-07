@@ -151,9 +151,9 @@ label input,label select,label textarea{width:100%}
   function err(r){ if (r && r.error){ toast(r.error.message || "Errore"); return true; } return false; }
   // Gli importi si scrivono come viene comodo: 4200, 4.200, 4200,50, € 4.200,50.
   function centesimi(s){
-    s = String(s == null ? "" : s).replace(/[^d.,]/g, "");
+    s = String(s == null ? "" : s).replace(/[^\d.,]/g, "");
     if (!s) return null;
-    var m = s.match(/[.,](d{1,2})$/), dec = 0;
+    var m = s.match(/[.,](\d{1,2})$/), dec = 0;
     if (m){ dec = m[1].length === 1 ? Number(m[1]) * 10 : Number(m[1]); s = s.slice(0, m.index); }
     var intero = Number(s.replace(/[.,]/g, "")) || 0;
     var tot = intero * 100 + dec;
@@ -402,7 +402,7 @@ label input,label select,label textarea{width:100%}
       var what = r.type === "appointment" ? "Appuntamento" + (r.slot ? ": " + r.slot : "")
               : r.type === "purchase" ? "Lo prendo" + (r.price_cents ? " · " + euro(r.price_cents, "EUR") : "")
               : "Mi interessa";
-      d.innerHTML = '<span class="pill ' + esc(r.type) + '">' + esc(what) + '</span><b style="font-weight:500">' + esc(r.guest_name) + (r.contact ? ' · <a href="' + esc(/@/.test(r.contact) ? "mailto:" + r.contact : "tel:" + r.contact.replace(/s+/g, "")) + '">' + esc(r.contact) + '</a>' : '') + '</b>' + (r.piece_name ? '<span>' + esc(r.piece_name) + '</span>' : '') + '<span class="meta">' + esc(fmtShort(r.created_at)) + '</span>';
+      d.innerHTML = '<span class="pill ' + esc(r.type) + '">' + esc(what) + '</span><b style="font-weight:500">' + esc(r.guest_name) + (r.contact ? ' · <a href="' + esc(/@/.test(r.contact) ? "mailto:" + r.contact : "tel:" + r.contact.replace(/\s+/g, "")) + '">' + esc(r.contact) + '</a>' : '') + '</b>' + (r.piece_name ? '<span>' + esc(r.piece_name) + '</span>' : '') + '<span class="meta">' + esc(fmtShort(r.created_at)) + '</span>';
       var inviato = state.pay[r.id];
       var pag = document.createElement("button");
       pag.type = "button";

@@ -66,7 +66,7 @@
     $("likes").textContent = fmtK(s.likes, LOC[state.lang]); state.likes = s.likes || 0;
     $("interestTxt").textContent = t.interest; $("bookTxt").textContent = t.book; $("shareTxt").textContent = t.invite; $("buyTxt").textContent = t.buy; $("howTxt").textContent = t.how; $("send").textContent = t.send; $("msg").placeholder = t.ask; $("audioBtn").textContent = t.audio;
     $("ccTxt").textContent = t.cc; $("subTxt").setAttribute("data-wait", t.subsWait); applySubs();
-    aggiornaBuy(); apriPorta(); $("pill").href = CFG.base + "/live/" + CFG.slug + "/profile?lang=" + state.lang;
+    aggiornaBuy(); apriPorta(); aggiornaPresenza(); $("pill").href = CFG.base + "/live/" + CFG.slug + "/profile?lang=" + state.lang;
     $("interest").disabled = false; $("book").disabled = false; $("heart").disabled = !live; $("send").disabled = s.status === "ended"; $("msg").disabled = s.status === "ended";
     $("back").title = t.backTo; $("pill").title = t.profile;
     $("credit").textContent = t.foot;
@@ -88,7 +88,8 @@
   }
   function connectVideo(){
     var LK = window.LivekitClient;
-    if (video.room || video.connecting || pres.paused) return;
+    // Il video parte solo dopo la porta: chi si ferma alla richiesta dell'email non riceve niente.
+    if (video.room || video.connecting || pres.paused || !(porta && porta.dentro)) return;
     if (!LK){ video.tries++; if (video.tries < 20 && state.show && state.show.status === "live") setTimeout(connectVideo, 1500); return; }
     video.connecting = true;
     if (!video.tiles) video.tiles = new LkTiles($("videos"), { onChange: function(n){ $("videos").className = "videos" + (n ? " on" : ""); $("art").hidden = n > 0; $("poster").hidden = n > 0 || !$("poster").getAttribute("src"); } });
@@ -121,11 +122,16 @@
   // Con lo schermo nascosto il video si ferma gia' da solo (adaptiveStream), ma il collegamento resta.
   // I tempi si misurano con l'orologio e non con i timer, che il telefono rallenta in secondo piano.
   var PRES = { hiddenMs: 5 * 60000, idleMs: 15 * 60000, askMs: 60000 };
-  var pres = { paused:"", hiddenAt: document.hidden ? Date.now() : 0, lastAct: Date.now(), askUntil: 0 };
+  var pres = { paused:"", hiddenAt: document.hidden ? Date.now() : 0, lastAct: Date.now(), askUntil: 0, tracked: false };
   function isLive(){ return !!(state.show && state.show.status === "live"); }
-  function presTrack(on){
-    var ch = state.channel; if (!ch) return;
-    try { var p = on ? ch.track({ at: Date.now() }) : ch.untrack(); if (p && p.catch) p.catch(function(){}); } catch(e){}
+  // Tra gli spettatori conta chi guarda davvero: prima dell'inizio chi aspetta,
+  // in diretta solo chi ha lasciato l'email alla porta e non e' in pausa.
+  function presenzaGiusta(){ return !pres.paused && (!isLive() || !!(porta && porta.dentro)); }
+  function aggiornaPresenza(){
+    var ch = state.channel, vuole = presenzaGiusta();
+    if (!ch || vuole === pres.tracked) return;
+    pres.tracked = vuole;
+    try { var p = vuole ? ch.track({ at: Date.now() }) : ch.untrack(); if (p && p.catch) p.catch(function(){}); } catch(e){}
   }
   function presShow(kind){
     var el = $("idle"), t = state.t;
@@ -140,13 +146,13 @@
   function presPause(why){
     if (pres.paused) return;
     pres.paused = why; pres.askUntil = 0;
-    disconnectVideo(); presTrack(false);
+    disconnectVideo(); aggiornaPresenza();
     presShow(why === "idle" ? "paused" : "");
   }
   function presResume(){
     if (!pres.paused) return;
     pres.paused = ""; pres.askUntil = 0; pres.lastAct = Date.now();
-    presShow(""); presTrack(true);
+    presShow(""); aggiornaPresenza();
     if (isLive()) connectVideo();
   }
   // Ogni gesto vero conta come «ci sono». Lo scorrimento no: la chat scorre da sola quando arrivano i messaggi.
@@ -168,8 +174,8 @@
       if (pres.hiddenAt && now - pres.hiddenAt >= PRES.hiddenMs) presPause("hidden");
       return;
     }
-    if (!isLive()){
-      // Prima dell'inizio e dopo la fine non arriva video: si azzera tutto.
+    if (!isLive() || !(porta && porta.dentro)){
+      // Prima dell'inizio, dopo la fine e davanti alla porta non arriva video: si azzera tutto.
       pres.lastAct = now;
       if (pres.askUntil){ pres.askUntil = 0; presShow(""); }
       if (pres.paused) presResume();
@@ -372,8 +378,10 @@
     $("gateGo").disabled = true;
     registraIngresso(m, n, $("gateCons").checked).then(function(r){
       $("gateGo").disabled = false;
-      if (r && r.error){ porta.dentro = false; toast(r.error.message); return; }
+      if (r && r.error){ porta.dentro = false; disconnectVideo(); aggiornaPresenza(); toast(r.error.message); return; }
       $("gate").className = "gate";
+      aggiornaPresenza();
+      if (isLive()) connectVideo();
     });
   });
 
@@ -537,7 +545,8 @@
       .on("postgres_changes", { event:"*", schema:"public", table:"pieces", filter:"show_id=eq." + state.show.id }, function(){ sb.from("pieces").select("*").eq("show_id", state.show.id).order("position").then(function(r){ state.pieces = r.data || []; render(); }); })
       .on("postgres_changes", { event:"*", schema:"public", table:"show_covers", filter:"show_id=eq." + state.show.id }, function(p){ if (p.new && p.new.data) setPoster(p.new.data); })
       .on("presence", { event:"sync" }, function(){ var n = Object.keys(ch.presenceState()).length; $("viewers").textContent = n; })
-      .subscribe(function(status){ if (status === "SUBSCRIBED" && !pres.paused) ch.track({ at: Date.now() }); });
+      // A ogni (ri)collegamento la presenza va rimandata, ma solo se deve esserci.
+      .subscribe(function(status){ if (status === "SUBSCRIBED"){ pres.tracked = false; aggiornaPresenza(); } });
     state.channel = ch;
   }
   function setPoster(data){ var img = $("poster"); img.setAttribute("src", data); img.hidden = !!(video.tiles && video.tiles.count()); $("art").hidden = !img.hidden || $("art").hidden; }

@@ -98,7 +98,7 @@ function render(t, name, runtime) {
   const cfg = { ...common, SITE: t.site };
   const P = t.prefix; // "" oppure "/show"
   const OG = {
-    vetrina: { title: "Uniqaia · Fine jewelry & gemstones · Live", desc: "Dirette di gioiellerie e gem dealer selezionati. Gemmologa in diretta su richiesta. Live shows from selected jewellers and gem dealers. Gemologist live on request.", url: cfg.SITE + P + "/" },
+    vetrina: { title: "Uniqaia · Fine Jewelry & Gemstones · Social Live Shopping", desc: "Dirette di gioiellerie e gem dealer selezionati. Gemmologa in diretta su richiesta. Live shows from selected jewellers and gem dealers. Gemologist live on request.", url: cfg.SITE + P + "/" },
     join: { title: "Uniqaia · Trasmetti con noi · Go live with us", desc: "La piattaforma di live show per gioiellerie e gem dealer. The live-show platform for jewellers and gem dealers.", url: cfg.SITE + P + "/join/" },
     viewer: { title: "Uniqaia · Live show", desc: "Gioielli e gemme dal vivo. Gemmologa in diretta su richiesta. Jewellery and gems live. Gemologist live on request.", url: "" },
     panel: { title: "Uniqaia · Pannello", desc: "Pannello riservato ai venditori.", url: "" },

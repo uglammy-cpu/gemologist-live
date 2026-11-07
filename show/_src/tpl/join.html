@@ -244,7 +244,7 @@
   // ---------------------------------------------------------------- pagina
   function render(){
     t = TT[lang]; document.documentElement.lang = lang; document.documentElement.dir = lang === "ar" ? "rtl" : "ltr"; $("langCur").textContent = lang.toUpperCase();
-    $("tag").textContent = t.tag; $("foot").textContent = t.foot; var dn = document.querySelector(".demo span"); if (dn && t.demoNote) dn.textContent = t.demoNote;
+    (function(el, tt){ if (!el) return; var s = tt.tagSocial || ["Social ", "Live", " Shopping"]; el.textContent = ""; var a = document.createElement("span"); a.className = "tl1"; a.textContent = tt.tagLine || tt.tag; var b = document.createElement("span"); b.className = "tl2"; b.appendChild(document.createTextNode(s[0])); var r = document.createElement("b"); r.className = "tlive"; r.textContent = s[1]; b.appendChild(r); b.appendChild(document.createTextNode(s[2])); el.appendChild(a); el.appendChild(b); })($("tag"), t); $("foot").textContent = t.foot; var dn = document.querySelector(".demo span"); if (dn && t.demoNote) dn.textContent = t.demoNote;
     Array.prototype.forEach.call(document.querySelectorAll("#langMenu button"), function(b){ b.classList.toggle("on", b.getAttribute("data-lang") === lang); });
     collect();
     $("page").innerHTML = '<span class="eyebrow">' + esc(t.jEyebrow) + '</span><h1>' + esc(t.jTitle) + '</h1><p class="lead">' + esc(t.jLead) + '</p>' +

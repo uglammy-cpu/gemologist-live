@@ -227,6 +227,15 @@ input,select,textarea{border-color:var(--edge);background:var(--cream)}
   .trust{flex-direction:column;gap:8px}
   .trust span{line-height:1.4}
 }
+
+/* 7/11, Elena: sotto il logo «Fine Jewelry & Gemstones» e, a capo, «Social Live Shopping» con «Live» in rosso */
+.brand small .tl1,.brand small .tl2,.wm small .tl1,.wm small .tl2{display:block;overflow:hidden;text-overflow:ellipsis}
+.brand small .tl2,.wm small .tl2{margin-top:2px}
+.tlive{color:var(--red-text);font-weight:600}
+/* 7/11, Elena: il pulsante «Candidati» va al centro del box */
+.cta{flex-direction:column;align-items:stretch}
+.cta>div{flex:none;max-width:720px}
+.cta .go{align-self:center}
 </style></head>
 <body class="vetrina">
 <header class="topv wrap"><div class="col">
@@ -321,7 +330,7 @@ input,select,textarea{border-color:var(--edge);background:var(--cream)}
   function renderStatic(){
     document.documentElement.lang = lang; document.documentElement.dir = lang === "ar" ? "rtl" : "ltr"; $("langCur").textContent = lang.toUpperCase();
     Array.prototype.forEach.call(document.querySelectorAll("[data-t]"), function(el){ el.textContent = t[el.getAttribute("data-t")]; });
-    $("tag").textContent = t.tag; $("q").placeholder = t.search; $("aboutBtn").textContent = "i"; $("aboutBtn").title = t.about; $("aboutBtn").setAttribute("aria-label", t.about);
+    $("tag").innerHTML = tagHtml(); $("q").placeholder = t.search; $("aboutBtn").textContent = "i"; $("aboutBtn").title = t.about; $("aboutBtn").setAttribute("aria-label", t.about);
     setTrust(); fitTrust();
     Array.prototype.forEach.call(document.querySelectorAll("#langMenu button"), function(b){ b.classList.toggle("on", b.getAttribute("data-lang") === lang); });
     $("cta").innerHTML = '<div><b>' + esc(t.ctaTitle) + '</b><small>' + esc(t.ctaText) + '</small><small class="cnote">' + esc(t.ctaNote) + '</small></div><a class="go" id="joinLink" href="' + CFG.base + '/live/join?lang=' + lang + '">' + esc(t.ctaBtn) + '</a>';
@@ -390,6 +399,8 @@ input,select,textarea{border-color:var(--edge);background:var(--cream)}
   function fitTrust(){ var el = $("trust"); if (!el) return; var cur = el.innerHTML, max = 0, seen = {}; el.style.minHeight = ""; ((state.slideCats && state.slideCats.length) ? state.slideCats : [""]).forEach(function(c){ if (seen[c]) return; seen[c] = 1; el.innerHTML = trustHtml(c); max = Math.max(max, el.offsetHeight); }); el.innerHTML = cur; if (max) el.style.minHeight = max + "px"; }
   window.addEventListener("resize", function(){ clearTimeout(fitTrust.tm); fitTrust.tm = setTimeout(fitTrust, 150); });
   if (document.fonts && document.fonts.ready) document.fonts.ready.then(function(){ fitTrust(); });
+  // 7/11, Elena: sotto il logo due righe, «Fine Jewelry & Gemstones» e «Social Live Shopping» con «Live» in rosso (via «· Live»)
+  function tagHtml(){ var s = t.tagSocial || ["Social ", "Live", " Shopping"]; return '<span class="tl1">' + esc(t.tagLine || t.tag) + '</span><span class="tl2">' + esc(s[0]) + '<b class="tlive">' + esc(s[1]) + '</b>' + esc(s[2]) + '</span>'; }
   function slides(){
     var hl = [], sh = [];
     state.highlights.forEach(function(h){
@@ -566,7 +577,7 @@ input,select,textarea{border-color:var(--edge);background:var(--cream)}
   // benvenuto (prima visita)
   function renderWelcome(){
     var w = $("welcome");
-    w.innerHTML = '<div class="wcard"><div class="wm"><span class="logo">' + $("logoTpl").innerHTML + '</span><small>' + esc(t.tag) + '</small></div><h1>' + t.wTitle + '</h1><p class="lead">' + esc(t.wLead) + '</p><ul>' + t.wPoints.map(function(x){ return '<li><i></i>' + esc(x) + '</li>'; }).join("") + '</ul><div class="actions"><button class="go" type="button" id="wGo">' + esc(t.wGo) + '</button><a class="sellers" href="' + CFG.base + '/live/join?lang=' + lang + '">' + esc(t.wSellers) + '</a></div><p class="sig">' + esc(t.wSig) + '</p></div>';
+    w.innerHTML = '<div class="wcard"><div class="wm"><span class="logo">' + $("logoTpl").innerHTML + '</span><small>' + tagHtml() + '</small></div><h1>' + t.wTitle + '</h1><p class="lead">' + esc(t.wLead) + '</p><ul>' + t.wPoints.map(function(x){ return '<li><i></i>' + esc(x) + '</li>'; }).join("") + '</ul><div class="actions"><button class="go" type="button" id="wGo">' + esc(t.wGo) + '</button><a class="sellers" href="' + CFG.base + '/live/join?lang=' + lang + '">' + esc(t.wSellers) + '</a></div><p class="sig">' + esc(t.wSig) + '</p></div>';
     w.hidden = false; document.body.style.overflow = "hidden";
     $("wGo").addEventListener("click", closeWelcome);
   }

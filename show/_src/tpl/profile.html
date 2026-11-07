@@ -58,7 +58,7 @@
   function render(){
     t = TT[lang]; document.documentElement.lang = lang; document.documentElement.dir = lang === "ar" ? "rtl" : "ltr"; $("langCur").textContent = lang.toUpperCase();
     Array.prototype.forEach.call(document.querySelectorAll("#langMenu button"), function(b){ b.classList.toggle("on", b.getAttribute("data-lang") === lang); });
-    $("tag").textContent = t.tag; $("foot").innerHTML = esc(t.foot) + '<br>' + esc(t.footJoin); var dn = document.querySelector(".demo span"); if (dn && t.demoNote) dn.textContent = t.demoNote;
+    (function(el, tt){ if (!el) return; var s = tt.tagSocial || ["Social ", "Live", " Shopping"]; el.textContent = ""; var a = document.createElement("span"); a.className = "tl1"; a.textContent = tt.tagLine || tt.tag; var b = document.createElement("span"); b.className = "tl2"; b.appendChild(document.createTextNode(s[0])); var r = document.createElement("b"); r.className = "tlive"; r.textContent = s[1]; b.appendChild(r); b.appendChild(document.createTextNode(s[2])); el.appendChild(a); el.appendChild(b); })($("tag"), t); $("foot").innerHTML = esc(t.foot) + '<br>' + esc(t.footJoin); var dn = document.querySelector(".demo span"); if (dn && t.demoNote) dn.textContent = t.demoNote;
     var j = state.j, page = $("page");
     if (!j){ page.innerHTML = '<div class="empty" style="margin-top:30px"><b>404</b>Pagina non trovata.</div>'; return; }
     document.title = j.name + " · " + CFG.name;

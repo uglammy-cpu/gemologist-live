@@ -1,0 +1,13 @@
+
+/* =====================================================================
+   UNIQAIA — restyling «V2» nella pagina della diretta (7/11/2026, in anteprima per Elena)
+   La diretta resta scura com'è: cambiano solo i caratteri, come in home
+   (serif 600 per titoli e numeri, sans forte per i nomi). Colori, bottoni e posizioni invariati.
+   ===================================================================== */
+:root{
+  --serif:"Source Serif 4","Bodoni Moda",Georgia,serif;
+  --display:"Source Serif 4","Bodoni Moda",Georgia,serif;
+}
+.gate b,.idlev b,.waitv b,.livebox b,.mcard h3,.empty b{font-family:var(--serif);font-weight:600;letter-spacing:-.005em}
+.clock b{font-family:var(--serif);font-weight:600}
+.av{font-family:var(--serif);font-weight:600}

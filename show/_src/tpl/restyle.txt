@@ -1,0 +1,229 @@
+
+/* =====================================================================
+   UNIQAIA — restyling «V2», correzioni del 6/11 ore 16:31 (approvato da Elena il 6/11/2026 e pubblicato; solo home)
+   Nuovo box candidature, testo del palinsesto senza orari fissi,
+   «Trasmetti con noi» più staccato dalle voci per gli spettatori.
+   Base: «V2» rifinita — 6 novembre 2026
+   Direzione approvata da Elena il 6/11 (la chiama V2), con il suo brief finale delle 16:10:
+   «Candidature aperte» in rosso, date rosse solo in «Questa settimana»,
+   testo del palinsesto non più in corsivo, orari in grassetto.
+   Carosello: nessun segno sopra la foto, testo essenziale.
+   Personalità tipografica e piccoli accenti editoriali solo nelle sezioni
+   sotto: tratto rosso a mano sotto i titoli, serif per numeri, frasi
+   introduttive e monogrammi. Rosso solo come segnale.
+   Solo trattamento visivo: stessi elementi, stessi testi, stesse funzioni.
+   ===================================================================== */
+
+/* ---------- 1. Token ---------- */
+:root{
+  --paper:#F8F2EB;     /* avorio caldo: fondo */
+  --cream:#FFFCF8;     /* superfici: card, campi, filtri */
+  --ink:#1D1A1F;       /* titoli e testo */
+  --muted:#5B5560;     /* testo secondario */
+  --line:#E8DFD3;      /* righe e bordi leggeri */
+  --edge:#D8CDBD;      /* bordo di campi e filtri */
+  --soft:#FFFCF8;
+  --soft-2:#F3EAE0;
+  --red:#E11D2E;       /* LIVE, REC, piccoli accenti, CTA principale */
+  --red-deep:#A8121F;  /* hover del rosso */
+  --red-text:#D31A2B;  /* lo stesso rosso, appena più scuro, per le scritte piccole: 4,8:1 sull'avorio */
+  --livered:#E11D2E;
+  --heart:#E11D2E;
+  /* oro: logo e «Trasmetti con noi», come nel riferimento */
+  --gold-hi:#E6CF97; --gold:#C9A45C; --gold-lo:#B08A45; --gold-edge:#A9853F; --gold-ink:#1D1A1F;
+  --serif:"Source Serif 4","Bodoni Moda",Georgia,serif;              /* titolo del carosello */
+  --display:"Manrope","Baloo Bhaijaan 2",system-ui,sans-serif;        /* titoli di sezione e card */
+  --body:"Jost","Baloo Bhaijaan 2","Helvetica Neue",Arial,sans-serif; /* interfaccia: invariato */
+  --hand:"Caveat",cursive;                                            /* solo nel benvenuto */
+}
+
+/* ---------- 2. Fondo: avorio pieno, nessuna texture ---------- */
+html{background:var(--paper)}
+body,body.vetrina{background:var(--paper);color:var(--ink)}
+:focus-visible{outline:2px solid var(--ink);outline-offset:3px}
+
+/* ---------- 3. Testata (logo, info e lingua invariati di posto e di forma) ---------- */
+.topv{background:rgba(248,242,235,.92);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+.brand small{color:var(--muted);letter-spacing:.12em}
+.about-btn{border-color:#CDB98C;color:var(--ink);background:var(--cream)}
+.langs .cur{background:var(--ink);color:var(--cream);border-color:var(--ink);font-weight:500}
+.langs .menu{background:var(--cream);border-color:var(--line);border-radius:14px}
+.langs .menu button.on{background:var(--soft-2);color:var(--ink)}
+
+/* ---------- 4. Ricerca, menu, filtri ---------- */
+.search{background:var(--cream)!important;color:var(--muted)!important;box-shadow:inset 0 0 0 1px var(--edge)}   /* bordo disegnato dentro: stessa misura */
+.search:focus-within{box-shadow:inset 0 0 0 1.5px var(--ink)}
+.tab{color:var(--muted)}
+.tab.on{color:var(--ink);border-color:var(--ink)}
+.tab .n{background:var(--red)}
+.tabjoin{background:linear-gradient(180deg,var(--gold-hi),var(--gold))!important;border-color:var(--gold-edge)!important;color:var(--ink)!important;box-shadow:none!important;margin-inline-start:18px!important}
+/* «Trasmetti con noi» è per i venditori: alla sua sinistra una piccola fascia color carta,
+   con un filo verticale, lo stacca dalle voci per gli spettatori che scorrono sotto */
+.tabjoin::before{content:"";position:absolute;inset-inline-end:100%;top:-6px;bottom:-6px;width:30px;pointer-events:none;
+  background:linear-gradient(var(--edge),var(--edge)) no-repeat 18px 12px/1px calc(100% - 24px),linear-gradient(to left,var(--paper) 62%,rgba(248,242,235,0))}
+[dir="rtl"] .tabjoin::before{transform:scaleX(-1)}
+@media (max-width:719px){
+  .tabjoin{margin-inline-start:20px!important;padding:8px 14px!important;font-size:13.5px!important}
+}
+.cats button{background:var(--cream);border:1px solid var(--edge);color:var(--ink);font-weight:500}
+.cats button small{color:var(--muted)}
+.cats button.on{background:var(--ink);color:var(--cream);border-color:var(--ink)}
+.cats button.on small{color:var(--cream);opacity:.75}
+
+/* ---------- 5. Carosello: foto pulita, testo essenziale ---------- */
+/* via polvere, scintille, riflesso, alone, grana e luci dorate: sopra il gioiello non resta niente */
+.slide .dust,.slide .sparks,.slide .sheen,.slide .halo,.slide .lights,.slide .grain{display:none}
+.slide::before{display:none}
+/* l'ombra serve solo sotto il testo, in basso a sinistra: il resto della foto resta come è stata scattata */
+.slide::after{background:radial-gradient(115% 95% at 0% 100%,rgba(18,12,10,.64) 0%,rgba(18,12,10,.34) 36%,rgba(18,12,10,0) 62%)}
+[dir="rtl"] .slide::after{background:radial-gradient(115% 95% at 100% 100%,rgba(18,12,10,.64) 0%,rgba(18,12,10,.34) 36%,rgba(18,12,10,0) 62%)}
+@media (min-width:720px){.slide{border-radius:20px}}
+/* zoom lento più leggero: prima arrivava al 118% e tagliava il pezzo */
+@keyframes uqzoom{from{transform:scale(1.01)}to{transform:scale(1.06)}}
+.slide.on .cv{animation:uqzoom 16s ease-out both}
+.slide .eyebrow{color:rgba(255,252,248,.88);font-family:var(--body);font-weight:500;letter-spacing:.16em;font-size:11px}
+/* sopra la foto solo il titolo, contenuto, e il bottone: nessun segno grafico */
+.slide h2{font-family:var(--serif);font-weight:600;font-size:clamp(24px,3.4vw,34px);line-height:1.1;letter-spacing:-.005em;text-shadow:0 1px 14px rgba(0,0,0,.28)}
+.slide .go{margin-top:12px;background:transparent;color:#fff;border:1.5px solid rgba(255,255,255,.9);font-family:var(--body);font-weight:500;font-size:14px;padding:8px 18px;transition:background .25s,color .25s}
+.slide:hover .go{background:#fff;color:var(--ink)}
+/* solo se la slide è una diretta in corso il bottone diventa rosso */
+.slide:has(.lbl:not(.off)) .go{background:var(--red);border-color:var(--red);color:#fff}
+.hero .arr{background:rgba(255,252,248,.94);color:var(--ink);box-shadow:0 4px 16px rgba(0,0,0,.18)}
+.hero .dots button{background:var(--edge)}
+.hero .dots button.on{background:var(--edge)}
+.hero .dots button.on::after{background:var(--red)}   /* l'avanzamento della slide: un filo rosso, come una registrazione */
+
+/* ---------- 6. LIVE: rettangolo rosso discreto, pulsa solo il punto ---------- */
+.lbl{font-family:var(--body);font-weight:600;letter-spacing:.12em;border-radius:6px;padding:5px 9px}
+.lbl:not(.off){animation:none}
+.lbl i{animation:pulsew 1.6s ease-out infinite}
+.tab.haslive{animation:none}
+.tab.haslive .livedot{animation:pulsew 1.6s ease-out infinite;box-shadow:0 0 0 0 rgba(225,29,46,.5)}
+@media (prefers-reduced-motion:reduce){.lbl i,.tab.haslive .livedot{animation:none}}
+
+/* ---------- 7. Frasi di fiducia: icona sottile, testo normale, separatori ---------- */
+.trust{gap:8px 0;margin-top:16px;font-size:13.5px;letter-spacing:0;text-transform:none;color:var(--ink);font-weight:400}
+.trust span{align-items:center;gap:9px;line-height:1.3;padding:0 18px;border-inline-start:1px solid var(--edge)}
+.trust span:first-child{padding-inline-start:0;border:0}
+.trust i{width:18px;height:18px;margin:0;border-radius:0;background:var(--ink);-webkit-mask:var(--ic) no-repeat center/contain;mask:var(--ic) no-repeat center/contain}
+.trust span:nth-child(1) i{--ic:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.5' stroke-linejoin='round'%3E%3Cpath d='M6 4h12l4 5-10 11L2 9z'/%3E%3Cpath d='M2 9h20M9 4l3 16 3-16'/%3E%3C/svg%3E")}
+.trust span:nth-child(2) i{--ic:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.5' stroke-linejoin='round' stroke-linecap='round'%3E%3Cpath d='M12 2.5l2.4 1.8 3-.2.9 2.9 2.4 1.8-1 2.8 1 2.8-2.4 1.8-.9 2.9-3-.2L12 21.5l-2.4-1.8-3 .2-.9-2.9-2.4-1.8 1-2.8-1-2.8 2.4-1.8.9-2.9 3 .2z'/%3E%3Cpath d='M8.5 12.2l2.4 2.3 4.6-4.8'/%3E%3C/svg%3E")}
+.trust span:nth-child(3) i{--ic:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.5' stroke-linejoin='round'%3E%3Crect x='2.5' y='6' width='13' height='12' rx='2.5'/%3E%3Cpath d='M15.5 10.5l6-3.5v10l-6-3.5z'/%3E%3C/svg%3E")}
+@media (max-width:719px){.trust span{padding:0;border:0}}
+
+/* ---------- 8. Titoli di sezione: sans forte, senza decori ---------- */
+.sh h2,.dayh b,.empty b,.mcard h3,.phead h1,.jpage h1,.thanks h2{font-family:var(--display);font-weight:800;letter-spacing:-.025em}
+.sh h2{position:relative;font-size:clamp(22px,3.4vw,32px);line-height:1.08}
+/* il segno a mano dei social vive qui, sotto i titoli di sezione, lontano dai gioielli */
+.sh h2::after{content:"";position:absolute;inset-inline-start:1px;bottom:-13px;width:46px;height:8px;pointer-events:none;
+  background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 46 8'%3E%3Cpath d='M1.5 5.4C9 3.1 19 2.2 29 3.1 35 3.6 40 4.4 44.5 3.3' fill='none' stroke='%23E11D2E' stroke-width='2.6' stroke-linecap='round'/%3E%3C/svg%3E") no-repeat center/contain}
+[dir="rtl"] .sh h2::after{transform:scaleX(-1)}
+.sh{margin-bottom:18px}
+.lhero h1{font-family:var(--serif);font-weight:600}
+/* testo del palinsesto: sans normale, antracite, interlinea ariosa; due frasi, senza orari; niente righe orfane */
+.nsub{font-family:var(--body);font-style:normal;font-weight:400;font-size:16px;line-height:1.65;color:#2E2A31;max-width:72ch;margin-top:6px;text-wrap:pretty}
+
+.sh a{display:inline-flex;align-items:center;gap:6px;color:var(--ink);font-weight:500;border:1px solid var(--ink);border-radius:999px;padding:6px 14px;font-size:13.5px}
+.sh a::after{content:"→";font-size:14px}
+.sh a:hover{background:var(--ink);color:var(--cream)}
+/* sul telefono il link resta un link: la pillola manderebbe a capo il titolo */
+@media (max-width:719px){
+  .sh a{border:0;padding:0;text-decoration:underline;text-underline-offset:4px}
+  .nsub{font-size:15.5px;line-height:1.6}
+  .cta{padding:20px 18px}
+  .cta b{font-size:21px}
+  .cta small{font-size:14px}
+}
+
+/* ---------- 9. Agenda (palinsesto e settimana) ---------- */
+.agenda{border-top:1px solid var(--line)}
+.ag{border-bottom:1px solid var(--line)}
+.ag .agd small{color:var(--muted);font-weight:500;letter-spacing:.14em}
+.ag.live .agd small{color:var(--red-text);font-weight:600}
+/* «Questa settimana»: il numero del giorno dell'evento confermato in rosso; il palinsesto resta nero */
+#week .ag .agd b{color:var(--red)}
+.ag .agd b{font-family:var(--serif);font-weight:600;font-size:30px;letter-spacing:-.01em;margin-top:3px}
+.ag .agd span{color:var(--muted)}
+.ag .agi{border-radius:12px;box-shadow:0 4px 12px rgba(60,30,20,.10)}
+.ag.live .agi{box-shadow:0 0 0 2px var(--red),0 4px 12px rgba(60,30,20,.10)}
+.ag .agt small{color:var(--muted);font-weight:500}
+.ag .agt b{font-family:var(--display);font-weight:700;letter-spacing:-.01em}
+.ag.night .agt b{font-size:19px}
+.agn b{font-family:var(--serif);font-weight:600}
+.agn small{color:var(--muted)}
+/* «Candidature aperte»: rosso solo quando le candidature sono davvero aperte (la scritta compare da sola, senza numero) */
+.agn small:only-child{color:var(--red-text);font-weight:600;font-size:12px;letter-spacing:.01em;white-space:nowrap}
+.ag.night .agn{max-width:none}
+@media (max-width:719px){.agn small:only-child{font-size:11.5px}}
+
+/* ---------- 10. Card delle dirette ---------- */
+.cover{border-radius:18px}
+.cover:has(.lbl:not(.off)){box-shadow:0 0 0 2px var(--red)}   /* il bordo rosso c'è solo mentre è in onda */
+.ctitle{font-family:var(--display);font-weight:700}
+.ctitle small{color:rgba(255,252,248,.9);font-family:var(--body);font-weight:500}
+.when{background:var(--cream);color:var(--ink)}
+.when b{font-family:var(--display);font-weight:800}
+.when small{color:var(--red-deep)}
+.av{background:var(--cream);color:var(--ink);border:1px solid var(--edge);font-family:var(--serif);font-weight:600}
+.chk{background:var(--ink)}
+
+/* ---------- 11. Categorie: foto a filo, titolo sans ---------- */
+.tile{border-radius:16px}
+.tile.ph::after{background:linear-gradient(to top,rgba(18,12,10,.78) 0%,rgba(18,12,10,.34) 38%,transparent 64%)}   /* come oggi, un filo più scura in basso: titoli leggibili su ogni foto */
+.tile b{font-family:var(--display);font-weight:700;letter-spacing:-.01em}
+.tile.on{outline:3px solid var(--ink);outline-offset:-3px}
+
+/* ---------- 12. Venditori ---------- */
+.seller .big{background:var(--cream);color:var(--ink);font-family:var(--serif);font-weight:600;font-size:26px;border:1px solid var(--edge);box-shadow:none}
+.seller.live .big{border:2px solid var(--red)}
+.seller b{font-weight:500}
+
+/* ---------- 13. Riquadro candidature: l'unica CTA rossa della pagina ---------- */
+.cta{background:var(--cream);border-color:var(--line);border-radius:20px;gap:16px 28px;padding:22px 24px}
+.cta>div{flex:1 1 440px;max-width:720px}
+.cta b{font-family:var(--serif);font-weight:600;font-size:24px;letter-spacing:-.005em;margin-bottom:6px}
+.cta small{display:block;font-size:14.5px;line-height:1.55;color:#2E2A31}
+.cta small.cnote{margin-top:6px;font-size:13px;color:var(--muted)}
+.cta .go{background:var(--red);color:#fff;font-weight:600;transition:background .2s}
+.cta .go:hover{background:var(--red-deep)}
+
+/* ---------- 14. Il resto ---------- */
+.empty{border-color:var(--edge);border-radius:16px;background:var(--cream)}
+footer,.demo{color:var(--muted)}.demo b{color:var(--ink)}
+.toast{background:var(--ink);color:var(--cream)}
+.install{background:var(--cream);border-color:var(--line)}
+.btn.dark{background:var(--ink);color:var(--cream);border-color:var(--ink)}
+input,select,textarea{border-color:var(--edge);background:var(--cream)}
+.mcard{background:var(--cream);border-color:var(--line)}
+
+/* ---------- 15. Benvenuto (prima visita) ---------- */
+.welcome{background:var(--paper);color:var(--ink);--logo-gold:#A47F3A;--logo-gem:#D43F52}
+.welcome::before{background:radial-gradient(60% 45% at 50% 16%,rgba(255,252,248,.95),transparent 72%)}
+.wm .logo{color:var(--ink)}
+.wcard .wm small{color:var(--muted)}
+.wcard h1{font-family:var(--serif);font-weight:600;letter-spacing:-.01em}
+.wcard h1 em{font-family:var(--hand);font-style:normal;font-weight:700;color:var(--red);font-size:1.12em}
+.wcard .lead{color:var(--ink);opacity:.82}
+.wcard li i{background:var(--red);width:6px;height:6px}
+.wcard .go{background:var(--red);color:#fff;font-weight:600}
+.wcard .sellers{color:var(--ink)}
+.wcard .sig{color:var(--muted)}
+
+/* controllo finale: su telefono il carosello sporgeva di 2px per lato (margine -16px su un contenitore da 14px),
+   e la pagina scorreva di lato di 2px. Difetto già presente oggi: lo allineo al bordo, nient'altro. */
+@media (max-width:719px){ .hero{margin-left:calc(-1 * max(14px, env(safe-area-inset-left, 0px)));margin-right:calc(-1 * max(14px, env(safe-area-inset-right, 0px)))} }
+
+/* messaggi sotto il carosello (brief del 6/11 ore 18:20): cambiano con la slide e possono andare a capo.
+   Al computer restano su una riga di tre colonne: il primo, il più lungo, prende lo spazio che resta
+   e va a capo dentro la sua colonna; nessun troncamento. Sul telefono uno sotto l'altro, come oggi. */
+.trust span{align-items:flex-start}
+.trust i{margin-top:1px}
+@media (min-width:720px){
+  .trust{flex-wrap:nowrap;align-items:flex-start}
+  .trust span{flex:0 0 auto}
+  .trust span:first-child{flex:0 1 auto;min-width:0;max-width:60ch}
+}
+@media (max-width:719px){
+  .trust{flex-direction:column;gap:8px}
+  .trust span{line-height:1.4}
+}

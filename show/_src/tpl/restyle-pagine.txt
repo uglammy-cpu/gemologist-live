@@ -1,0 +1,59 @@
+
+/* =====================================================================
+   UNIQAIA — restyling «V2» esteso alle altre pagine pubbliche (7/11/2026, in anteprima per Elena)
+   /join, pagina della serata, scheda del venditore, pagamento.
+   Si aggiunge al blocco della home (restyle.txt), che vale anche qui: stessi colori, stessi caratteri.
+   Solo trattamento visivo: stessi elementi, stessi testi, stesse funzioni, stesso ordine.
+   Titoli in serif 600 o sans forte come in home; l'oro resta al logo; rosso solo come segnale.
+   ===================================================================== */
+
+/* ---------- A. Etichette piccole: grigio caldo invece dell'oro ---------- */
+.eyebrow,.jpage h3{color:var(--muted);font-weight:600;letter-spacing:.14em}
+.brand small{color:var(--muted)}
+.demo b{color:var(--ink)}
+.hint{color:var(--muted)}
+
+/* ---------- B. Titoli ---------- */
+.acard h2,.pay h1,.livebox b{font-family:var(--serif);font-weight:600;letter-spacing:-.005em}
+.acard h2.brandh{letter-spacing:.02em}
+.mcard h3,.empty b{letter-spacing:-.02em}
+/* il fumetto di Gemma: il titolo come le frasi della home */
+.uqa-t{font-family:var(--serif)!important;font-weight:600!important;letter-spacing:-.005em;color:var(--ink)!important}
+
+/* ---------- C. Bottoni ---------- */
+.btn{border-color:var(--ink);color:var(--ink)}
+.btn:hover{background:var(--ink);color:var(--cream)}
+.btn.dark{background:var(--ink);color:var(--cream);border-color:var(--ink)}
+.btn.dark:hover{background:#000}
+/* la CTA principale di /join, come «Candidati» in home: l'unica rossa della pagina */
+.jform .submit,.acard .btn.dark.full{background:var(--red);border-color:var(--red);color:#fff;font-weight:600}
+.jform .submit:hover,.acard .btn.dark.full:hover{background:var(--red-deep);border-color:var(--red-deep)}
+
+/* ---------- D. Riquadri: crema con bordo leggero, come le card della home ---------- */
+.acard,.pay .pcard,.howbox,.vcard,.livebox{background:var(--cream);border-color:var(--line)}
+.jpage .price,.plan,.offer{background:var(--cream);border-color:var(--edge)}
+.jpage .price b{font-family:var(--serif);font-weight:600;color:var(--ink)}
+.notice{background:#FBF1E6;border-color:var(--edge)}
+.filebox{border-color:var(--edge);background:var(--cream)}
+.jpage li i{background:var(--red);width:6px;height:6px;margin-top:8px}   /* come i punti del benvenuto */
+
+/* ---------- E. Schede, scelte, link ---------- */
+.atabs button.on{border-color:var(--ink);color:var(--ink);font-weight:600}
+.lnk,.consent a,.amsg.ok{color:var(--ink)}
+.chip,.chips button{background:var(--cream);border-color:var(--edge);color:var(--ink)}
+.chip.on{background:var(--ink);color:var(--cream);border-color:var(--ink)}
+.acard .okc{background:var(--cream);color:var(--ink);border-color:var(--edge);font-family:var(--serif);font-weight:600}
+
+/* ---------- F. Monogrammi e data: serif, come i venditori e il palinsesto della home ---------- */
+.phead .big,.av,.lseller .av{background:var(--cream);color:var(--ink);border:1px solid var(--edge);font-family:var(--serif);font-weight:600;box-shadow:none}
+.lwhen .cal{background:var(--cream);color:var(--ink);border:1px solid var(--edge)}
+.lwhen .cal b{font-family:var(--serif);font-weight:600;color:var(--red)}      /* la data confermata in rosso, come «Questa settimana» */
+.lwhen .cal small{color:var(--muted);font-weight:500;letter-spacing:.14em}
+.chk{background:var(--ink)}
+
+/* ---------- G. Pagina della serata ---------- */
+.lmeta,.lmeta span{color:rgba(255,252,248,.9)}
+.lpiece{background:var(--cream);border-color:var(--line);border-radius:16px}
+.lpiece b{font-family:var(--display);font-weight:700;letter-spacing:-.01em}
+.lwhen,.lseller{background:var(--cream);border-color:var(--line)}
+.lwhen time{font-weight:500}

@@ -31,6 +31,9 @@ const LOC = { it: "it-IT", en: "en-GB", fr: "fr-FR", ar: "ar-AE-u-nu-latn", ru: 
 
 const tpl = (n) => fs.readFileSync(path.join(HERE, "tpl", n), "utf8");
 const parts = { HEAD: tpl("head.txt"), CSS: tpl("css.txt"), LKJS: tpl("lkjs.txt"), ART: tpl("art.txt"), T: tpl("t.txt"),
+  // restyling «V2»: caratteri e blocco della home (restyle.txt), estensioni per le altre pagine pubbliche e per la diretta
+  FONTS: '<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Caveat:wght@700&family=Manrope:wght@600..800&family=Source+Serif+4:ital,wght@0,600;1,400&display=swap">',
+  RESTYLE: tpl("restyle.txt"), RESTYLE_PAGINE: tpl("restyle-pagine.txt"), RESTYLE_DIRETTA: tpl("restyle-diretta.txt"),
   // The Jeweler's Wheel: pop-up di benvenuto della pagina /join (script autonomo, vedi wheel.js)
   WHEEL: fs.readFileSync(path.join(HERE, "wheel.js"), "utf8"),
   // Avatar di Elena che spiega l'ingresso nella pagina /join (vedi avatar.js); i testi stanno in avatar-copione.json,
@@ -174,7 +177,7 @@ function render(t, name, runtime) {
 function landingDoc(t, body, lang, extraHead, bodyAttrs, langRow) {
   const P = t.prefix;
   const head = parts.HEAD.split('href="/show/img/').join('href="' + P + '/img/');
-  return `<!doctype html><html lang="${lang}" dir="${lang === "ar" ? "rtl" : "ltr"}"><head>${head}<title>${H(body.title)} · ${common.NAME}</title>${DEMO_META}<link rel="manifest" href="${P}/manifest.webmanifest"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="Uniqaia"><meta name="apple-mobile-web-app-status-bar-style" content="default">${extraHead}<style>${parts.CSS}</style></head>
+  return `<!doctype html><html lang="${lang}" dir="${lang === "ar" ? "rtl" : "ltr"}"><head>${head}<title>${H(body.title)} · ${common.NAME}</title>${DEMO_META}<link rel="manifest" href="${P}/manifest.webmanifest"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="Uniqaia"><meta name="apple-mobile-web-app-status-bar-style" content="default">${extraHead}<style>${parts.CSS}</style>${parts.FONTS}<style id="restyle">${parts.RESTYLE}${parts.RESTYLE_PAGINE}</style></head>
 <body class="vetrina"${bodyAttrs || ""}>
 <header class="topv wrap"><div class="col"><div class="brand"><a class="logo" href="${t.site}${P}/?lang=${lang}" aria-label="${common.NAME}">${tpl("vetrina.html").match(/<a class="logo"[^>]*>([\s\S]*?)<\/a>/)[1]}</a><small>${H(T[lang].tag)}</small></div>${langRow || ""}</div></header>
 <main class="wrap"><div class="col" id="page">${body.html}</div></main>

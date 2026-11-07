@@ -32,9 +32,11 @@ test("[e2e.diretta.spettatore] La pagina dello spettatore si apre e «Mi interes
   if (!d) nonTestato("nessuna diretta in programma");
   const st = await prepara(page, { ignora: ["/functions/v1/live/"] });
   await page.goto(`/${d.seller}/?s=${d.id}`, { waitUntil: "load" });
-  await expect(page.locator("#jname")).not.toBeEmpty({ timeout: 15_000 });
+  // «…» è il segnaposto prima che arrivino i dati: si aspetta il nome vero del venditore
+  await expect(page.locator("#jname")).not.toHaveText(/^\s*…?\s*$/, { timeout: 15_000 });
   const interesse = page.locator("#interest");
   await expect(interesse, "pulsante «Mi interessa»").toBeVisible();
+  await expect(interesse, "«Mi interessa» si attiva quando la diretta è caricata").toBeEnabled({ timeout: 15_000 });
   await interesse.click();
   const modale = page.locator("#modal");
   await expect(modale).toBeVisible();

@@ -18,8 +18,8 @@
     <div class="hearts" id="hearts"></div>
     <div class="rail">
       <button type="button" id="heart"><span class="ic heart" id="heartIc"></span><span id="likes">0</span></button>
-      <button type="button" id="interest"><span class="ic goldbg" id="gemIc"></span><span id="interestTxt"></span></button>
-      <button type="button" id="book"><span class="ic" id="calIc"></span><span id="bookTxt"></span></button>
+      <button type="button" id="interest" disabled><span class="ic goldbg" id="gemIc"></span><span id="interestTxt"></span></button>
+      <button type="button" id="book" disabled><span class="ic" id="calIc"></span><span id="bookTxt"></span></button>
       <button type="button" id="share"><span class="ic" id="shareIc"></span><span id="shareTxt"></span></button>
       <button type="button" id="cc"><span class="ic" id="ccIc"></span><span id="ccTxt"></span></button>
       <button type="button" id="buy" hidden><span class="ic goldbg" id="bagIc"></span><span id="buyTxt"></span></button>
@@ -303,6 +303,7 @@
     });
   });
   $("interest").addEventListener("click", function(){
+    if (!state.show) return; // la diretta non è ancora caricata
     requireContact(function(n, c){
       pickPiece(function(p){
         sb.rpc("create_request3", { p_show: state.show.id, p_invite: state.invite ? state.invite.invite_id : null, p_guest: n, p_contact: c, p_type: "interest", p_piece: p ? p.id : null, p_slot: null }).then(function(r){
@@ -492,6 +493,7 @@
     openModal('<p class="eyebrow">' + esc(t.howTitle) + '</p><p style="font-size:14px;line-height:1.5">' + esc(t.howInterest) + '</p><p style="font-size:14px;line-height:1.5">' + esc(t.howBook) + '</p><p style="font-size:14px;line-height:1.5">' + esc(t.howBuy) + '</p>' + (j && j.shop_url ? '<a class="btn dark" href="' + esc(/^https?:/i.test(j.shop_url) ? j.shop_url : "https://" + j.shop_url) + '" target="_blank" rel="noopener">' + esc(t.shopLink) + '</a>' : '') + '<a class="btn sm" href="' + CFG.base + '/live/' + CFG.slug + '/profile?lang=' + state.lang + '">' + esc(t.profile) + ' · ' + esc(j ? j.name : "") + '</a>');
   });
   $("book").addEventListener("click", function(){
+    if (!state.show) return; // la diretta non è ancora caricata
     requireContact(function(n, c){
       var slots = Array.isArray(state.show.slots) ? state.show.slots : [];
       var html = '<p class="eyebrow">' + esc(state.t.book) + '</p><h3>' + esc(state.t.when) + '</h3><p class="muted" style="font-size:14px">' + esc(state.t.book2 + state.jeweler.name) + '</p><div class="slots">';

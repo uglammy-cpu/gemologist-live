@@ -22,6 +22,9 @@ test("[e2e.home.benvenuto] Alla prima visita compare il benvenuto, «Entra» lo 
   await page.locator("#wGo").click();
   await expect(b).toBeHidden();
   await expect(page.locator("#tabs button.tab").first(), "dopo «Entra» la vetrina risponde ai clic").toBeEnabled();
+  // su iPhone (WebKit) una richiesta ancora in corso interrotta dal ricaricamento risulta un errore «access control checks»:
+  // non è un guasto della pagina, quindi si ricarica a richieste finite
+  await page.waitForLoadState("networkidle", { timeout: 10_000 }).catch(() => {});
   await page.reload({ waitUntil: "load" });
   await page.waitForTimeout(1500);
   await expect(b, "alla seconda visita il benvenuto non si ripresenta").toBeHidden();

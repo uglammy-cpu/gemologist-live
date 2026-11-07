@@ -103,7 +103,8 @@ export async function unaDiretta(request, { stato } = {}) {
 /** Apre la vetrina come un visitatore: alla prima visita compare il benvenuto («Entra»), su iPhone l'invito a installare l'app. */
 export async function entra(page, path = "/") {
   // l'invito a installare l'app (iPhone, dopo 3 secondi) si prova a parte: qui non deve coprire i pulsanti
-  await page.addInitScript(() => { try { localStorage.setItem("uniqaia-install", "no"); } catch (e) {} });
+  // la ruota di benvenuto (pubblica dal 4/11) si apre da sola alla prima visita: si prova in ruota.spec.mjs, qui non deve coprire i pulsanti
+  await page.addInitScript(() => { try { localStorage.setItem("uniqaia-install", "no"); sessionStorage.setItem("uqw-closed", "1"); } catch (e) {} });
   await page.goto(path, { waitUntil: "load" });
   const benvenuto = page.locator("#welcome");
   if (await benvenuto.waitFor({ state: "visible", timeout: 4000 }).then(() => true, () => false)) {

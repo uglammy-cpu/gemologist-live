@@ -98,9 +98,9 @@ function render(t, name, runtime) {
   const cfg = { ...common, SITE: t.site };
   const P = t.prefix; // "" oppure "/show"
   const OG = {
-    vetrina: { title: "Uniqaia · Fine jewelry & gemstones · Live", desc: "Dirette di gioiellerie e gem dealer selezionati, con una gemmologa GIA accanto. Live shows from selected jewellers and gem dealers, with a GIA gemologist at your side.", url: cfg.SITE + P + "/" },
+    vetrina: { title: "Uniqaia · Fine jewelry & gemstones · Live", desc: "Dirette di gioiellerie e gem dealer selezionati. Gemmologa in diretta su richiesta. Live shows from selected jewellers and gem dealers. Gemologist live on request.", url: cfg.SITE + P + "/" },
     join: { title: "Uniqaia · Trasmetti con noi · Go live with us", desc: "La piattaforma di live show per gioiellerie e gem dealer. The live-show platform for jewellers and gem dealers.", url: cfg.SITE + P + "/join/" },
-    viewer: { title: "Uniqaia · Live show", desc: "Gioielli e gemme dal vivo, con una gemmologa GIA. Jewellery and gems live, with a GIA gemologist.", url: "" },
+    viewer: { title: "Uniqaia · Live show", desc: "Gioielli e gemme dal vivo. Gemmologa in diretta su richiesta. Jewellery and gems live. Gemologist live on request.", url: "" },
     panel: { title: "Uniqaia · Pannello", desc: "Pannello riservato ai venditori.", url: "" },
     profile: { title: "Uniqaia · Scheda del venditore", desc: "Gioielleria o gem dealer selezionato su Uniqaia: specialità, dirette in programma, come acquistare.", url: "" },
   };
@@ -285,6 +285,12 @@ function prerenderVetrina(t, html) {
       if (b < slidesSh.length) slides.push(slidesSh[b++]);
     } }
   const hero = slides.slice(0, 12).map(slideHtml).join("");
+  // messaggi sotto il carosello della prima slide e box «Vendi in diretta», come li scrive la pagina: senza JS, per Google e le anteprime dei link
+  const slugOf = (title) => { title = title || ""; return Object.keys(HOME.cats).find((k) => HOME.cats[k] === title || (/^Specials/.test(title) && /^Specials/.test(HOME.cats[k]))) || ""; };
+  const tCat = slides[0] ? slugOf(slides[0].title) : "";
+  const trustItems = ((tt.trustCats || {})[tCat] || [tt.trust[0], tt.trust[1]]).concat([tt.trust[2]]);
+  const trust = trustItems.map((x) => `<span><i></i>${H(x)}</span>`).join("");
+  const cta = `<div><b>${H(tt.ctaTitle)}</b><small>${H(tt.ctaText)}</small><small class="cnote">${H(tt.ctaNote)}</small></div><a class="go" href="${t.site}${P}/join/?lang=${lang}">${H(tt.ctaBtn)}</a>`;
   const dots = slides.slice(0, 12).map((_, i) => `<button type="button" class="${i === 0 ? "on" : ""}" aria-label="${i + 1}"></button>`).join("");
   const agenda = week.length ? `<div class="agenda">${week.map((s) => { const j = jById[s.jeweler_id]; const p = palOf(j.slug); const pc = (piecesByShow[s.id] || [])[0]; const img = coverSrc(t, P, s.id) || (pc && photoFile[pc.id] ? `${t.site}${P}/img/${photoFile[pc.id]}` : ""); const d = new Date(s.scheduled_at); const wd = new Intl.DateTimeFormat(LOC[lang], { weekday: "short", timeZone: "Europe/Rome" }).format(d), dn = new Intl.DateTimeFormat(LOC[lang], { day: "numeric", timeZone: "Europe/Rome" }).format(d), tm = new Intl.DateTimeFormat(LOC[lang], { hour: "2-digit", minute: "2-digit", hour12: false, timeZone: "Europe/Rome" }).format(d); const bits = [(s.lang || "").toUpperCase(), ...(s.categories || []).filter((c) => Object.hasOwn(HOME.cats, c)).slice(0, 2).map((c) => HOME.cats[c]), s.price_range].filter(Boolean).join(" · "); return `<a class="ag${s.status === "live" ? " live" : ""}" href="${s.status === "live" ? `${t.site}${P}/${j.slug}/?s=${s.id}` : `${t.site}${P}/${j.slug}/${s.slug}/`}"><div class="agd"><small>${H(s.status === "live" ? tt.live : wd)}</small><b>${H(dn)}</b><span>${H(tm)}</span></div><div class="agi" style="--c1:${p[0]};--c2:${p[1]}">${img ? `<img alt="" src="${img}">` : (pc ? (ART[pc.art] || ART.ring) : ART.ring)}</div><div class="agt"><small>${H(bits)}</small><b>${H(s.title)}</b><span>${H(j.name)}${j.city ? " · " + H(j.city) : ""}</span></div></a>`; }).join("")}</div>` : `<div class="empty">${H(tt.noWeek)}</div>`;
   const soon = rows.filter((s) => s.status !== "live" && new Date(s.scheduled_at).getTime() > Date.now() + 7 * 86400000).sort((a, b) => new Date(a.scheduled_at) - new Date(b.scheduled_at)).map(card).join("");
@@ -296,6 +302,8 @@ function prerenderVetrina(t, html) {
     .replace('<div class="grid" id="gridSoon"></div>', `<div class="grid" id="gridSoon">${soon}</div>`)
     .replace('<div class="tiles" id="tiles"></div>', `<div class="tiles" id="tiles">${tiles}</div>`)
     .replace('<div class="shops" id="shopsRow"></div>', `<div class="shops" id="shopsRow">${shops}</div>`)
+    .replace('<div class="trust" id="trust"></div>', `<div class="trust" id="trust">${trust}</div>`)
+    .replace('<div class="cta" id="cta"></div>', `<div class="cta" id="cta">${cta}</div>`)
     .replace('<section id="live">', live ? '<section id="live">' : '<section id="live" hidden>');
 }
 
@@ -305,7 +313,7 @@ for (const t of TARGETS) {
   write("manifest.webmanifest", JSON.stringify({
     name: "Uniqaia · Fine jewelry & gemstones live",
     short_name: "Uniqaia",
-    description: "Dirette di gioiellerie e gem dealer selezionati, con una gemmologa GIA accanto.",
+    description: "Dirette di gioiellerie e gem dealer selezionati. Gemmologa in diretta su richiesta.",
     start_url: P + "/?src=app",
     scope: P + "/",
     display: "standalone",

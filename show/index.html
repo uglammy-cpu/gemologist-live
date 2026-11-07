@@ -859,7 +859,7 @@ function lkAttachRemote(room, tiles, LK){
     Array.prototype.forEach.call(document.querySelectorAll("#langMenu button"), function(b){ b.classList.toggle("on", b.getAttribute("data-lang") === lang); });
     $("cta").innerHTML = '<div><b>' + esc(t.ctaTitle) + '</b><small>' + esc(t.ctaText) + '</small><small class="cnote">' + esc(t.ctaNote) + '</small></div><a class="go" id="joinLink" href="' + CFG.base + '/show/join/?lang=' + lang + '">' + esc(t.ctaBtn) + '</a>';
     var jl = $("joinLink"); if (jl) jl.href = CFG.base + "/show/join/?lang=" + lang;   // dal 7/11 la sezione dei venditori non c'e' piu'
-    $("foot").innerHTML = esc(t.foot) + '<br>' + esc(t.footJoin);
+    $("foot").innerHTML = esc(t.foot);   // 7/11, Elena: via «Gioiellerie e gem dealer entrano su invito, dopo verifica.»
     $("emptyLive").innerHTML = '<b>' + esc(t.emptyLiveT) + '</b>' + esc(t.emptyLive);
     $("emptySoon").innerHTML = '<b>' + esc(t.emptySoonT) + '</b>' + esc(t.emptySoon);
   }

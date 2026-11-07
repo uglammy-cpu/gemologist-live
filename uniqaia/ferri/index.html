@@ -3,7 +3,7 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@0,6..96,400..600;1,6..96,400..600&family=Cormorant+Garamond:wght@500&family=Jost:wght@300..600&display=swap">
 <link rel="icon" type="image/svg+xml" href="/img/uniqaia-icon.svg"><link rel="icon" type="image/png" sizes="512x512" href="/img/uniqaia-icon.png"><link rel="apple-touch-icon" href="/img/uniqaia-icon.png"><meta name="theme-color" content="#15121C">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.4/dist/umd/supabase.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/livekit-client@2.22.0/dist/livekit-client.umd.min.js" onerror="var s=document.createElement('script');s.src='https://unpkg.com/livekit-client@2.22.0/dist/livekit-client.umd.min.js';document.head.appendChild(s)"></script><title>Diretta</title><meta name="robots" content="noindex,nofollow"><link rel="manifest" href="/manifest.webmanifest"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="Uniqaia"><meta name="apple-mobile-web-app-status-bar-style" content="default"><meta property="og:type" content="website"><meta property="og:site_name" content="Uniqaia"><meta property="og:title" content="Uniqaia · Live show"><meta property="og:description" content="Gioielli e gemme dal vivo, con una gemmologa GIA. Jewellery and gems live, with a GIA gemologist."><meta property="og:image" content="https://uniqaia.com/img/uniqaia-og.jpg"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630"><meta name="twitter:card" content="summary_large_image"><meta name="description" content="Gioielli e gemme dal vivo, con una gemmologa GIA. Jewellery and gems live, with a GIA gemologist."><style>
+<script src="https://cdn.jsdelivr.net/npm/livekit-client@2.22.0/dist/livekit-client.umd.min.js" onerror="var s=document.createElement('script');s.src='https://unpkg.com/livekit-client@2.22.0/dist/livekit-client.umd.min.js';document.head.appendChild(s)"></script><title>Diretta</title><meta name="robots" content="noindex,nofollow"><link rel="manifest" href="/manifest.webmanifest"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="Uniqaia"><meta name="apple-mobile-web-app-status-bar-style" content="default"><meta property="og:type" content="website"><meta property="og:site_name" content="Uniqaia"><meta property="og:title" content="Uniqaia · Live show"><meta property="og:description" content="Gioielli e gemme dal vivo. Gemmologa in diretta su richiesta. Jewellery and gems live. Gemologist live on request."><meta property="og:image" content="https://uniqaia.com/img/uniqaia-og.jpg"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630"><meta name="twitter:card" content="summary_large_image"><meta name="description" content="Gioielli e gemme dal vivo. Gemmologa in diretta su richiesta. Jewellery and gems live. Gemologist live on request."><style>
 :root{--paper:#FFFFFF;--ink:#16181D;--muted:#5B606A;--line:#E7E4DC;--soft:#F6F4EF;--soft-2:#F8F1DF;--gold-hi:#EDD596;--gold:#CBA44F;--gold-lo:#A9833A;--gold-edge:#8C6A2B;--gold-ink:#1C1406;--live:#1E7A4F;--livered:#E11D2E;--heart:#C6364E;--video:#1E2128;--display:"Bodoni Moda","Bodoni 72",Didot,Georgia,serif;--body:"Jost","Futura","Century Gothic","Helvetica Neue",Arial,sans-serif;color-scheme:light}
 *,*::before,*::after{box-sizing:border-box}
 html,body{margin:0;padding:0}
@@ -471,8 +471,8 @@ body.dark .demo{color:rgba(247,235,203,.55)}body.dark .demo b{color:var(--gold-h
     <div class="hearts" id="hearts"></div>
     <div class="rail">
       <button type="button" id="heart"><span class="ic heart" id="heartIc"></span><span id="likes">0</span></button>
-      <button type="button" id="interest"><span class="ic goldbg" id="gemIc"></span><span id="interestTxt"></span></button>
-      <button type="button" id="book"><span class="ic" id="calIc"></span><span id="bookTxt"></span></button>
+      <button type="button" id="interest" disabled><span class="ic goldbg" id="gemIc"></span><span id="interestTxt"></span></button>
+      <button type="button" id="book" disabled><span class="ic" id="calIc"></span><span id="bookTxt"></span></button>
       <button type="button" id="share"><span class="ic" id="shareIc"></span><span id="shareTxt"></span></button>
       <button type="button" id="cc"><span class="ic" id="ccIc"></span><span id="ccTxt"></span></button>
       <button type="button" id="buy" hidden><span class="ic goldbg" id="bagIc"></span><span id="buyTxt"></span></button>
@@ -836,6 +836,7 @@ function lkAttachRemote(room, tiles, LK){
     });
   });
   $("interest").addEventListener("click", function(){
+    if (!state.show) return; // la diretta non è ancora caricata
     requireContact(function(n, c){
       pickPiece(function(p){
         sb.rpc("create_request3", { p_show: state.show.id, p_invite: state.invite ? state.invite.invite_id : null, p_guest: n, p_contact: c, p_type: "interest", p_piece: p ? p.id : null, p_slot: null }).then(function(r){
@@ -1025,6 +1026,7 @@ function lkAttachRemote(room, tiles, LK){
     openModal('<p class="eyebrow">' + esc(t.howTitle) + '</p><p style="font-size:14px;line-height:1.5">' + esc(t.howInterest) + '</p><p style="font-size:14px;line-height:1.5">' + esc(t.howBook) + '</p><p style="font-size:14px;line-height:1.5">' + esc(t.howBuy) + '</p>' + (j && j.shop_url ? '<a class="btn dark" href="' + esc(/^https?:/i.test(j.shop_url) ? j.shop_url : "https://" + j.shop_url) + '" target="_blank" rel="noopener">' + esc(t.shopLink) + '</a>' : '') + '<a class="btn sm" href="' + CFG.base + '/' + CFG.slug + '/profile/?lang=' + state.lang + '">' + esc(t.profile) + ' · ' + esc(j ? j.name : "") + '</a>');
   });
   $("book").addEventListener("click", function(){
+    if (!state.show) return; // la diretta non è ancora caricata
     requireContact(function(n, c){
       var slots = Array.isArray(state.show.slots) ? state.show.slots : [];
       var html = '<p class="eyebrow">' + esc(state.t.book) + '</p><h3>' + esc(state.t.when) + '</h3><p class="muted" style="font-size:14px">' + esc(state.t.book2 + state.jeweler.name) + '</p><div class="slots">';

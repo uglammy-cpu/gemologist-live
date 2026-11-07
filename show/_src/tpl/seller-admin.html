@@ -108,7 +108,7 @@
     if (G) {
       var B = G.bookings || [], K = G.blocks || [], J = G.themes || [];
       h.push('<section class="box"><h2>Calendario delle dirette · gemmologa</h2>' +
-        '<p class="muted" style="margin:0 0 10px">Ogni seller prenota da solo le ore della sua serata: 4 dirette al mese, una a settimana. La gemmologa costa 50 € l\'ora: è libera se non è già prenotata e se non hai bloccato quell\'ora.</p>' +
+        '<p class="muted" style="margin:0 0 10px">Ogni seller prenota da solo le sue dirette: 4 al mese, una a settimana. Orari liberi, nel fuso del seller, nei giorni della sua serata; brand diversi possono sovrapporsi. La gemmologa costa 50 € l\'ora ed è prenotabile dalle 5 all\'una di notte (ora italiana), se non è già in un\'altra diretta e se non hai bloccato quelle ore.</p>' +
         '<h3 style="font-size:14px;margin:6px 0">Serata di ogni seller</h3><div class="scroll"><table><thead><tr><th>Seller</th><th>Serata</th><th></th></tr></thead><tbody>' +
         J.map(function(j, i){ return '<tr><td><b>' + esc(j.name) + '</b><br><span class="muted">/' + esc(j.slug) + '</span></td><td>' + themeSel("th" + i, j.theme, true) + '</td><td><button class="sm" data-theme="' + i + '">Salva</button></td></tr>'; }).join("") + '</tbody></table></div>' +
         '<h3 style="font-size:14px;margin:14px 0 6px">Prenotazioni della gemmologa</h3>' + (B.length ? '<div class="scroll"><table><thead><tr><th>Quando</th><th>Seller</th><th>Diretta</th><th>Prezzo</th><th>Stato</th><th></th></tr></thead><tbody>' +

@@ -2,14 +2,17 @@
 --
 -- Dopo l'approvazione Elena collega il seller a una serata del palinsesto (una delle sei vetrine:
 -- Independent Designers, Collections, Precious Objects, The Gem Room, Pearls & Corals, Specials: Paraiba).
--- Il seller prenota da solo, nel calendario del suo pannello, le ore di quelle serate (18, 19, 20):
---   - al massimo 4 dirette al mese (il mese dell'abbonamento, se c'è; altrimenti il mese di calendario);
---   - al massimo una a settimana (da lunedì a domenica, ora di Roma);
---   - un'ora per seller: un'ora già presa da un altro seller non si prenota;
+-- Il seller prenota da solo, nel calendario del suo pannello, le dirette nei giorni della sua serata,
+-- all'ora che vuole (orari liberi, decisione di Elena delle 11:20: brand da tutto il mondo):
+--   - il giorno è quello della serata, nel fuso orario del seller; l'ora è libera, a quarti d'ora; 60 minuti;
+--   - al massimo 4 dirette al mese (il mese dell'abbonamento, se c'è; altrimenti il mese della serata);
+--   - al massimo una a settimana (la settimana della serata, da lunedì a domenica);
+--   - dirette di brand diversi possono sovrapporsi;
 --   - si prenota fino a 24 ore prima, si annulla fino a 48 ore prima.
--- Può aggiungere la gemmologa che presenta, 50 € l'ora. La gemmologa è libera se in quell'ora non è già
--- prenotata da un altro seller e se Elena non ha bloccato quell'ora. Il pagamento sarà online alla
--- prenotazione quando Stripe è attivo: fino ad allora la prenotazione della gemmologa resta «da pagare».
+-- Può aggiungere la gemmologa che presenta, 50 € l'ora. La gemmologa è prenotabile dalle 5 all'una di
+-- notte, ora italiana (Elena, 11:23), se in quell'ora non è già in un'altra diretta e se Elena non l'ha
+-- bloccata. Il pagamento sarà online alla prenotazione quando Stripe è attivo: fino ad allora la
+-- prenotazione della gemmologa resta «da pagare».
 --
 -- Migrazione aggiuntiva: una colonna nuova, due tabelle nuove, funzioni nuove. Cambiano solo due funzioni
 -- esistenti, create_show e update_show2, con un controllo in più per i seller collegati a una serata
@@ -35,14 +38,16 @@ create table if not exists public.gem_bookings (
   show_id uuid not null unique references public.shows(id) on delete cascade,
   jeweler_id uuid not null references public.jewelers(id) on delete cascade,
   starts_at timestamptz not null,
+  ends_at timestamptz not null,
   price_cents integer not null default 5000,
   status text not null default 'da_pagare' check (status in ('da_pagare', 'pagata', 'annullata')),
   created_at timestamptz not null default now(),
   paid_at timestamptz,
-  updated_at timestamptz not null default now()
+  updated_at timestamptz not null default now(),
+  check (ends_at > starts_at),
+  -- la gemmologa non può essere in due dirette insieme: lo garantisce il database anche con due prenotazioni nello stesso istante
+  constraint gem_bookings_no_overlap exclude using gist (tstzrange(starts_at, ends_at, '[)') with &&) where (status <> 'annullata')
 );
--- una sola diretta per ora con la gemmologa: lo garantisce il database anche con due prenotazioni insieme
-create unique index if not exists gem_bookings_one_per_hour on public.gem_bookings (starts_at) where status <> 'annullata';
 alter table public.gem_bookings enable row level security;
 revoke all on public.gem_bookings from anon, authenticated;
 
@@ -60,14 +65,26 @@ revoke all on public.gem_blocks from anon, authenticated;
 -- ---------- regole (in un posto solo)
 create or replace function public._cal_rules()
  returns jsonb language sql immutable as $$
-  select jsonb_build_object('per_month', 4, 'per_week', 1, 'gem_cents', 5000, 'book_min_hours', 24, 'cancel_min_hours', 48, 'weeks', 6);
+  select jsonb_build_object('per_month', 4, 'per_week', 1, 'gem_cents', 5000, 'book_min_hours', 24, 'cancel_min_hours', 48, 'weeks', 6,
+                            'duration_min', 60, 'step_min', 15, 'gem_from', '05:00', 'gem_to', '01:00', 'gem_tz', 'Europe/Rome');
 $$;
 
--- la gemmologa è libera in quell'ora? (p_except: la diretta che si sta controllando, per non contarla due volte)
+-- la gemmologa è libera per la diretta che comincia a p_at? (p_except: la diretta che si sta controllando, per non contarla due volte)
+-- 1) nei suoi orari: dalle 5 all'una di notte, ora italiana (la diretta deve finire entro l'una);
+-- 2) non è già in un'altra diretta che si sovrappone; 3) Elena non ha bloccato quelle ore.
 create or replace function public._gem_free(p_at timestamptz, p_except uuid default null)
  returns boolean language sql stable security definer set search_path to 'public' as $$
-  select not exists (select 1 from public.gem_bookings g where g.starts_at = p_at and g.status <> 'annullata' and g.show_id is distinct from p_except)
+  select ((p_at at time zone 'Europe/Rome')::time >= time '05:00' or (p_at at time zone 'Europe/Rome')::time = time '00:00')
+     and not exists (select 1 from public.gem_bookings g where g.status <> 'annullata' and g.show_id is distinct from p_except
+                      and g.starts_at < p_at + interval '1 hour' and g.ends_at > p_at)
      and not exists (select 1 from public.gem_blocks b where b.starts_at < p_at + interval '1 hour' and b.ends_at > p_at);
+$$;
+
+-- il giorno della serata a cui appartiene una diretta (per contare settimane e mesi)
+create or replace function public._show_day(p_show public.shows)
+ returns date language sql stable security definer set search_path to 'public' as $$
+  select coalesce((select (n.starts_at at time zone 'Europe/Rome')::date from public.nights n where n.id = p_show.night_id),
+                  (p_show.scheduled_at at time zone 'Europe/Rome')::date);
 $$;
 
 -- ---------- il calendario del seller: le serate della sua vetrina nelle prossime sei settimane
@@ -86,24 +103,25 @@ begin
     'subscription', (select jsonb_build_object('status', s.status, 'activated_at', s.activated_at) from public.subscriptions s where s.jeweler_id = j.id),
     'nights', coalesce((
       select jsonb_agg(jsonb_build_object(
-               'id', n.id, 'title', n.title, 'starts_at', n.starts_at,
-               'hours', (select jsonb_agg(jsonb_build_object(
-                          'h', h, 'at', a.at,
-                          'state', case when sm.id is not null then 'mine' when so.id is not null then 'taken' else 'free' end,
-                          'show_id', sm.id,
-                          'gem', case when gm.id is not null then 'mine' when public._gem_free(a.at, sm.id) then 'free' else 'busy' end,
-                          'gem_status', gm.status) order by h)
-                        from unnest(n.slot_hours) h
-                        cross join lateral (select ((n.starts_at at time zone 'Europe/Rome')::date + make_time(h, 0, 0)) at time zone 'Europe/Rome' as at) a
-                        left join lateral (select s.id from public.shows s where s.jeweler_id = j.id and s.scheduled_at = a.at limit 1) sm on true
-                        left join lateral (select s.id from public.shows s where s.jeweler_id <> j.id and s.night_id = n.id and s.scheduled_at = a.at and s.status <> 'ended' limit 1) so on true
-                        left join lateral (select g.id, g.status from public.gem_bookings g where g.show_id = sm.id and g.status <> 'annullata' limit 1) gm on true)
+               'id', n.id, 'title', n.title, 'day', (n.starts_at at time zone 'Europe/Rome')::date,
+               -- quando la gemmologa è già impegnata, intorno a quel giorno (senza dire con chi): serve a scegliere l'ora
+               'gem_busy', coalesce((select jsonb_agg(x order by x->>'from') from (
+                   select jsonb_build_object('from', g.starts_at, 'to', g.ends_at, 'mine', g.jeweler_id = j.id) x from public.gem_bookings g
+                    where g.status <> 'annullata' and g.ends_at > ((n.starts_at at time zone 'Europe/Rome')::date - 1)::timestamp at time zone 'Europe/Rome'
+                      and g.starts_at < ((n.starts_at at time zone 'Europe/Rome')::date + 2)::timestamp at time zone 'Europe/Rome'
+                   union all
+                   select jsonb_build_object('from', b.starts_at, 'to', b.ends_at, 'mine', false) from public.gem_blocks b
+                    where b.ends_at > ((n.starts_at at time zone 'Europe/Rome')::date - 1)::timestamp at time zone 'Europe/Rome'
+                      and b.starts_at < ((n.starts_at at time zone 'Europe/Rome')::date + 2)::timestamp at time zone 'Europe/Rome') q), '[]'::jsonb),
+               'mine', (select s.id from public.shows s where s.jeweler_id = j.id and s.night_id = n.id order by s.scheduled_at limit 1)
              ) order by n.starts_at)
         from public.nights n
        where n.is_public and j.night_theme is not null and n.title = j.night_theme
-         and n.starts_at > now() and n.starts_at < now() + make_interval(weeks => (public._cal_rules()->>'weeks')::int)), '[]'::jsonb),
+         and (n.starts_at at time zone 'Europe/Rome')::date > (now() at time zone 'Europe/Rome')::date
+         and n.starts_at < now() + make_interval(weeks => (public._cal_rules()->>'weeks')::int)), '[]'::jsonb),
     'mine', coalesce((
       select jsonb_agg(jsonb_build_object('show_id', s.id, 'title', s.title, 'at', s.scheduled_at, 'status', s.status, 'night_id', s.night_id,
+               'day', public._show_day(s),
                'gem_status', (select g.status from public.gem_bookings g where g.show_id = s.id and g.status <> 'annullata' limit 1)) order by s.scheduled_at)
         from public.shows s
        where s.jeweler_id = j.id and s.scheduled_at > date_trunc('month', now() at time zone 'Europe/Rome') at time zone 'Europe/Rome' - interval '7 days'), '[]'::jsonb)
@@ -111,11 +129,11 @@ begin
   return v_out;
 end $$;
 
--- ---------- prenotare un'ora
-create or replace function public.book_live(p_token text, p_jeweler uuid, p_night uuid, p_hour integer, p_title text, p_gem boolean default false)
+-- ---------- prenotare una diretta: il giorno della serata, all'ora che vuole il seller (p_tz: il suo fuso orario)
+create or replace function public.book_live(p_token text, p_jeweler uuid, p_night uuid, p_at timestamptz, p_tz text, p_title text, p_gem boolean default false)
  returns jsonb language plpgsql security definer set search_path to 'public' as $$
-declare v_role text; j public.jewelers; n public.nights; v_at timestamptz; v_sub public.subscriptions; v_cnt int;
-        v_wk_start timestamptz; v_mo_start timestamptz; v_show public.shows; r jsonb := public._cal_rules(); v_gem text;
+declare v_role text; j public.jewelers; n public.nights; v_tz text; v_day date; v_sub public.subscriptions; v_cnt int;
+        v_show public.shows; r jsonb := public._cal_rules(); v_gem text;
 begin
   select role into v_role from public.staff_jeweler(p_token, p_jeweler);
   if v_role is null then raise exception 'Token non valido'; end if;
@@ -124,45 +142,51 @@ begin
   select * into n from public.nights where id = p_night;
   if n.id is null or not n.is_public then raise exception 'Serata non trovata.'; end if;
   if n.title is distinct from j.night_theme then raise exception 'Puoi prenotare solo le serate %.', j.night_theme; end if;
-  if p_hour is null or not (p_hour = any (n.slot_hours)) then raise exception 'Ora non disponibile in questa serata.'; end if;
-  v_at := ((n.starts_at at time zone 'Europe/Rome')::date + make_time(p_hour, 0, 0)) at time zone 'Europe/Rome';
-  if v_role = 'jeweler' and v_at < now() + make_interval(hours => (r->>'book_min_hours')::int) then
+  if p_at is null or not isfinite(p_at) then raise exception 'Scegli l''ora della diretta.'; end if;
+  v_tz := case when exists (select 1 from pg_timezone_names where name = p_tz) then p_tz else 'Europe/Rome' end;
+  v_day := (n.starts_at at time zone 'Europe/Rome')::date;
+  if (p_at at time zone v_tz)::date <> v_day then
+    raise exception 'La diretta deve cominciare il giorno della serata (%), nel tuo fuso orario.', to_char(v_day, 'DD/MM');
+  end if;
+  if extract(second from p_at) <> 0 or extract(minute from p_at at time zone 'UTC')::int % (r->>'step_min')::int <> 0 then
+    raise exception 'Scegli un orario a quarti d''ora (per esempio 18:00, 18:15, 18:30).';
+  end if;
+  if v_role = 'jeweler' and p_at < now() + make_interval(hours => (r->>'book_min_hours')::int) then
     raise exception 'Si prenota fino a % ore prima.', r->>'book_min_hours';
   end if;
-  if v_at > now() + make_interval(weeks => (r->>'weeks')::int) then raise exception 'Questa serata non è ancora prenotabile.'; end if;
-  perform pg_advisory_xact_lock(hashtext('book_live:' || p_night::text || ':' || p_hour::text));   -- due seller sulla stessa ora: passa il primo
-  if exists (select 1 from public.shows s where s.night_id = n.id and s.scheduled_at = v_at and s.status <> 'ended') then
-    raise exception 'Quest''ora è già prenotata. Scegline un''altra.';
+  if p_at > now() + make_interval(weeks => (r->>'weeks')::int) + interval '2 days' then raise exception 'Questa serata non è ancora prenotabile.'; end if;
+  if exists (select 1 from public.shows s where s.jeweler_id = j.id and s.scheduled_at < p_at + interval '1 hour' and s.scheduled_at + interval '1 hour' > p_at) then
+    raise exception 'Hai già una diretta in quest''orario.';
   end if;
-  if exists (select 1 from public.shows s where s.jeweler_id = j.id and s.scheduled_at = v_at) then
-    raise exception 'Hai già una diretta a quest''ora.';
-  end if;
-  -- una a settimana (da lunedì a domenica, ora di Roma)
-  v_wk_start := date_trunc('week', v_at at time zone 'Europe/Rome') at time zone 'Europe/Rome';
-  select count(*) into v_cnt from public.shows s where s.jeweler_id = j.id and s.scheduled_at >= v_wk_start and s.scheduled_at < v_wk_start + interval '7 days';
+  -- una a settimana: la settimana della serata (da lunedì a domenica)
+  select count(*) into v_cnt from public.shows s
+   where s.jeweler_id = j.id and date_trunc('week', public._show_day(s)) = date_trunc('week', v_day);
   if v_cnt >= (r->>'per_week')::int then raise exception 'Hai già una diretta in questa settimana: se ne prenota una a settimana.'; end if;
-  -- quattro al mese: il mese dell'abbonamento se c'è (stessa regola di oggi), altrimenti il mese di calendario
+  -- quattro al mese: il mese dell'abbonamento se c'è (stessa regola di oggi), altrimenti il mese della serata
   select * into v_sub from public.subscriptions where jeweler_id = j.id;
   if v_sub.id is not null then
-    perform public._show_quota(j.id, v_at, null);
+    perform public._show_quota(j.id, p_at, null);
   else
-    v_mo_start := date_trunc('month', v_at at time zone 'Europe/Rome') at time zone 'Europe/Rome';
-    select count(*) into v_cnt from public.shows s where s.jeweler_id = j.id and s.scheduled_at >= v_mo_start
-       and s.scheduled_at < (date_trunc('month', v_at at time zone 'Europe/Rome') + interval '1 month') at time zone 'Europe/Rome';
+    select count(*) into v_cnt from public.shows s
+     where s.jeweler_id = j.id and date_trunc('month', public._show_day(s)) = date_trunc('month', v_day);
     if v_cnt >= (r->>'per_month')::int then raise exception 'Hai già prenotato le % dirette di questo mese.', r->>'per_month'; end if;
   end if;
-  if coalesce(p_gem, false) and not public._gem_free(v_at, null) then
-    raise exception 'La gemmologa non è disponibile a quest''ora. Prenota senza gemmologa o scegli un''altra ora.';
+  if coalesce(p_gem, false) then
+    perform pg_advisory_xact_lock(hashtext('gem_bookings'));   -- due prenotazioni della gemmologa nello stesso istante: passa la prima
+    if not public._gem_free(p_at, null) then
+      raise exception 'La gemmologa non è disponibile a quest''ora. Prenota senza gemmologa o scegli un''altra ora.';
+    end if;
   end if;
   insert into public.shows (jeweler_id, title, scheduled_at, lang, night_id, categories, duration_min, visibility)
-  values (j.id, left(coalesce(nullif(trim(p_title), ''), n.title), 120), v_at, 'it', n.id,
-          case when n.category is not null then array[n.category] else '{}'::text[] end, 60, 'public')
+  values (j.id, left(coalesce(nullif(trim(p_title), ''), n.title), 120), p_at, 'it', n.id,
+          case when n.category is not null then array[n.category] else '{}'::text[] end, (r->>'duration_min')::int, 'public')
   returning * into v_show;
   if coalesce(p_gem, false) then
-    insert into public.gem_bookings (show_id, jeweler_id, starts_at, price_cents) values (v_show.id, j.id, v_at, (r->>'gem_cents')::int);
+    insert into public.gem_bookings (show_id, jeweler_id, starts_at, ends_at, price_cents)
+    values (v_show.id, j.id, p_at, p_at + interval '1 hour', (r->>'gem_cents')::int);
     v_gem := 'da_pagare';
   end if;
-  return jsonb_build_object('show_id', v_show.id, 'at', v_at, 'gem_status', v_gem);
+  return jsonb_build_object('show_id', v_show.id, 'at', p_at, 'gem_status', v_gem);
 end $$;
 
 -- ---------- aggiungere o togliere la gemmologa a una diretta già prenotata
@@ -180,11 +204,12 @@ begin
     if v_role = 'jeweler' and s.scheduled_at < now() + make_interval(hours => (r->>'book_min_hours')::int) then
       raise exception 'La gemmologa si prenota fino a % ore prima.', r->>'book_min_hours';
     end if;
+    perform pg_advisory_xact_lock(hashtext('gem_bookings'));
     if not public._gem_free(s.scheduled_at, p_show) then raise exception 'La gemmologa non è disponibile a quest''ora.'; end if;
     if g.id is not null then
-      update public.gem_bookings set status = 'da_pagare', starts_at = s.scheduled_at, paid_at = null, updated_at = now() where id = g.id;
+      update public.gem_bookings set status = 'da_pagare', starts_at = s.scheduled_at, ends_at = s.scheduled_at + interval '1 hour', paid_at = null, updated_at = now() where id = g.id;
     else
-      insert into public.gem_bookings (show_id, jeweler_id, starts_at, price_cents) values (s.id, s.jeweler_id, s.scheduled_at, (r->>'gem_cents')::int);
+      insert into public.gem_bookings (show_id, jeweler_id, starts_at, ends_at, price_cents) values (s.id, s.jeweler_id, s.scheduled_at, s.scheduled_at + interval '1 hour', (r->>'gem_cents')::int);
     end if;
     return jsonb_build_object('gem_status', 'da_pagare');
   else

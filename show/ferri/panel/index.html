@@ -511,6 +511,29 @@ label input,label select,label textarea{width:100%}
 .chk-grid legend{font-size:13px;color:var(--muted);padding:0 4px}
 .ck{display:flex;align-items:center;gap:8px;font-size:14px;color:var(--ink);flex-direction:row}
 .ck input{width:auto;min-height:0;margin:0}
+/* calendario delle dirette (7/11/2026): il seller prenota le ore della sua serata */
+.calcard{grid-column:1/-1}
+.cal-mine{display:flex;flex-direction:column;gap:8px;margin:6px 0 14px}
+.cal-mine .bk{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;border:1px solid var(--line);border-radius:12px;padding:10px 12px;font-size:14px}
+.cal-mine .bk b{font-weight:600}
+.cal-mine .bk .acts{display:flex;gap:6px;flex-wrap:wrap;margin-inline-start:auto}
+.cal-n{display:grid;grid-template-columns:minmax(150px,1fr) 3fr;gap:8px 14px;align-items:center;padding:10px 0;border-top:1px solid var(--line)}
+.cal-n .d{font-size:14px;line-height:1.3}
+.cal-n .d small{display:block;color:var(--muted);font-size:12px}
+.cal-n .hs{display:flex;gap:8px;flex-wrap:wrap}
+.cal-h{min-height:44px;min-width:140px;padding:6px 12px;border-radius:12px;border:1px solid var(--line);background:var(--paper);font-size:14px;display:flex;flex-direction:column;align-items:flex-start;line-height:1.2;text-align:start}
+.cal-h small{font-size:11.5px;color:var(--muted)}
+.cal-h.free{border-color:var(--ink);cursor:pointer}
+.cal-h.free:hover{background:var(--ink);color:var(--paper)}.cal-h.free:hover small{color:inherit}
+.cal-h.taken,.cal-h.full{opacity:.55;cursor:default}
+.cal-h.mine{border:2px solid var(--livered);cursor:default}
+.cal-week{font-size:12px;color:var(--muted);letter-spacing:.06em;text-transform:uppercase;margin-top:10px}
+.gemst{font-size:12.5px;padding:2px 9px;border-radius:999px;border:1px solid var(--line);white-space:nowrap}
+.gemst.da_pagare{background:#FFF6E5;border-color:#EDD596}
+.gemst.pagata{background:#E9F6EF;border-color:#9fd3b6}
+.gemopt{border:1px solid var(--line);border-radius:12px;padding:10px 12px;display:flex;flex-direction:column;gap:6px;font-size:14px}
+.gemopt.off{opacity:.6}
+@media (max-width:640px){.cal-n{grid-template-columns:1fr}.cal-h{flex:0 0 auto}.cal-n .hs small.muted{flex-basis:100%}}
 @media (max-width:1000px){.panel{grid-template-columns:1fr}.card .msgs{min-height:240px;max-height:360px}}
 </style></head>
 <body>
@@ -518,6 +541,13 @@ label input,label select,label textarea{width:100%}
 <main class="wrap"><div class="col">
   <div id="denied" hidden><p class="hint" style="padding:40px 0">Accesso non valido. Controlla il link del pannello.</p></div>
   <div class="panel" id="app" hidden>
+    <section class="card calcard" id="calCard" hidden>
+      <p class="eyebrow">Calendario delle tue dirette</p>
+      <h2 id="calTitle" style="font-size:22px"></h2>
+      <p class="hint" id="calRules" style="text-align:start"></p>
+      <div class="cal-mine" id="calMine"></div>
+      <div id="calNights"></div>
+    </section>
     <section class="card">
       <p class="eyebrow">Diretta</p>
       <select class="sel" id="showSel"></select>
@@ -1176,13 +1206,15 @@ function lkAttachRemote(room, tiles, LK){
   });
   function showForm(existing){
     var s = existing || {};
+    var lockAt = !!(existing && existing.night_id && state.role !== "gemologist");
     var slots = Array.isArray(s.slots) ? s.slots.join("\n") : "Giovedì 17:30\nVenerdì 11:00\nSabato 10:30";
     openModal('<p class="eyebrow">' + (existing ? "Modifica diretta" : "Nuova diretta") + '</p><form id="sf">' +
       '<label>Titolo<input id="sfTitle" type="text" maxlength="120" required value="' + esc(s.title || "") + '"></label>' +
       '<label>Titolo in inglese (per la vetrina, facoltativo)<input id="sfEn" type="text" maxlength="120" value="' + esc((s.title_i18n || {}).en || "") + '"></label>' +
       '<label>Titolo in francese (facoltativo)<input id="sfFr" type="text" maxlength="120" value="' + esc((s.title_i18n || {}).fr || "") + '"></label>' +
       '<label>Visibilità<select id="sfVis"><option value="private">Privata su invito</option><option value="public">In vetrina pubblica</option></select></label>' +
-      '<label>Data e ora<input id="sfAt" type="datetime-local" required value="' + toLocalInput(s.scheduled_at) + '"></label>' +
+      '<label>Data e ora<input id="sfAt" type="datetime-local" required value="' + toLocalInput(s.scheduled_at) + '"' + (lockAt ? " disabled" : "") + '></label>' +
+      (lockAt ? '<p class="hint" style="text-align:start;margin:0">Prenotata dal calendario: per cambiare data annullala e prenotane un\u2019altra.</p>' : "") +
       '<label>Lingua della pagina clienti<select id="sfLang"><option value="it">Italiano</option><option value="en">Inglese</option><option value="fr">Francese</option></select></label>' +
       catChecks("sfCats", s.categories, 3) +
       '<label>Fascia di prezzo dei pezzi (facoltativa, es. 500–5.000 €)<input id="sfPrice" type="text" maxlength="40" value="' + esc(s.price_range || "") + '"></label>' +
@@ -1198,13 +1230,16 @@ function lkAttachRemote(room, tiles, LK){
       var vis = $("sfVis").value;
       var cats = catPicked("sfCats", 3); if (!cats) return;
       if (existing){
-        sb.rpc("update_show2", { p_show: s.id, p_token: CFG.token, p_title: $("sfTitle").value, p_at: at.toISOString(), p_lang: $("sfLang").value, p_slots: slotsArr, p_i18n: i18n, p_vis: vis }).then(function(r){ if (err(r)) return; return sb.rpc("set_show_categories", { p_show: s.id, p_token: CFG.token, p_cats: cats }); }).then(function(r){ if (r && err(r)) return; return sb.rpc("set_show_price", { p_show: s.id, p_token: CFG.token, p_price: $("sfPrice").value }); }).then(function(r){ if (r && err(r)) return; return sb.rpc("set_show_text", { p_show: s.id, p_token: CFG.token, p_desc: $("sfDesc").value }); }).then(function(r){ if (r && err(r)) return; closeModal(); location.reload(); });
+        sb.rpc("update_show2", { p_show: s.id, p_token: CFG.token, p_title: $("sfTitle").value, p_at: lockAt ? null : at.toISOString(), p_lang: $("sfLang").value, p_slots: slotsArr, p_i18n: i18n, p_vis: vis }).then(function(r){ if (err(r)) return; return sb.rpc("set_show_categories", { p_show: s.id, p_token: CFG.token, p_cats: cats }); }).then(function(r){ if (r && err(r)) return; return sb.rpc("set_show_price", { p_show: s.id, p_token: CFG.token, p_price: $("sfPrice").value }); }).then(function(r){ if (r && err(r)) return; return sb.rpc("set_show_text", { p_show: s.id, p_token: CFG.token, p_desc: $("sfDesc").value }); }).then(function(r){ if (r && err(r)) return; closeModal(); location.reload(); });
       } else {
         sb.rpc("create_show", { p_token: CFG.token, p_jeweler: state.jeweler.id, p_title: $("sfTitle").value, p_at: at.toISOString(), p_lang: $("sfLang").value, p_slots: slotsArr }).then(function(r){ if (err(r)) return; var id = r.data.id; sb.rpc("update_show2", { p_show: id, p_token: CFG.token, p_title: null, p_at: null, p_lang: null, p_slots: null, p_i18n: i18n, p_vis: vis }).then(function(){ return sb.rpc("set_show_categories", { p_show: id, p_token: CFG.token, p_cats: cats }); }).then(function(){ return sb.rpc("set_show_price", { p_show: id, p_token: CFG.token, p_price: $("sfPrice").value }); }).then(function(){ return sb.rpc("set_show_text", { p_show: id, p_token: CFG.token, p_desc: $("sfDesc").value }); }).then(function(){ var u = new URL(location.href); u.searchParams.set("show", id); location.href = u.toString(); }); });
       }
     });
   }
-  $("newShow").addEventListener("click", function(){ showForm(null); });
+  $("newShow").addEventListener("click", function(){
+    if (state.cal && state.cal.theme && state.role !== "gemologist"){ $("calCard").scrollIntoView({ behavior:"smooth", block:"start" }); return; }
+    showForm(null);
+  });
   $("edit").addEventListener("click", function(){ showForm(state.show); });
   $("addPiece").addEventListener("click", function(){
     var opts = ""; for (var k in ARTS) opts += '<option value="' + k + '">' + ARTS[k] + '</option>';
@@ -1351,6 +1386,137 @@ function lkAttachRemote(room, tiles, LK){
       });
     });
   }
+  // ---------------------------------------------------------------- calendario (7/11/2026)
+  // Il seller prenota da solo le dirette nei giorni della serata che gli ha assegnato Uniqaia, all'ora che vuole
+  // (orari liberi, nel suo fuso orario): 4 al mese, una a settimana. Le regole le controlla il database
+  // (book_live, cancel_live, set_live_gem): qui si mostrano e si aiuta a scegliere.
+  var GEM_EUR = "50 €", TZ = (function(){ try { return Intl.DateTimeFormat().resolvedOptions().timeZone || "Europe/Rome"; } catch(e){ return "Europe/Rome"; } })();
+  function dayLabel(ymd){ var p = String(ymd).split("-"); try { return new Intl.DateTimeFormat("it-IT", { weekday:"long", day:"numeric", month:"long", timeZone:"UTC" }).format(new Date(Date.UTC(+p[0], +p[1] - 1, +p[2]))); } catch(e){ return ymd; } }
+  function calDay(iso){ try { return new Intl.DateTimeFormat("it-IT", { weekday:"long", day:"numeric", month:"long" }).format(new Date(iso)); } catch(e){ return iso; } }
+  function calHour(iso, tz){ try { return new Intl.DateTimeFormat("it-IT", { hour:"2-digit", minute:"2-digit", hour12:false, timeZone: tz || undefined }).format(new Date(iso)); } catch(e){ return ""; } }
+  function weekOf(ymd){ var p = String(ymd).split("-"), d = new Date(Date.UTC(+p[0], +p[1] - 1, +p[2])); d.setUTCDate(d.getUTCDate() - (d.getUTCDay() + 6) % 7); return d.toISOString().slice(0, 10); }
+  function gemLabel(st){ return st === "pagata" ? "Gemmologa · pagata" : (st === "da_pagare" ? "Gemmologa · da pagare (" + GEM_EUR + ")" : ""); }
+  // la gemmologa è libera per una diretta di 60 minuti che comincia a «at»? (stessa regola del database)
+  function gemFree(at, busy){
+    var t = new Date(at).getTime(), e = t + 3600000;
+    var rome = calHour(at, "Europe/Rome");   // «HH:MM» ora italiana
+    if (!(rome >= "05:00" || rome === "00:00")) return "fuori";
+    for (var i = 0; i < (busy || []).length; i++){ var b = busy[i]; if (new Date(b.from).getTime() < e && new Date(b.to).getTime() > t) return "impegnata"; }
+    return "libera";
+  }
+  function loadCalendar(onlyCal){
+    return sb.rpc("seller_calendar", { p_token: CFG.token, p_jeweler: state.jeweler.id }).then(function(r){
+      if (r.error || !r.data){ state.cal = null; return false; }
+      state.cal = r.data;
+      if (!state.cal.theme){ $("calCard").hidden = true; return false; }
+      renderCalendar();
+      if (onlyCal) Array.prototype.forEach.call(document.querySelectorAll("#app > section"), function(sec){ sec.hidden = sec.id !== "calCard"; });
+      return true;
+    }, function(){ return false; });
+  }
+  function renderCalendar(){
+    var c = state.cal, R = c.rules || {}, now = Date.now();
+    $("calCard").hidden = false;
+    $("calTitle").textContent = c.theme;
+    $("calRules").textContent = "Prenota qui le tue dirette nei giorni " + c.theme + ", all'ora che preferisci (ora tua: " + TZ + "). " + (R.per_month || 4) + " al mese, una a settimana, da 60 minuti. Si prenota fino a " + (R.book_min_hours || 24) + " ore prima e si annulla fino a " + (R.cancel_min_hours || 48) + " ore prima. Puoi chiedere la gemmologa che presenta la diretta con te: " + GEM_EUR + " l'ora, dalle 5 all'una di notte ora italiana.";
+    var mine = (c.mine || []).filter(function(m){ return new Date(m.at).getTime() > now - 3600000 && m.status !== "ended"; });
+    var perWeek = {}, perMonth = {};
+    (c.mine || []).forEach(function(m){ var d = m.day || String(m.at).slice(0, 10); perWeek[weekOf(d)] = (perWeek[weekOf(d)] || 0) + 1; perMonth[d.slice(0, 7)] = (perMonth[d.slice(0, 7)] || 0) + 1; });
+    var box = $("calMine"); box.innerHTML = "";
+    if (!mine.length) box.innerHTML = '<p class="hint" style="text-align:start;margin:0">Non hai ancora dirette prenotate. Scegli un giorno qui sotto.</p>';
+    mine.forEach(function(m){
+      var d = document.createElement("div"); d.className = "bk";
+      var gem = m.gem_status ? '<span class="gemst ' + esc(m.gem_status) + '">' + esc(gemLabel(m.gem_status)) + '</span>' : "";
+      var canCancel = m.night_id && m.status === "scheduled" && (state.role === "gemologist" || new Date(m.at).getTime() - now >= (R.cancel_min_hours || 48) * 3600000);
+      d.innerHTML = '<div><b>' + esc(calDay(m.at)) + ' · ' + esc(calHour(m.at)) + '</b><br><span class="muted" style="font-size:13px">' + esc(m.title || "") + '</span></div>' + gem +
+        '<div class="acts"><a class="btn sm" href="?show=' + encodeURIComponent(m.show_id) + '">Apri</a>' +
+        (m.status === "scheduled" ? '<button class="btn sm" type="button" data-gem="' + (m.gem_status ? "0" : "1") + '">' + (m.gem_status ? "Togli la gemmologa" : "Aggiungi la gemmologa") + '</button>' : "") +
+        (canCancel ? '<button class="btn sm" type="button" data-cancel>Annulla</button>' : "") + '</div>';
+      var g = d.querySelector("[data-gem]");
+      if (g) g.addEventListener("click", function(){
+        var on = this.getAttribute("data-gem") === "1";
+        if (on && !confirm("Aggiungere la gemmologa a questa diretta? Costa " + GEM_EUR + ".")) return;
+        sb.rpc("set_live_gem", { p_token: CFG.token, p_show: m.show_id, p_on: on }).then(function(r){ if (err(r)) return; toast(on ? "Gemmologa aggiunta: da pagare" : "Gemmologa tolta"); loadCalendar(false); });
+      });
+      var x = d.querySelector("[data-cancel]");
+      if (x) x.addEventListener("click", function(){
+        if (!confirm("Annullare la diretta di " + calDay(m.at) + " alle " + calHour(m.at) + "?")) return;
+        sb.rpc("cancel_live", { p_token: CFG.token, p_show: m.show_id }).then(function(r){ if (err(r)) return; toast("Diretta annullata"); location.href = location.pathname + location.search.replace(/([?&])show=[^&]*&?/, "$1"); });
+      });
+      box.appendChild(d);
+    });
+    var list = $("calNights"); list.innerHTML = "";
+    if (!(c.nights || []).length){ list.innerHTML = '<p class="hint" style="text-align:start">Nessun giorno ' + esc(c.theme) + ' nelle prossime settimane.</p>'; return; }
+    var lastMonth = "";
+    c.nights.forEach(function(n){
+      var mo = String(n.day).slice(0, 7), wk = weekOf(n.day);
+      if (mo !== lastMonth){
+        lastMonth = mo; var h = document.createElement("p"); h.className = "cal-week";
+        try { var pp = mo.split("-"); h.textContent = new Intl.DateTimeFormat("it-IT", { month:"long", year:"numeric", timeZone:"UTC" }).format(new Date(Date.UTC(+pp[0], +pp[1] - 1, 15))) + " · " + (perMonth[mo] || 0) + " di " + (R.per_month || 4) + " prenotate"; } catch(e){}
+        list.appendChild(h);
+      }
+      var row = document.createElement("div"); row.className = "cal-n";
+      var mineHere = (c.mine || []).filter(function(m){ return m.night_id === n.id; })[0];
+      var weekFull = (perWeek[wk] || 0) >= (R.per_week || 1), monthFull = (perMonth[mo] || 0) >= (R.per_month || 4);
+      var busy = (n.gem_busy || []).filter(function(b){ return !b.mine; });
+      var note = mineHere ? "" : (weekFull ? "hai già la diretta di questa settimana" : (monthFull ? "mese completo" : ""));
+      row.innerHTML = '<div class="d"><b>' + esc(dayLabel(n.day)) + '</b><small>' + esc(n.title) + (note ? " · " + esc(note) : "") + '</small></div><div class="hs"></div>';
+      var hs = row.querySelector(".hs"), b = document.createElement("button"); b.type = "button";
+      if (mineHere){
+        b.className = "cal-h mine"; b.disabled = true;
+        b.innerHTML = '<b>' + esc(calHour(mineHere.at)) + '</b><small>la tua diretta' + (mineHere.gem_status ? " · con la gemmologa" : "") + '</small>';
+      } else if (weekFull || monthFull){
+        b.className = "cal-h full"; b.disabled = true; b.innerHTML = '<b>Non prenotabile</b><small>' + esc(note) + '</small>';
+      } else {
+        b.className = "cal-h free"; b.innerHTML = '<b>Prenota</b><small>scegli l’ora</small>';
+        b.addEventListener("click", function(){ bookModal(n, busy); });
+      }
+      hs.appendChild(b);
+      if (busy.length && !mineHere){
+        var gi = document.createElement("small"); gi.className = "muted"; gi.style.cssText = "align-self:center;font-size:12px";
+        gi.textContent = "Gemmologa già impegnata: " + busy.map(function(x){ return calHour(x.from) + "–" + calHour(x.to); }).join(", ") + " (ora tua)";
+        hs.appendChild(gi);
+      }
+      list.appendChild(row);
+    });
+  }
+  function bookModal(n, busy){
+    var R = (state.cal && state.cal.rules) || {}, p = String(n.day).split("-");
+    openModal('<p class="eyebrow">Prenota la diretta</p><h2 style="font-size:22px;margin:0">' + esc(dayLabel(n.day)) + '</h2>' +
+      '<p class="muted" style="font-size:14px;margin:0">' + esc(n.title) + ' · 60 minuti</p><form id="bkf">' +
+      '<label>Ora di inizio (ora tua: ' + esc(TZ) + ')<input id="bkTime" type="time" step="900" required value="18:00"></label>' +
+      '<span class="hint" id="bkRome" style="text-align:start;margin:0"></span>' +
+      '<label>Titolo della diretta<input id="bkTitle" type="text" maxlength="120" required value="' + esc(n.title) + '"></label>' +
+      '<div class="gemopt" id="bkGemBox"><label class="ck"><input id="bkGem" type="checkbox"> Voglio la gemmologa che presenta la diretta con me · ' + GEM_EUR + '</label>' +
+      '<span class="hint" id="bkGemTxt" style="text-align:start;margin:0"></span></div>' +
+      '<p class="hint" style="text-align:start;margin:0">La diretta va in vetrina nel palinsesto di Uniqaia. Titolo, pezzi e descrizione li completi dopo, da qui.</p>' +
+      '<button class="btn dark" type="submit">Prenota</button></form>');
+    function at(){
+      var v = ($("bkTime").value || "").split(":"); if (v.length < 2) return null;
+      var d = new Date(+p[0], +p[1] - 1, +p[2], +v[0], +v[1], 0, 0);   // ora del seller, nel suo fuso
+      return isNaN(d.getTime()) ? null : d;
+    }
+    function check(){
+      var d = at(), box = $("bkGemBox"), cb = $("bkGem"), txt = $("bkGemTxt");
+      if (!d){ txt.textContent = ""; return; }
+      $("bkRome").textContent = TZ === "Europe/Rome" ? "" : "In Italia saranno le " + calHour(d, "Europe/Rome") + ".";
+      var st = gemFree(d, busy);
+      cb.disabled = st !== "libera"; if (cb.disabled) cb.checked = false; box.classList.toggle("off", cb.disabled);
+      txt.textContent = st === "libera" ? "La gemmologa è disponibile a quest’ora. Il pagamento si fa online alla prenotazione: finché il pagamento online non è attivo, la gemmologa risulta «da pagare»."
+        : (st === "fuori" ? "A quest’ora la gemmologa non c’è: è prenotabile dalle 5 all’una di notte, ora italiana." : "A quest’ora la gemmologa è già in un’altra diretta: scegli un altro orario per averla.");
+    }
+    $("bkTime").addEventListener("input", check); check();
+    $("bkf").addEventListener("submit", function(e){
+      e.preventDefault(); var d = at(); if (!d){ toast("Scegli l’ora"); return; }
+      if (d.getMinutes() % (R.step_min || 15)){ toast("Scegli un orario a quarti d’ora"); return; }
+      var btn = this.querySelector("button[type=submit]"); btn.disabled = true;
+      sb.rpc("book_live", { p_token: CFG.token, p_jeweler: state.jeweler.id, p_night: n.id, p_at: d.toISOString(), p_tz: TZ, p_title: $("bkTitle").value, p_gem: !!$("bkGem").checked }).then(function(r){
+        if (err(r)){ btn.disabled = false; loadCalendar(false); return; }
+        closeModal(); toast("Diretta prenotata");
+        var u = new URL(location.href), id = r.data && r.data.show_id; if (id) u.searchParams.set("show", id); location.href = u.toString();
+      });
+    });
+  }
   function boot(){
     sb.from("categories").select("slug,position,name_i18n,art").eq("active", true).order("position").then(function(c){ CATS = c.data || []; return sb.from("jewelers").select("*").eq("slug", CFG.slug).maybeSingle(); }).then(function(r){
       if (!r.data){ $("denied").hidden = false; return; }
@@ -1367,14 +1533,15 @@ function lkAttachRemote(room, tiles, LK){
             var row = r3.data && r3.data[0]; if (!row){ $("denied").hidden = false; return; }
             state.role = row.role; state.name = row.display_name; renderHeader();
             $("app").hidden = false; $("brand").textContent = state.jeweler.name;
-            showForm(null);
+            // con il calendario attivo si parte dal calendario; altrimenti come prima
+            loadCalendar(true).then(function(ok){ if (!ok) showForm(null); });
           });
         }
         return sb.rpc("staff_check", { p_token: CFG.token, p_show: state.show.id }).then(function(r3){
           var row = r3.data && r3.data[0]; if (!row){ $("denied").hidden = false; return; }
           state.role = row.role; state.name = row.display_name;
           try { state.seen = parseInt(localStorage.getItem("seen-" + state.show.id) || "0", 10) || 0; } catch(e){}
-          $("app").hidden = false; renderShow();
+          $("app").hidden = false; renderShow(); loadCalendar(false);
           return Promise.all([
             loadPieces(),
             sb.from("messages").select("*").eq("show_id", state.show.id).order("created_at").limit(300).then(function(m){ (m.data || []).forEach(addMsg); })

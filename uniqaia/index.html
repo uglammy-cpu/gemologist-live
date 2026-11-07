@@ -1024,9 +1024,10 @@ function lkAttachRemote(room, tiles, LK){
       if (!h.length) return "";
       return h.map(function(x){ return (x < 10 ? "0" : "") + x + ":00"; }).join(" " + MID + " ");
     };
-    var rows = (state.nights || []).filter(function(n){
-      return new Date(n.starts_at).getTime() + (n.duration_min || 60) * 60000 > now;
-    });
+    // con gli orari liberi la serata dura tutto il giorno: resta nel palinsesto fino a mezzanotte, ora italiana
+    var romeDay = function(d){ try { return new Intl.DateTimeFormat("en-CA", { year:"numeric", month:"2-digit", day:"2-digit", timeZone:"Europe/Rome" }).format(d); } catch(e){ return d.toISOString().slice(0, 10); } };
+    var oggi = romeDay(new Date(now));
+    var rows = (state.nights || []).filter(function(n){ return romeDay(new Date(n.starts_at)) >= oggi; });
     if (!rows.length){ sec.hidden = true; return; }
     rows = rows.slice(0, 7);   // una settimana: oltre non si legge piu'
     sec.hidden = false; box.innerHTML = "";
@@ -1063,7 +1064,8 @@ function lkAttachRemote(room, tiles, LK){
       el.innerHTML = '<div class="agd"><small>' + esc(wd) + '</small><b>' + esc(dn) + '</b></div>' +
         '<div class="agt"><small>' + esc(etichetta) + '</small>' +
         '<b dir="auto">' + esc(titolo) + '</b>' +
-        '<span dir="auto">' + esc(i18n(n.description_i18n, n.description) || fasce(n)) + '</span></div>' +
+        // orari liberi (Elena, 7/11/2026): niente più fasce 18 · 19 · 20 sotto la serata
+        (i18n(n.description_i18n, n.description) ? '<span dir="auto">' + esc(i18n(n.description_i18n, n.description)) + '</span>' : '') + '</div>' +
         '<div class="agn">' + (quante
           ? '<b>' + quante + '</b><small>' + esc(quante === 1 ? t.nightOne : t.nightMany) + '</small>'
           : (n.applications_open ? '<small>' + esc(t.nightOpen) + '</small>' : '')) + '</div>';

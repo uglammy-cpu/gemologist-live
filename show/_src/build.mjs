@@ -33,6 +33,8 @@ const tpl = (n) => fs.readFileSync(path.join(HERE, "tpl", n), "utf8");
 const parts = { HEAD: tpl("head.txt"), CSS: tpl("css.txt"), LKJS: tpl("lkjs.txt"), ART: tpl("art.txt"), T: tpl("t.txt"),
   // The Jeweler's Wheel: pop-up di benvenuto della pagina /join (script autonomo, vedi wheel.js)
   WHEEL: fs.readFileSync(path.join(HERE, "wheel.js"), "utf8"),
+  // offerta di benvenuto uguale per tutti, al posto della ruota (7 novembre 2026, vedi welcome.js)
+  WELCOME: fs.readFileSync(path.join(HERE, "welcome.js"), "utf8"),
   // Avatar di Elena che spiega l'ingresso nella pagina /join (vedi avatar.js); i testi stanno in avatar-copione.json,
   // le misure dell'immagine in avatar-geometria.json (lo scrive ops/avatar/prepara-livelli.py) e, per la figura a mani
   // libere, in avatar-geometria-libera.json (ops/avatar/prepara-livelli-libera.py)

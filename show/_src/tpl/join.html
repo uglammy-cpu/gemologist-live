@@ -31,7 +31,7 @@
       onbTheme: "La tua serata: {t}", onbNext: "Le prossime: {d}",
       onbAfterPay: "Dopo il pagamento trovi qui il tuo pannello, il calendario delle tue dirette e la guida passo per passo.",
       fdBadge: "Founding #{n}", fdText: "Sei tra i primi 20 brand di Uniqaia: questo numero resta tuo per sempre.",
-      fdLeft: "Founding 20: i primi 20 brand che attivano l'abbonamento ricevono un numero permanente, da #01 a #20. Restano {n} numeri.", fdFull: "Founding 20 completo: i 20 numeri sono assegnati.",
+      fdLeft: "Founding 20: i primi 20 brand che attivano l'abbonamento ricevono un numero permanente, da #01 a #20. Restano {n} numeri.", fdFull: "Founding 20 completo: i 20 numeri sono assegnati.", woLine: "Offerta di benvenuto: il primo mese a {p} invece di {s}, se il tuo brand viene approvato.",
       gH: "La tua prima diretta, passo per passo",
       g1h: "Prenota la diretta", g1: "Nel pannello apri il calendario: scegli un giorno della tua serata e l'ora che preferisci, nel tuo fuso orario. 4 dirette al mese, una a settimana, da 60 minuti.",
       g2h: "Prepara i pezzi", g2: "Aggiungi i pezzi che vuoi mostrare, ciascuno con una foto e la sua dichiarazione: sono quelli che i clienti vedono e possono chiedere.",
@@ -76,7 +76,7 @@
       onbTheme: "Your night: {t}", onbNext: "Next dates: {d}",
       onbAfterPay: "Once you have paid, you will find your panel, your live show calendar and a step-by-step guide right here.",
       fdBadge: "Founding #{n}", fdText: "You are one of Uniqaia's first 20 brands: this number is yours for good.",
-      fdLeft: "Founding 20: the first 20 brands to activate their subscription receive a permanent number, from #01 to #20. {n} numbers left.", fdFull: "Founding 20 complete: all 20 numbers have been assigned.",
+      fdLeft: "Founding 20: the first 20 brands to activate their subscription receive a permanent number, from #01 to #20. {n} numbers left.", fdFull: "Founding 20 complete: all 20 numbers have been assigned.", woLine: "Welcome offer: your first month at {p} instead of {s}, if your brand is approved.",
       gH: "Your first live show, step by step",
       g1h: "Book your live show", g1: "Open the calendar in your panel: choose one of your night's dates and the time you prefer, in your own time zone. 4 live shows a month, one a week, 60 minutes each.",
       g2h: "Prepare your pieces", g2: "Add the pieces you want to show, each with a photo and its declaration: these are what clients see and can ask about.",
@@ -121,7 +121,7 @@
       onbTheme: "Votre soirée : {t}", onbNext: "Prochaines dates : {d}",
       onbAfterPay: "Après le paiement, vous trouverez ici votre espace, le calendrier de vos directs et le guide pas à pas.",
       fdBadge: "Founding #{n}", fdText: "Vous faites partie des 20 premières marques d'Uniqaia : ce numéro vous appartient pour toujours.",
-      fdLeft: "Founding 20 : les 20 premières marques qui activent leur abonnement reçoivent un numéro permanent, de #01 à #20. Il reste {n} numéros.", fdFull: "Founding 20 complet : les 20 numéros sont attribués.",
+      fdLeft: "Founding 20 : les 20 premières marques qui activent leur abonnement reçoivent un numéro permanent, de #01 à #20. Il reste {n} numéros.", fdFull: "Founding 20 complet : les 20 numéros sont attribués.", woLine: "Offre de bienvenue : le premier mois à {p} au lieu de {s}, si votre marque est approuvée.",
       gH: "Votre premier direct, pas à pas",
       g1h: "Réservez votre direct", g1: "Dans votre espace, ouvrez le calendrier : choisissez une date de votre soirée et l'heure que vous préférez, dans votre fuseau horaire. 4 directs par mois, un par semaine, de 60 minutes.",
       g2h: "Préparez vos pièces", g2: "Ajoutez les pièces à présenter, chacune avec une photo et sa déclaration : ce sont elles que les clients voient et peuvent demander.",
@@ -284,6 +284,7 @@
       '<div id="uqaSlot" data-figura="libera" style="display:contents"></div>' +
       '<h3>' + esc(t.jWhatH) + '</h3>' + li(t.jWhat) + '<h3>' + esc(t.jWhoH) + '</h3>' + li(t.jWho) +
       '<div class="price"><b>' + esc(eur(((ST.terms && ST.terms.price_cents) || 14900))) + '</b> ' + esc(t.jPrice) + '</div>' +
+      (ST.wo ? '<p class="woline">' + esc(j("woLine", { p: eur(ST.wo.active ? ST.wo.first_cents : ST.wo.preview_cents), s: eur(ST.wo.std_cents || 14900) })) + '</p>' : "") +
       (ST.fLeft != null ? '<p class="fdleft">' + esc(ST.fLeft > 0 ? j("fdLeft", { n: ST.fLeft }) : j("fdFull")) + '</p>' : "") +
       '<section class="acct" id="acct" aria-live="polite"></section>';
     renderAcct();
@@ -522,6 +523,9 @@
   rpc("site_terms", {}).then(function(x){ ST.terms = x; renderAcct(); }, function(){});
   // Founding 20: il contatore è vero, letto dal database (se la funzione non c'è ancora non compare niente)
   rpc("founding_left", {}).then(function(n){ if (typeof n === "number"){ ST.fLeft = n; render(); } }, function(){});
+  // offerta di benvenuto (7/11/2026): la riga sotto il prezzo c'è solo quando è accesa (o in anteprima con ?welcome=preview) e la ruota non è pubblica
+  rpc("welcome_offer", {}).then(function(o){ var pv = /[?&]welcome=preview\b/.test(location.search); try { if (pv) sessionStorage.setItem("uqo-preview", "1"); pv = pv || sessionStorage.getItem("uqo-preview") === "1"; } catch(e){}
+    if (o && !o.wheel_live && (o.active || pv)) { ST.wo = o; render(); } }, function(){});
   rpc("list_nights", { p_from: null }).then(function(r){ ST.nights = (r || []).filter(function(n){ return n.applications_open; }); if (SESS && ST.me) renderAcct(); }, function(){});
   if (SESS) loadMe();
   if (/#acct$/.test(location.hash)) setTimeout(function(){ var b = $("acct"); if (b) b.scrollIntoView(); }, 50);
@@ -572,10 +576,14 @@
 .guide ol li b{display:block;margin-bottom:2px}
 .founding{border:1px solid var(--line);border-radius:12px;padding:10px 14px;margin:0}
 .fdleft{font-size:13.5px;color:var(--muted);margin:8px 0 0}
+.woline{font-size:14px;color:var(--ink);margin:8px 0 0;font-weight:500}
 @media (max-width:640px){.jform{grid-template-columns:1fr}.files{grid-template-columns:1fr}.userbar{text-align:start}}
 </style>
 <script>
 {{WHEEL}}
+</script>
+<script>
+{{WELCOME}}
 </script>
 <script>
 {{AVATAR}}

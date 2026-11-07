@@ -43,7 +43,7 @@
 (function(){
   var CFG = {"url":"{{URL}}","key":"{{KEY}}","base":"{{BASE}}","token":"{{TOKEN}}"};
   var $ = function(id){ return document.getElementById(id); };
-  var PFX = location.pathname.replace(/\/admin\/?.*$/, ""), D = null, H = null, OUT = [], sel = null, msg = "", imgs = {}, G = null, TH = [];
+  var PFX = location.pathname.replace(/\/admin\/?.*$/, ""), D = null, H = null, OUT = [], sel = null, msg = "", imgs = {}, G = null, TH = [], WO = null;
   var GST = { da_pagare: "Da pagare", pagata: "Pagata", annullata: "Annullata" };
   function themeSel(id, cur, withNone){ return '<select id="' + id + '" class="sm" style="padding:0 10px">' + (withNone ? '<option value="">— nessuna serata —</option>' : '<option value="">Scegli la serata…</option>') +
     TH.map(function(t){ return '<option value="' + esc(t.title) + '"' + (t.title === cur ? " selected" : "") + '>' + esc(t.title) + '</option>'; }).join("") + '</select>'; }
@@ -67,8 +67,9 @@
       rpc("list_outbox", { p_token: CFG.token }).catch(function(){ return []; }),
       post("/functions/v1/billing", { action: "health" }).catch(function(){ return null; }),
       rpc("gem_admin_list", { p_token: CFG.token }).catch(function(){ return null; }),
-      rpc("night_themes", { p_token: CFG.token }).catch(function(){ return null; })
-    ]).then(function(r){ D = r[0]; OUT = r[1] || []; H = r[2]; G = r[3]; TH = r[4] || []; draw(); }, function(e){ $("app").innerHTML = '<p class="warn err">' + esc(e.message) + '</p>'; });
+      rpc("night_themes", { p_token: CFG.token }).catch(function(){ return null; }),
+      rpc("welcome_admin_get", { p_token: CFG.token }).catch(function(){ return null; })
+    ]).then(function(r){ D = r[0]; OUT = r[1] || []; H = r[2]; G = r[3]; TH = r[4] || []; WO = r[5]; draw(); }, function(e){ $("app").innerHTML = '<p class="warn err">' + esc(e.message) + '</p>'; });
   }
 
   function draw(){
@@ -87,6 +88,19 @@
       (warn.length ? '<div class="warn" style="margin-top:10px">' + warn.map(esc).join("<br>") + '</div>' : "") +
       ((D.alerts || []).length ? '<div class="warn err" style="margin-top:10px"><b>Da controllare su Stripe</b> — pagamenti doppi o non corrispondenti:<br>' +
         D.alerts.map(function(x){ return esc(dt(x.at) + " · " + x.type + " · " + x.result); }).join("<br>") + '</div>' : "") + '</section>');
+    // offerta di benvenuto uguale per tutti, al posto della ruota (7/11/2026)
+    if (WO) {
+      var woOn = WO.active, woP = (WO.first_cents || WO.preview_cents || 11900) / 100, woU = WO.until ? new Date(WO.until) : null;
+      var woD = woU ? new Date(woU.getTime() - woU.getTimezoneOffset() * 60000).toISOString().slice(0, 10) : "";
+      h.push('<section class="box"><h2>Offerta di benvenuto</h2>' +
+        '<p class="muted" style="margin:0 0 10px">Al posto della ruota (in demo dal 7/11): il primo mese a un prezzo d\'offerta, uguale per tutti, per ogni brand approvato. Vale per chi si candida mentre è accesa e per chi approvi mentre è accesa: se la spegni, chi si era già candidato la tiene. La vedono in home e su /join; l\'anteprima è <a href="' + PFX + '/join/?welcome=preview" target="_blank" rel="noopener">/join/?welcome=preview</a>.</p>' +
+        '<p>' + (woOn ? '<span class="st active">Accesa</span> dal ' + dt(WO.since) + ' · primo mese <b>' + eur(WO.first_cents) + '</b> invece di ' + eur(WO.std_cents) + (WO.until ? ' · fino al ' + dt(WO.until) : ' · senza data di fine') : '<span class="st canceled">Spenta</span>') + '</p>' +
+        '<div class="row" style="margin-top:8px"><label class="muted">Primo mese (€) <input type="number" id="woP" min="1" step="1" value="' + woP + '" class="sm" style="max-width:90px"></label>' +
+        '<label class="muted">Fino al (facoltativo) <input type="date" id="woU" value="' + woD + '" class="sm"></label>' +
+        '<button class="sm dark" data-do="woOn">' + (woOn ? "Aggiorna" : "Accendi") + '</button>' + (woOn ? '<button class="sm" data-do="woOff">Spegni</button>' : "") + '</div>' +
+        ((WO.history || []).length ? '<p class="muted" style="margin-top:8px">Storico: ' + WO.history.slice(0, 5).map(function(x){ return eur(x.first_cents) + ' dal ' + dt(x.from) + (x.to ? ' al ' + dt(x.to) : ' (accesa)'); }).map(esc).join(' · ') + '</p>' : "") +
+        '</section>');
+    }
     // candidature
     h.push('<section class="box"><h2>Candidature (' + A.length + ')</h2>');
     if (!A.length) h.push('<p class="muted">Nessuna candidatura.</p>');
@@ -103,7 +117,7 @@
       });
       h.push('</tbody></table></div>');
     }
-    h.push('<p class="muted" style="margin-top:8px">Il prezzo del primo mese lo calcola il server dal premio confermato della ruota pubblica; i premi demo non danno sconti. L\'abbonamento diventa «Attivo» solo quando Stripe conferma il pagamento.</p></section>');
+    h.push('<p class="muted" style="margin-top:8px">Il prezzo del primo mese lo calcola il server all\'approvazione: dal premio confermato della ruota pubblica o dall\'offerta di benvenuto, il più basso; i premi demo non danno sconti. Prima dell\'approvazione la colonna «Primo mese» non conta ancora l\'offerta di benvenuto. L\'abbonamento diventa «Attivo» solo quando Stripe conferma il pagamento.</p></section>');
     // calendario delle dirette (7/11/2026): serata di ogni seller, prenotazioni della gemmologa, ore bloccate
     if (G) {
       var B = G.bookings || [], K = G.blocks || [], J = G.themes || [];
@@ -177,6 +191,12 @@
         if (!day || !f || !t) { msg = "Scegli il giorno e le ore da bloccare."; draw(); return; }
         act(rpc("gem_block_add", { p_token: CFG.token, p_from: new Date(day + "T" + f).toISOString(), p_to: new Date(day + "T" + t).toISOString(), p_note: $("blNote").value }));
       }
+      if (d === "woOn") {
+        var eu = parseFloat(($("woP").value || "").replace(",", ".")), ud = $("woU").value;
+        if (!(eu > 0)) { msg = "Scrivi il prezzo del primo mese."; draw(); return; }
+        act(rpc("welcome_admin_set", { p_token: CFG.token, p_on: true, p_first_cents: Math.round(eu * 100), p_until: ud ? new Date(ud + "T23:59:59").toISOString() : null }));
+      }
+      if (d === "woOff") { if (!confirm("Spegnere l'offerta di benvenuto? Chi si è già candidato la tiene.")) return; act(rpc("welcome_admin_set", { p_token: CFG.token, p_on: false })); }
       if (d === "reject") act(rpc("reject_application", { p_token: CFG.token, p_id: id, p_notes: $("rej").value }));
       if (d === "info") act(rpc("request_info", { p_token: CFG.token, p_id: id, p_message: $("info").value }));
       if (d === "copy") { var i = $("paylink"); i.select(); try { navigator.clipboard.writeText(i.value); } catch(x){ document.execCommand("copy"); } b.textContent = "Copiato"; }

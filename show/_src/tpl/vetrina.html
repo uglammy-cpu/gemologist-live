@@ -594,10 +594,12 @@ input,select,textarea{border-color:var(--edge);background:var(--cream)}
   Array.prototype.forEach.call(document.querySelectorAll(".tab"), function(tb){
     tb.addEventListener("click", function(){ Array.prototype.forEach.call(document.querySelectorAll(".tab"), function(x){ x.classList.remove("on"); }); tb.classList.add("on"); var el = $(tb.getAttribute("data-to")); if (el && el.hidden) el = $("hero"); if (el) el.scrollIntoView({ behavior:"smooth", block:"start" }); });
   });
-  // «Trasmetti con noi»: apre la ruota di benvenuto; se la ruota non c'è (spenta o non caricata) porta a /join
+  // «Trasmetti con noi»: apre la ruota di benvenuto; senza ruota apre l'offerta di benvenuto (7/11/2026); se non c'è nessuna delle due porta a /join
   $("tabJoin").addEventListener("click", function(){
     var st = window.UQWheel && UQWheel.state && UQWheel.state();
-    if (st && st.mode && st.mode !== "off") UQWheel.open(); else location.href = CFG.base + '/live/join?lang=' + lang;
+    if (st && st.mode && st.mode !== "off") UQWheel.open();
+    else if (window.UQWelcome && UQWelcome.active) UQWelcome.open();
+    else location.href = CFG.base + '/live/join?lang=' + lang;
   });
   $("q").addEventListener("input", function(){ var q = this.value.trim().toLowerCase(); Array.prototype.forEach.call(document.querySelectorAll(".grid > *"), function(c){ c.hidden = q && c.textContent.toLowerCase().indexOf(q) < 0; }); });
 
@@ -663,5 +665,8 @@ input,select,textarea{border-color:var(--edge);background:var(--cream)}
 </script>
 <script>
 {{WHEEL}}
+</script>
+<script>
+{{WELCOME}}
 </script>
 </body></html>

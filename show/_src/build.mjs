@@ -23,6 +23,28 @@ const common = {
   TOKEN_BASE: "https://itoxzepuukyvdxxtfetf.supabase.co/functions/v1/live",
   NAME: "Uniqaia",
 };
+// Pagine di categoria (8/11, Elena): slug della categoria nel database -> indirizzo <prefix>/c/<pagina>/.
+// Si aggiungono una alla volta, dopo l'approvazione di Elena. Testi in tpl/t.txt, chiave catPage.
+const CATPAGES = { "nuovi-talenti": "independent-designers" };
+const CATVAR = 'var CATPAGES = {}, PAGECAT = "";';
+function catPageDoc(t, html, cat, page) {
+  const P = t.prefix, TJ = JSON.parse(parts.T), HOMEC = JSON.parse(tpl("vetrina.html").match(/var HOME = (\{.*\});/)[1]).cats, name = HOMEC[cat] || cat;
+  const url = `${t.site}${P}/c/${page}/`, title = `${name} · Uniqaia`;
+  const desc = [TJ.it, TJ.en].map((x) => (x.trustCats[cat] || [])[0]).filter(Boolean).join(" ");
+  const out = html
+    .replace(/<title>[^<]*<\/title>/, `<title>${H(title)}</title>`)
+    .replace(/(<meta property="og:title" content=")[^"]*(")/, `$1${H(title)}$2`)
+    .replace(/(<meta property="og:url" content=")[^"]*(")/, `$1${H(url)}$2`)
+    .replace(/(<meta property="og:description" content=")[^"]*(")/, `$1${H(desc)}$2`)
+    .replace(/(<meta name="description" content=")[^"]*(")/, `$1${H(desc)}$2`)
+    .replace('<body class="vetrina">', '<body class="vetrina catpage">')
+    .replace('<section id="week" class="week">', '<section id="week" class="week" hidden>')
+    .replace('<section id="live">', '<section id="live" hidden>')
+    .replace('<section id="soon">', '<section id="soon" hidden>');
+  if (!out.includes('class="vetrina catpage"')) throw new Error("pagina categoria: <body> non trovato");
+  return out;
+}
+
 const TARGETS = [
   { out: path.join(ROOT, "show"), notFound: path.join(ROOT, "404.html"), site: "https://live.gemsandjewelrytechlab.com", prefix: "/show" },
   { out: path.join(ROOT, "uniqaia"), notFound: path.join(ROOT, "uniqaia", "404.html"), site: "https://uniqaia.com", prefix: "" },
@@ -131,6 +153,7 @@ function render(t, name, runtime) {
     ['"/live")', '"' + P + '/")'],
     ['"/live";', '"' + P + '/";'],
     ['"/live?c="', '"' + P + '/?c="'],
+    ['"/live/c/"', '"' + P + '/c/"'],
     ["'/live?c='", "'" + P + "/?c='"],
     ['"/live?lang="', '"' + P + '/?lang="'],
     ["'/live?lang='", "'" + P + "/?lang='"],
@@ -354,7 +377,10 @@ self.addEventListener("fetch", function(e){
   }
 });
 `);
-  write("index.html", prerenderVetrina(t, render(t, "vetrina", {})));
+  const vet = render(t, "vetrina", {});
+  if (!vet.includes(CATVAR)) throw new Error("vetrina: manca " + CATVAR);
+  const vetFor = (cat) => vet.replace(CATVAR, `var CATPAGES = ${JSON.stringify(CATPAGES)}, PAGECAT = ${JSON.stringify(cat)};`);
+  write("index.html", prerenderVetrina(t, vetFor("")));
   write("join/index.html", render(t, "join", {}));
   write("wheel-admin/index.html", render(t, "wheel-admin", { tokenParam: "k" }));
   write("admin/index.html", render(t, "seller-admin", { tokenParam: "k" }));
@@ -370,6 +396,7 @@ self.addEventListener("fetch", function(e){
   for (const s of sellers) { write(`${s}/index.html`, viewer); write(`${s}/panel/index.html`, panel); write(`${s}/profile/index.html`, profile); }
   // Una pagina per ogni diretta pubblica
   const urls = [`${t.site}${P}/`, `${t.site}${P}/join/`, ...sellers.map((s) => `${t.site}${P}/${s}/profile/`)];
+  for (const [cat, page] of Object.entries(CATPAGES)) { write(`c/${page}/index.html`, catPageDoc(t, vetFor(cat), cat, page)); urls.push(`${t.site}${P}/c/${page}/`); }
   let nLanding = 0;
   for (const s of DATA.shows) {
     const j = jById[s.jeweler_id]; if (!j || !s.slug) continue;

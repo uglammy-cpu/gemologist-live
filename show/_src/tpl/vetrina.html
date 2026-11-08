@@ -236,6 +236,26 @@ input,select,textarea{border-color:var(--edge);background:var(--cream)}
 .cta{flex-direction:column;align-items:stretch}
 .cta>div{flex:none;max-width:720px}
 .cta .go{align-self:center}
+
+/* 8/11, Elena: pagine di categoria (/c/<pagina>/) */
+.catpage .search,.catpage #tabs,.catpage #cats,.catpage #hero,.catpage #trust,.catpage #nights{display:none!important}
+.cathero{display:grid;gap:14px;margin-top:16px}
+.cathero .crumb{grid-column:1/-1;font-size:13px;color:var(--muted);text-decoration:none}
+.cathero .crumb::before{content:"‹ "}
+[dir=rtl] .cathero .crumb::before{content:"› "}
+.cathero figure{margin:0;border-radius:16px;overflow:hidden;aspect-ratio:4/3;background:var(--soft)}
+.cathero img{width:100%;height:100%;object-fit:cover;display:block}
+.cathero .eyebrow{font-size:11.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--gold-edge);margin:0 0 8px}
+.cathero h1{text-shadow:none;color:var(--ink)}
+.cathero .lead{font-size:18px;line-height:1.5;margin:12px 0 0}
+.cathero p{line-height:1.6;margin:10px 0 0}
+.cathero ul{list-style:none;padding:0;margin:14px 0 0;display:grid;gap:8px;color:var(--muted)}
+.cathero li{position:relative;padding-inline-start:16px}
+.cathero li::before{content:"";position:absolute;inset-inline-start:0;top:.62em;width:6px;height:6px;border-radius:50%;background:var(--gold)}
+.catjoin .catnone{margin:22px 0 0;color:var(--muted)}
+.catjoin .cjrow{display:flex;flex-wrap:wrap;align-items:center;gap:10px 14px;margin:14px 0 6px;color:var(--muted)}
+.catjoin .cjrow a{padding:10px 18px;border-radius:999px;font-weight:600;letter-spacing:.02em;text-decoration:none;color:var(--gold-ink);background:linear-gradient(180deg,var(--gold-hi),var(--gold))}
+@media(min-width:900px){.cathero{grid-template-columns:1.1fr 1fr;align-items:center;column-gap:44px;margin-top:24px}}
 </style></head>
 <body class="vetrina">
 <header class="topv wrap"><div class="col">
@@ -251,12 +271,14 @@ input,select,textarea{border-color:var(--edge);background:var(--cream)}
     <button class="tabjoin" type="button" id="tabJoin" data-t="jTitle" style="flex:none;align-self:center;margin-inline-start:6px;position:sticky;inset-inline-end:0;z-index:1;box-shadow:-14px 0 12px -4px var(--paper);padding:8px 16px;font-size:14px;font-weight:600;letter-spacing:.02em;color:var(--gold-ink);background:linear-gradient(180deg,var(--gold-hi),var(--gold));border:1px solid var(--gold-edge);border-radius:999px;white-space:nowrap;cursor:pointer"></button>
   </nav>
   <div class="cats" id="cats"></div>
+  <section class="cathero" id="cathero" hidden></section>
   <div class="hero" id="hero"><div class="track" id="track"></div><button class="arr prev" type="button" id="prevSlide" aria-label="‹">‹</button><button class="arr next" type="button" id="nextSlide" aria-label="›">›</button><div class="dots" id="dots"></div></div>
   <div class="trust" id="trust"></div>
   <section id="nights" hidden><div class="sh"><h2 data-t="hNights"></h2></div><p class="nsub" id="nsub"></p><div id="nightsBody"></div></section>
   <section id="week" class="week"><div class="sh"><h2 data-t="thisWeek"></h2></div><div id="weekBody"></div></section>
   <section id="live"><div class="sh"><h2 data-t="hLive"></h2></div><div class="grid" id="gridLive"></div><div class="empty" id="emptyLive" hidden></div></section>
   <section id="soon"><div class="sh"><h2 data-t="later"></h2></div><div class="grid" id="gridSoon"></div><div class="empty" id="emptySoon" hidden></div></section>
+  <div class="catjoin" id="catJoin" hidden></div>
   <section id="browse"><div class="sh"><h2 data-t="hCats"></h2></div><div class="tiles" id="tiles"></div></section>
   <div class="cta" id="cta"></div>
 </div></main>
@@ -278,6 +300,10 @@ input,select,textarea{border-color:var(--edge);background:var(--cream)}
   var t = TT[lang];
   var state = { jewelers:{}, shows:[], nights:[], week:[], covers:{}, photos:{}, viewers:{}, channels:{}, cats:[], cat:"", highlights:[], slide:0, timer:null };
   try { var c0 = new URLSearchParams(location.search).get("c") || ""; if (/^[a-z0-9-]{2,40}$/.test(c0)) state.cat = c0; } catch(e){}
+  // Pagine di categoria (/c/<pagina>/): il build scrive qui quali esistono e, nella pagina, la sua categoria
+  var CATPAGES = {}, PAGECAT = "";
+  if (PAGECAT) state.cat = PAGECAT;
+  function catPageUrl(slug){ return CFG.base + "/live/c/" + CATPAGES[slug] + "/?lang=" + lang; }
   $("searchIc").innerHTML = ICON.search;
 
   function fday(iso){ try { return new Intl.DateTimeFormat(LOC[lang], { weekday:"short", day:"numeric", month:"short" }).format(new Date(iso)); } catch(e){ return iso; } }
@@ -312,7 +338,7 @@ input,select,textarea{border-color:var(--edge);background:var(--cream)}
       var p = pal(c.slug);
       var b = document.createElement("button"); b.type = "button"; b.className = "tile ph" + (state.cat === c.slug ? " on" : ""); b.style.cssText = "--c1:" + p[0] + ";--c2:" + p[1];
       b.innerHTML = '<img class="ti" alt="" loading="lazy" src="' + CFG.base + "/show/img/tiles/" + c.slug + '.jpg" onerror="this.parentNode.classList.remove(\'ph\');this.remove()">' + (CFG.art[c.art] || CFG.art.ring) + '<b>' + esc(tileName(c.slug)) + '</b>';
-      b.addEventListener("click", function(){ setCat(c.slug); var el = $("live"); if (el) el.scrollIntoView({ behavior:"smooth", block:"start" }); });
+      b.addEventListener("click", function(){ if (PAGECAT){ location.href = CATPAGES[c.slug] ? catPageUrl(c.slug) : CFG.base + "/live?c=" + encodeURIComponent(c.slug) + "&lang=" + lang; return; } setCat(c.slug); var el = $("live"); if (el) el.scrollIntoView({ behavior:"smooth", block:"start" }); });
       box.appendChild(b);
     });
   }
@@ -388,7 +414,7 @@ input,select,textarea{border-color:var(--edge);background:var(--cream)}
   function catArt(slug){ for (var i = 0; i < state.cats.length; i++) if (state.cats[i].slug === slug) return CFG.art[state.cats[i].art] || CFG.art.ring; return CFG.art.ring; }
   function weekShows(){ var now = Date.now(), end = now + 7 * 86400000; return state.shows.filter(function(s){ var at = new Date(s.scheduled_at).getTime(); return state.jewelers[s.jeweler_id] && inCat(s) && (s.status === "live" || (s.status === "scheduled" && at >= now - 12 * 3600000 && at <= end)); }).sort(function(a,b){ return (b.status === "live") - (a.status === "live") || new Date(a.scheduled_at) - new Date(b.scheduled_at); }); }
   function i18n(obj){ obj = obj || {}; return obj[lang] || obj.en || obj.it || ""; }
-  function linkOf(h){ var l = h.link || ""; if (l.indexOf("cat:") === 0) return CFG.base + "/live?c=" + encodeURIComponent(l.slice(4)) + "&lang=" + lang; if (l.indexOf("seller:") === 0) return CFG.base + "/live/" + l.slice(7) + "/profile?lang=" + lang; if (l.indexOf("show:") === 0){ var s = state.shows.filter(function(x){ return x.id === l.slice(5); })[0]; return s ? showUrl(s, state.jewelers[s.jeweler_id]) : CFG.base + "/live"; } return l || (CFG.base + "/live"); }
+  function linkOf(h){ var l = h.link || ""; if (l.indexOf("cat:") === 0 && CATPAGES[l.slice(4)]) return catPageUrl(l.slice(4)); if (l.indexOf("cat:") === 0) return CFG.base + "/live?c=" + encodeURIComponent(l.slice(4)) + "&lang=" + lang; if (l.indexOf("seller:") === 0) return CFG.base + "/live/" + l.slice(7) + "/profile?lang=" + lang; if (l.indexOf("show:") === 0){ var s = state.shows.filter(function(x){ return x.id === l.slice(5); })[0]; return s ? showUrl(s, state.jewelers[s.jeweler_id]) : CFG.base + "/live"; } return l || (CFG.base + "/live"); }
   // Messaggi sotto il carosello: i primi due seguono la categoria della slide (per slug, non per posizione), il terzo resta uguale.
   function vetrinaSlug(name){ var k, sp = /^specials\b/i.test(name || ""); for (k in HOME.cats) if (HOME.cats.hasOwnProperty(k) && HOME.cats[k] === name) return k; if (sp) for (k in HOME.cats) if (HOME.cats.hasOwnProperty(k) && /^specials\b/i.test(HOME.cats[k])) return k; return ""; }
   function showSlideCat(s){ var title = HOME.slides["s" + s.id], c = (s.categories || []).filter(function(x){ return HOME.cats[x] === title; })[0]; return c || vetrinaSlug(title); }
@@ -579,7 +605,29 @@ input,select,textarea{border-color:var(--edge);background:var(--cream)}
   $("installX").addEventListener("click", function(){ try { localStorage.setItem("uniqaia-install", "no"); } catch(e){} $("install").hidden = true; });
   if (/iphone|ipad|ipod/i.test(navigator.userAgent) && !standalone()) setTimeout(function(){ if (!installEv) showInstall(true); }, 3000);
 
-  function renderAll(){ t = TT[lang]; renderStatic(); renderCats(); renderHero(); renderNights(); renderWeek(); renderTiles(); renderLive(); renderSoon(); renderShops(); armReveal(); }
+  // Pagina di categoria: foto e testi approvati da Elena, poi solo le dirette di quella categoria
+  function renderCatPage(){
+    if (!PAGECAT) return;
+    var c = (t.catPage || {})[PAGECAT] || (TT.it.catPage || {})[PAGECAT], h = $("cathero"), jb = $("catJoin");
+    if (!c || !h || !jb) return;
+    document.body.classList.add("catpage");
+    var name = tileName(PAGECAT), lead = ((t.trustCats || {})[PAGECAT] || [])[0] || "";
+    document.title = name + " · " + CFG.name;
+    h.innerHTML = '<a class="crumb" href="' + CFG.base + "/live?lang=" + lang + '#browse">' + esc(t.hCats) + '</a>'
+      + '<figure><img alt="" src="' + CFG.base + "/show/img/tiles/" + PAGECAT + '.jpg"></figure>'
+      + '<div class="ctxt"><p class="eyebrow">' + esc(c.eyebrow) + '</p><h1>' + esc(name) + '</h1>'
+      + (lead ? '<p class="lead">' + esc(lead) + '</p>' : '') + '<p>' + esc(c.intro) + '</p>'
+      + '<ul>' + c.items.concat([t.trust[2]]).map(function(x){ return '<li>' + esc(x) + '</li>'; }).join("") + '</ul></div>';
+    h.hidden = false;
+    var week = weekShows().length;
+    $("week").hidden = !week;
+    var none = state.ready && !week && $("live").hidden && $("soon").hidden;
+    jb.innerHTML = (none ? '<p class="catnone">' + esc(t.noneCat) + '</p>' : '') + '<div class="cjrow"><span>' + esc(c.seller) + '</span><a id="catJoinBtn" href="' + CFG.base + '/live/join?lang=' + lang + '">' + esc(t.jTitle) + '</a></div>';
+    jb.hidden = false;
+    // come «Trasmetti con noi» in home: se la ruota dei seller è attiva si apre la ruota
+    $("catJoinBtn").addEventListener("click", function(e){ var st = window.UQWheel && UQWheel.state && UQWheel.state(); if (st && st.mode && st.mode !== "off"){ e.preventDefault(); UQWheel.open(); } });
+  }
+  function renderAll(){ t = TT[lang]; renderStatic(); renderCats(); renderHero(); renderNights(); renderWeek(); renderTiles(); renderLive(); renderSoon(); renderShops(); armReveal(); renderCatPage(); }
 
   // benvenuto (prima visita)
   function renderWelcome(){
@@ -639,7 +687,7 @@ input,select,textarea{border-color:var(--edge);background:var(--cream)}
       });
     });
   }
-  function refresh(){ return loadShows().then(function(){ renderCats(); renderHero(); renderNights(); renderWeek(); renderTiles(); renderLive(); renderSoon(); renderShops(); watchPresence(); armReveal(); }); }
+  function refresh(){ return loadShows().then(function(){ state.ready = true; renderCats(); renderHero(); renderNights(); renderWeek(); renderTiles(); renderLive(); renderSoon(); renderShops(); watchPresence(); armReveal(); renderCatPage(); }); }
 
   function boot(){
     Promise.all([
@@ -663,9 +711,9 @@ input,select,textarea{border-color:var(--edge);background:var(--cream)}
       setInterval(refresh, 60000);
     });
     var welcomed = false; try { welcomed = localStorage.getItem("vetrina-welcomed") === "1"; } catch(e){}
-    if (!welcomed) renderWelcome();
+    if (!welcomed && !PAGECAT) renderWelcome();
   }
-  renderStatic(); boot();
+  renderStatic(); renderCatPage(); boot();
 })();
 </script>
 <script>

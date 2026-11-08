@@ -49,7 +49,7 @@
   var ASSET = "/show/img/avatar/";
   // Lingue per cui esistono i file audio registrati (img/avatar/voce/<lingua>/<id>.mp3). Vuoto = l'avatar non parla.
   // Lo aggiorna da solo ops/avatar/genera-voce.mjs; per una registrazione fatta a mano basta aggiungere la lingua.
-  var VOICE_LANGS = [];
+  var VOICE_LANGS = ["en"];
   var TXT = /*COPIONE*/{};
 
   // Geometria dell'illustrazione (1254 × 1254), in pixel dell'illustrazione: ritaglio di elena.webp, riquadri di occhi
@@ -444,7 +444,9 @@
 
   // ---------------------------------------------------------------- ciclo
   function loop() {
-    var want = ready && P.started && P.visible && !document.hidden && !VT.on;   // a tempo virtuale il ciclo lo guida _step
+    // 8/11/2026: con la voce accesa il ciclo continua anche se la figura esce dallo schermo (sul telefono si scorre per leggere),
+    // altrimenti alla fine di un passo Gemma resta muta e non passa al successivo
+    var want = ready && P.started && (P.visible || P.voice) && !document.hidden && !VT.on;   // a tempo virtuale il ciclo lo guida _step
     if (want && !A.run) { A.run = true; A.last = now(); A.raf = requestAnimationFrame(tick); }
     else if (!want && A.run) { A.run = false; cancelAnimationFrame(A.raf); }
   }
@@ -814,10 +816,10 @@
   // ---------------------------------------------------------------- voce
   var AU = { ctx: null, el: null, an: null, buf: null, peak: 0.08, lvl: 0, hold: 0 };
   function toggleVoice() {
-    if (P.voice) { P.voice = false; stopVoice(); syncButtons(); return; }
+    if (P.voice) { P.voice = false; stopVoice(); syncButtons(); loop(); return; }
     P.voice = true; P.playing = true;
     if (!TTS_PREVIEW) ensureAudio();
-    syncButtons();
+    syncButtons(); loop();
     go(P.i === steps().length - 1 ? 0 : P.i, true);
   }
   function ensureAudio() {

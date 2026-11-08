@@ -320,7 +320,9 @@ input,select,textarea{border-color:var(--edge);background:var(--cream)}
   function catName(slug){ var c = null; for (var i = 0; i < state.cats.length; i++) if (state.cats[i].slug === slug) c = state.cats[i]; if (!c) return slug; var n = c.name_i18n || {}; return n[lang] || n.en || n.it || slug; }
   var FOLLOWS = []; try { FOLLOWS = JSON.parse(localStorage.getItem("vetrina-follows") || "[]"); } catch(e){}
   function followed(j){ return FOLLOWS.indexOf(j.slug) >= 0; }
-  function inCat(x){ return !state.cat || ((x.categories || []).indexOf(state.cat) >= 0); }
+  // 8/11, Elena: è la serata a decidere la categoria (pagina) di una diretta; senza serata valgono le categorie della diretta
+  function nightCatOf(x){ if (!x.night_id) return ""; for (var i = 0; i < state.nights.length; i++) if (state.nights[i].id === x.night_id) { var c = state.nights[i].category || ""; return HOME.cats.hasOwnProperty(c) ? c : ""; } return ""; }
+  function inCat(x){ if (!state.cat) return true; var nc = nightCatOf(x); if (nc) return nc === state.cat; return (x.categories || []).indexOf(state.cat) >= 0; }
   function catLabel(s){ var bits = [(s.lang || "").toUpperCase()].concat((s.categories || []).filter(function(c){ return HOME.cats.hasOwnProperty(c); }).slice(0, 2).map(function(c){ return HOME.cats[c]; })); if (s.price_range) bits.push(ltr(s.price_range)); return '<small>' + esc(bits.filter(Boolean).join(" · ")) + '</small>'; }
   function nShows(n){ if (n === 0) return t.catSoon; if (n === 1) return t.catOne; if (lang === "ru" && t.catFew){ var m10 = n % 10, m100 = n % 100; if (m10 >= 2 && m10 <= 4 && (m100 < 12 || m100 > 14)) return t.catFew.replace("{n}", n); } return t.catMany.replace("{n}", n); }
   function setCat(slug){ state.cat = slug === state.cat ? "" : slug; try { var u = new URL(location.href); if (state.cat) u.searchParams.set("c", state.cat); else u.searchParams.delete("c"); history.replaceState(null, "", u.toString()); } catch(e){} renderCats(); renderHero(); renderWeek(); renderTiles(); renderLive(); renderSoon(); renderShops(); }

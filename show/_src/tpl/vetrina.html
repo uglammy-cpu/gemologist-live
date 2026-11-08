@@ -156,6 +156,8 @@ body,body.vetrina{background:var(--paper);color:var(--ink)}
 /* «Candidature aperte»: rosso solo quando le candidature sono davvero aperte (la scritta compare da sola, senza numero) */
 .agn small:only-child{color:var(--red-text);font-weight:600;font-size:12px;letter-spacing:.01em;white-space:nowrap}
 .ag.night .agn{max-width:none}
+.nseller{margin:16px 0 0;font-size:14.5px}
+.nseller a{color:var(--gold-edge);text-decoration:underline;text-underline-offset:3px}
 .agn small.chiuse:only-child{color:var(--muted);font-weight:500}
 @media (max-width:719px){.agn small:only-child{font-size:11.5px}}
 
@@ -567,7 +569,8 @@ input,select,textarea{border-color:var(--edge);background:var(--cream)}
       // con le candidature aperte: alla pagina per candidarsi, con la serata già scelta nel modulo
       var href = "", j0 = quante ? state.jewelers[diQuesta[0].jeweler_id] : null;
       if (quante && j0) href = showUrl(diQuesta[0], j0);
-      else if (!quante && n.applications_open) href = CFG.base + "/live/join?lang=" + lang + "&night=" + encodeURIComponent(n.id) + "#acct";
+      // 8/11 (Elena): il palinsesto della home parla al visitatore: senza dirette la riga porta alla pagina della categoria, non al modulo dei seller
+      else if (CATPAGES[n.category]) href = catPageUrl(n.category);
       var el = document.createElement(href ? "a" : "div"); el.className = "ag night"; if (href) el.href = href;
       el.innerHTML = '<div class="agd"><small>' + esc(wd) + '</small><b>' + esc(dn) + '</b></div>' +
         '<div class="agt"><small>' + esc(etichetta) + '</small>' +
@@ -576,10 +579,12 @@ input,select,textarea{border-color:var(--edge);background:var(--cream)}
         (i18n(n.description_i18n, n.description) ? '<span dir="auto">' + esc(i18n(n.description_i18n, n.description)) + '</span>' : '') + '</div>' +
         '<div class="agn">' + (quante
           ? '<b>' + quante + '</b><small>' + esc(quante === 1 ? t.nightOne : t.nightMany) + '</small>'
-          : (n.applications_open ? '<small>' + esc(t.nightOpen) + '</small>' : '<small class="chiuse">' + esc(t.nightClosed) + '</small>')) + '</div>';   // 8/11 (Elena): le serate chiuse lo dicono
+          : '') + '</div>';   // candidature aperte o chiuse: solo su «Trasmetti con noi» (8/11, Elena)
       list.appendChild(el);
     });
     box.appendChild(list);
+    // per i seller una riga sola, che porta alle serate con le candidature su «Trasmetti con noi»
+    if (!PAGECAT){ var ns = document.createElement("p"); ns.className = "nseller"; ns.innerHTML = '<a href="' + CFG.base + '/live/join?lang=' + lang + '#serate">' + esc(t.nSeller) + '</a>'; box.appendChild(ns); }
   }
   function renderWeek(){
     var box = $("weekBody"); box.innerHTML = "";

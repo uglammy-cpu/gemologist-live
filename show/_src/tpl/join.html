@@ -287,12 +287,29 @@
       '<h3>' + esc(t.jWhatH) + '</h3>' + li(t.jWhat) + '<h3>' + esc(t.jWhoH) + '</h3>' + li(t.jWho) +
       '<div class="price"><b>' + esc(eur(((ST.terms && ST.terms.price_cents) || 14900))) + '</b> ' + esc(t.jPrice) + '</div>' +
       (ST.fLeft != null ? '<p class="fdleft">' + esc(ST.fLeft > 0 ? j("fdLeft", { n: ST.fLeft }) : j("fdFull")) + '</p>' : "") +
+      '<section class="jnights" id="serate"></section>' +
       '<section class="acct" id="acct" aria-live="polite"></section>';
-    renderAcct();
+    renderAcct(); renderNights();
     // Gemma, l'avatar di Elena (avatar.js), a mani libere su /join dal 6/11/2026, si rimette nel suo posto a ogni ridisegno, senza ripartire da capo
     if (window.UQAvatar) UQAvatar.mount($("uqaSlot"), lang);
   }
 
+  // 8/11 (Elena): le serate con «Candidature aperte» / «Candidature chiuse» stanno qui, per i seller (prima erano nel palinsesto della home)
+  function romeDay(d){ try { return new Intl.DateTimeFormat("en-CA", { year:"numeric", month:"2-digit", day:"2-digit", timeZone:"Europe/Rome" }).format(d); } catch(e){ return d.toISOString().slice(0, 10); } }
+  function renderNights(){
+    var box = $("serate"); if (!box) return;
+    var oggi = romeDay(new Date()), fino = romeDay(new Date(Date.now() + 14 * 86400000));
+    var rows = (ST.allNights || []).filter(function(n){ var d = romeDay(new Date(n.starts_at)); return d >= oggi && d < fino; });
+    if (!rows.length){ box.innerHTML = ""; return; }
+    var L = { it:"it-IT", en:"en-GB", fr:"fr-FR", ar:"ar-AE-u-nu-latn", ru:"ru-RU" }[lang] || "it-IT";
+    var tr = function(o, d){ o = o || {}; return o[lang] || (lang !== "it" && o.en) || d || ""; };
+    box.innerHTML = '<h3>' + esc(t.jNightsH) + '</h3><p class="jnlead">' + esc(t.jNightsLead) + '</p><div class="jnlist">' + rows.map(function(n){
+      var d0 = new Date(n.starts_at), wd = "", dn = ""; try { wd = new Intl.DateTimeFormat(L, { weekday:"short", timeZone:"Europe/Rome" }).format(d0); dn = new Intl.DateTimeFormat(L, { day:"numeric", month:"short", timeZone:"Europe/Rome" }).format(d0); } catch(e){}
+      var sub = tr(n.description_i18n, n.description), open = !!n.applications_open;
+      var inner = '<span class="jnd"><small>' + esc(wd) + '</small><b>' + esc(dn) + '</b></span><span class="jnt"><b dir="auto">' + esc(tr(n.title_i18n, n.title)) + '</b>' + (sub ? '<small dir="auto">' + esc(sub) + '</small>' : '') + '</span><span class="jns' + (open ? ' on' : '') + '">' + esc(open ? t.nightOpen : t.nightClosed) + '</span>';
+      return open ? '<a class="jn" href="?lang=' + lang + '&night=' + encodeURIComponent(n.id) + '#acct">' + inner + '</a>' : '<div class="jn off">' + inner + '</div>';
+    }).join("") + '</div>';
+  }
   function renderAcct(){
     var box = $("acct"); if (!box) return;
     collect();
@@ -524,7 +541,8 @@
   rpc("site_terms", {}).then(function(x){ ST.terms = x; renderAcct(); }, function(){});
   // Founding 20: il contatore è vero, letto dal database (se la funzione non c'è ancora non compare niente)
   rpc("founding_left", {}).then(function(n){ if (typeof n === "number"){ ST.fLeft = n; render(); } }, function(){});
-  rpc("list_nights", { p_from: null }).then(function(r){ ST.nights = (r || []).filter(function(n){ return n.applications_open; }); if (SESS && ST.me) renderAcct(); }, function(){});
+  rpc("list_nights", { p_from: null }).then(function(r){ ST.allNights = r || []; ST.nights = ST.allNights.filter(function(n){ return n.applications_open; }); renderNights(); if (SESS && ST.me) renderAcct(); }, function(){});
+  if (/#serate$/.test(location.hash)) setTimeout(function(){ var b = $("serate"); if (b) b.scrollIntoView(); }, 400);
   if (SESS) loadMe();
   if (/#acct$/.test(location.hash)) setTimeout(function(){ var b = $("acct"); if (b) b.scrollIntoView(); }, 50);
 })();
@@ -574,6 +592,15 @@
 .guide ol li b{display:block;margin-bottom:2px}
 .founding{border:1px solid var(--line);border-radius:12px;padding:10px 14px;margin:0}
 .fdleft{font-size:13.5px;color:var(--muted);margin:8px 0 0}
+.jnights{margin-top:22px;scroll-margin-top:80px}
+.jnights .jnlead{font-size:14.5px;color:var(--muted);margin:2px 0 10px}
+.jnlist{display:flex;flex-direction:column;border-top:1px solid var(--line)}
+.jn{display:grid;grid-template-columns:62px minmax(0,1fr) auto;gap:12px;align-items:center;padding:12px 2px;border-bottom:1px solid var(--line);color:var(--ink);text-decoration:none}
+.jnd{display:flex;flex-direction:column;align-items:center;line-height:1.1}.jnd small{font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted)}.jnd b{font-size:15px;font-weight:600;white-space:nowrap}
+.jnt{display:flex;flex-direction:column;gap:2px;min-width:0}.jnt b{font-weight:600;font-size:15.5px;line-height:1.25}.jnt small{font-size:13px;color:var(--muted);line-height:1.35}
+.jns{font-size:12px;font-weight:500;color:var(--muted);white-space:nowrap}.jns.on{color:var(--red-text,#B42318);font-weight:600}
+.jn.off .jnt b{color:var(--muted)}
+@media (max-width:420px){.jn{grid-template-columns:52px minmax(0,1fr)}.jns{grid-column:2}}
 @media (max-width:640px){.jform{grid-template-columns:1fr}.files{grid-template-columns:1fr}.userbar{text-align:start}}
 </style>
 <script>

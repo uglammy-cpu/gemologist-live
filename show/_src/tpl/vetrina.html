@@ -247,6 +247,8 @@ input,select,textarea{border-color:var(--edge);background:var(--cream)}
 .cathero img{width:100%;height:100%;object-fit:cover;display:block}
 .cathero .eyebrow{font-size:11.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--gold-edge);margin:0 0 8px}
 .cathero h1{text-shadow:none;color:var(--ink)}
+.cathero .theme{font-size:20px;line-height:1.3;margin:8px 0 0;color:var(--gold-edge)}
+.cathero .theme b{color:var(--ink);font-weight:600}
 .cathero .lead{font-size:18px;line-height:1.5;margin:12px 0 0}
 .cathero p{line-height:1.6;margin:10px 0 0}
 .cathero ul{list-style:none;padding:0;margin:14px 0 0;display:grid;gap:8px;color:var(--muted)}
@@ -611,11 +613,11 @@ input,select,textarea{border-color:var(--edge);background:var(--cream)}
     var c = (t.catPage || {})[PAGECAT] || (TT.it.catPage || {})[PAGECAT], h = $("cathero"), jb = $("catJoin");
     if (!c || !h || !jb) return;
     document.body.classList.add("catpage");
-    var name = tileName(PAGECAT), lead = ((t.trustCats || {})[PAGECAT] || [])[0] || "";
+    var name = tileName(PAGECAT), sp = /^(specials)\s*:\s*(.+)$/i.exec(name), lead = ((t.trustCats || {})[PAGECAT] || [])[0] || "";
     document.title = name + " · " + CFG.name;
     h.innerHTML = '<a class="crumb" href="' + CFG.base + "/live?lang=" + lang + '#browse">' + esc(t.hCats) + '</a>'
       + '<figure><img alt="" src="' + CFG.base + "/show/img/cat/" + PAGECAT + '.jpg" onerror="this.onerror=null;this.src=\'' + CFG.base + "/show/img/tiles/" + PAGECAT + '.jpg\'"></figure>'
-      + '<div class="ctxt"><p class="eyebrow">' + esc(c.eyebrow) + '</p><h1>' + esc(name) + '</h1>'
+      + '<div class="ctxt"><p class="eyebrow">' + esc(c.eyebrow) + '</p><h1>' + esc(sp && c.theme ? sp[1] : name) + '</h1>' + (sp && c.theme ? '<p class="theme">' + esc(c.theme) + ' <b>' + esc(sp[2]) + '</b></p>' : '')
       + (lead ? '<p class="lead">' + esc(lead) + '</p>' : '') + '<p>' + esc(c.intro) + '</p>'
       + '<ul>' + c.items.concat([t.trust[2]]).map(function(x){ return '<li>' + esc(x) + '</li>'; }).join("") + '</ul></div>';
     h.hidden = false;

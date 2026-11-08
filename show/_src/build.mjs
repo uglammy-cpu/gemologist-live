@@ -7,6 +7,7 @@
 // il JavaScript poi le tiene aggiornate in tempo reale.
 import fs from "node:fs";
 import path from "node:path";
+import crypto from "node:crypto";
 import { createRequire } from "node:module";
 
 const HERE = path.dirname(new URL(import.meta.url).pathname);
@@ -105,6 +106,10 @@ const photoByPiece = Object.fromEntries(DATA.photos.map((p) => [p.piece_id, p.da
 
 // Immagini da base64 a file (copertine delle dirette e foto dei pezzi), nella cartella img condivisa
 const IMG = path.join(ROOT, "show", "img");
+// 8/11, Elena: chi ha l'app (PWA) deve vedere subito le foto nuove. Versione delle foto editoriali (riquadri, pagine, slide):
+// cambia solo quando cambia una di quelle foto; va negli indirizzi (?v=) e nel nome della cache del service worker.
+const IMGV = (() => { const h = crypto.createHash("sha1"); for (const d of ["tiles", "cat", "slides"]) { const dir = path.join(IMG, d); if (!fs.existsSync(dir)) continue; for (const f of fs.readdirSync(dir).sort()) { h.update(d + "/" + f); h.update(fs.readFileSync(path.join(dir, f))); } } return h.digest("hex").slice(0, 8); })();
+const vimgHtml = (html) => html.replace(/(\/img\/(?:tiles|cat|slides)\/[A-Za-z0-9._-]+\.(?:jpg|jpeg|png|webp))(?=["')\s])/g, `$1?v=${IMGV}`);
 function writeImage(sub, id, dataUrl) {
   const m = /^data:image\/jpeg;base64,(.+)$/.exec(dataUrl || ""); if (!m) return null;
   fs.mkdirSync(path.join(IMG, sub), { recursive: true });
@@ -353,7 +358,7 @@ for (const t of TARGETS) {
   }, null, 1));
   // Service worker: le pagine arrivano sempre dalla rete (così le correzioni si vedono subito),
   // le immagini dalla cache e si aggiornano in sottofondo, e senza rete si vede l'ultima versione vista.
-  write("sw.js", `var V = "uniqaia-1", START = ${JSON.stringify(P + "/?src=app")};
+  write("sw.js", `var V = "uniqaia-${IMGV}", START = ${JSON.stringify(P + "/?src=app")};
 self.addEventListener("install", function(){ self.skipWaiting(); });
 self.addEventListener("activate", function(e){ e.waitUntil(caches.keys().then(function(ks){ return Promise.all(ks.map(function(k){ return k === V ? null : caches.delete(k); })); }).then(function(){ return self.clients.claim(); })); });
 self.addEventListener("fetch", function(e){
@@ -379,8 +384,8 @@ self.addEventListener("fetch", function(e){
 `);
   const vet = render(t, "vetrina", {});
   if (!vet.includes(CATVAR)) throw new Error("vetrina: manca " + CATVAR);
-  const vetFor = (cat) => vet.replace(CATVAR, `var CATPAGES = ${JSON.stringify(CATPAGES)}, PAGECAT = ${JSON.stringify(cat)};`);
-  write("index.html", prerenderVetrina(t, vetFor("")));
+  const vetFor = (cat) => vet.replace(CATVAR, `var CATPAGES = ${JSON.stringify(CATPAGES)}, PAGECAT = ${JSON.stringify(cat)};`).replace('var IMGV = "";', `var IMGV = ${JSON.stringify(IMGV)};`);
+  write("index.html", vimgHtml(prerenderVetrina(t, vetFor(""))));
   write("join/index.html", render(t, "join", {}));
   write("wheel-admin/index.html", render(t, "wheel-admin", { tokenParam: "k" }));
   write("admin/index.html", render(t, "seller-admin", { tokenParam: "k" }));
@@ -396,7 +401,7 @@ self.addEventListener("fetch", function(e){
   for (const s of sellers) { write(`${s}/index.html`, viewer); write(`${s}/panel/index.html`, panel); write(`${s}/profile/index.html`, profile); }
   // Una pagina per ogni diretta pubblica
   const urls = [`${t.site}${P}/`, `${t.site}${P}/join/`, ...sellers.map((s) => `${t.site}${P}/${s}/profile/`)];
-  for (const [cat, page] of Object.entries(CATPAGES)) { write(`c/${page}/index.html`, catPageDoc(t, vetFor(cat), cat, page)); urls.push(`${t.site}${P}/c/${page}/`); }
+  for (const [cat, page] of Object.entries(CATPAGES)) { write(`c/${page}/index.html`, vimgHtml(catPageDoc(t, vetFor(cat), cat, page))); urls.push(`${t.site}${P}/c/${page}/`); }
   let nLanding = 0;
   for (const s of DATA.shows) {
     const j = jById[s.jeweler_id]; if (!j || !s.slug) continue;

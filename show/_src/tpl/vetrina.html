@@ -156,6 +156,7 @@ body,body.vetrina{background:var(--paper);color:var(--ink)}
 /* «Candidature aperte»: rosso solo quando le candidature sono davvero aperte (la scritta compare da sola, senza numero) */
 .agn small:only-child{color:var(--red-text);font-weight:600;font-size:12px;letter-spacing:.01em;white-space:nowrap}
 .ag.night .agn{max-width:none}
+.nmore{margin-top:18px}
 @media (max-width:719px){.agn small:only-child{font-size:11.5px}}
 
 /* ---------- 10. Card delle dirette ---------- */
@@ -531,7 +532,9 @@ input,select,textarea{border-color:var(--edge);background:var(--cream)}
     var oggi = romeDay(new Date(now));
     var rows = (state.nights || []).filter(function(n){ return romeDay(new Date(n.starts_at)) >= oggi; });
     if (!rows.length){ sec.hidden = true; return; }
-    rows = rows.slice(0, 7);   // una settimana: oltre non si legge piu'
+    // una settimana alla volta: oltre non si legge piu'. 8/11 (Elena): gli eventi dopo la settimana devono comunque essere raggiungibili,
+    // quindi sotto c'e' «Altre serate», che aggiunge la settimana successiva (e resta aperta anche all'aggiornamento automatico)
+    var tutte = rows.length; state.nightsN = state.nightsN || 7; rows = rows.slice(0, state.nightsN);
     sec.hidden = false; box.innerHTML = "";
     // La regola si scrive per esteso: "stessi giorni ogni settimana" e'
     // un'astrazione che nessuno traduce da solo in un calendario.
@@ -579,6 +582,8 @@ input,select,textarea{border-color:var(--edge);background:var(--cream)}
       list.appendChild(el);
     });
     box.appendChild(list);
+    if (tutte > rows.length){ var more = document.createElement("button"); more.type = "button"; more.className = "btn nmore"; more.textContent = t.nMore;
+      more.addEventListener("click", function(){ state.nightsN += 7; renderNights(); }); box.appendChild(more); }
   }
   function renderWeek(){
     var box = $("weekBody"); box.innerHTML = "";

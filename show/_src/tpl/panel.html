@@ -9,6 +9,19 @@
 .cam .live-dot{position:absolute;left:10px;top:10px;z-index:2}
 .cam-actions{display:flex;gap:6px;flex-wrap:wrap}
 .cam-actions .btn{flex:1 1 auto}
+/* registrazione nel browser (8/11/2026): il file resta sul dispositivo del seller, non va sul sito */
+.rec{border:1px solid var(--line);border-radius:12px;padding:10px 12px;display:flex;flex-direction:column;gap:6px}
+.rec.on{border-color:var(--gold-edge);background:var(--soft-2)}
+.rec .ck{font-weight:500}
+.rec .rec-st{text-align:start;margin:0}
+.rec .dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:#B3261E;margin-inline-end:6px;vertical-align:middle;animation:recb 1.2s steps(2) infinite}
+@keyframes recb{50%{opacity:.25}}
+.rec-files{display:flex;flex-direction:column;gap:8px}
+.rec-files:empty{display:none}
+.rec-file{border-top:1px solid var(--line);padding-top:8px;font-size:13px;display:flex;flex-direction:column;gap:6px;color:var(--ink)}
+.rec-file small{color:var(--muted);font-size:12px}
+.rec-file .acts{display:flex;gap:6px;flex-wrap:wrap}
+.rec-file .acts .btn{flex:1 1 auto}
 .panel{display:grid;grid-template-columns:300px minmax(0,1fr) 340px;gap:14px;margin-top:14px;align-items:start}
 .card{border:1px solid var(--line);border-radius:18px;padding:16px;display:flex;flex-direction:column;gap:10px;background:var(--paper)}
 .card h2{font-family:var(--display);font-size:24px;line-height:1.15}
@@ -106,6 +119,12 @@ label input,label select,label textarea{width:100%}
       <div class="clock" id="clock" hidden><b id="clockT">60:00</b><span id="clockS"></span></div>
       <div class="cam-actions"><button class="btn dark sm" type="button" id="camBtn">Accendi la camera</button><button class="btn sm" type="button" id="micBtn" hidden>Microfono: on</button><button class="btn sm" type="button" id="flipBtn" hidden>Cambia camera</button></div>
       <p class="hint" id="camWho"></p>
+      <p class="eyebrow" style="margin-top:6px">Registrazione</p>
+      <div class="rec" id="recBox">
+        <label class="ck"><input type="checkbox" id="recOn"> Registra questa diretta</label>
+        <p class="hint rec-st" id="recState"></p>
+        <div class="rec-files" id="recFiles"></div>
+      </div>
       <p class="eyebrow" style="margin-top:6px">Anche su Instagram</p>
       <div id="social" style="display:flex;flex-direction:column;gap:8px">
         <p class="hint" style="text-align:start;margin:0">Una copia di questa diretta va in onda anche sul tuo Instagram (account professionale). Da computer apri instagram.com, poi <b>+ Crea → Diretta → Streaming via RTMP</b>: copia qui l’URL e la chiave dello stream, premi «Avvia» e su Instagram premi «Vai in diretta». La chiave vale una sola volta.</p>
@@ -262,7 +281,7 @@ label input,label select,label textarea{width:100%}
     $("visHint").textContent = s.visibility === "public" ? "Compare nella vetrina pubblica: chiunque può entrare." : "Entra solo chi ha il link o un invito personale.";
     $("stats").hidden = false; $("likesN").textContent = s.likes || 0;
     $("jinfo").textContent = state.jeweler.name + " · " + (state.jeweler.city || "città non indicata") + " · " + (KINDS[state.jeweler.kind] || "Gioielleria") + ((state.jeweler.categories || []).length ? " · " + state.jeweler.categories.map(catName).join(", ") : "");
-    renderHeader(); renderPieces(); socSync();
+    renderHeader(); renderPieces(); socSync(); recSync();
     document.title = "Pannello · " + s.title;
   }
   function renderPieces(){
@@ -395,7 +414,7 @@ label input,label select,label textarea{width:100%}
   }
   function startCovers(){ stopCovers(); setTimeout(captureCover, 2500); cam.coverTimer = setInterval(captureCover, 20000); }
   function stopCovers(){ if (cam.coverTimer){ clearInterval(cam.coverTimer); cam.coverTimer = null; } }
-  $("camBtn").addEventListener("click", function(){ if (cam.room) stopCam(); else startCam(); });
+  $("camBtn").addEventListener("click", function(){ recPrime(); if (cam.room) stopCam(); else startCam(); });
   $("micBtn").addEventListener("click", function(){ if (!cam.room) return; cam.mic = !cam.mic; cam.room.localParticipant.setMicrophoneEnabled(cam.mic).then(camUi); });
   $("flipBtn").addEventListener("click", function(){
     if (!cam.room || cam.busy) return; cam.busy = true;
@@ -404,7 +423,293 @@ label input,label select,label textarea{width:100%}
     lp.setCameraEnabled(false).then(function(){ return lp.setCameraEnabled(true, { facingMode: cam.facing, resolution: LK.VideoPresets.h720.resolution }); })
       .then(function(){ cam.tiles.remove("me"); showLocal(); }).catch(function(e){ toast("Cambio camera non riuscito"); console.warn(e); }).then(function(){ cam.busy = false; });
   });
-  window.addEventListener("beforeunload", function(){ if (cam.room) cam.room.disconnect(); });
+  window.addEventListener("beforeunload", function(e){
+    if (recBusy()){ e.preventDefault(); e.returnValue = ""; return ""; }
+    if (cam.room) cam.room.disconnect();
+  });
+  window.addEventListener("pagehide", function(){ if (cam.room) cam.room.disconnect(); });
+  // ---- Registrazione nel browser (8/11/2026). Registra la camera e il microfono di chi trasmette da questo pannello.
+  // Gratis: nessun server, il file resta sul dispositivo. Il video passa da una tela (canvas), così il cambio camera
+  // non interrompe il file; ogni 4 secondi un pezzo va in IndexedDB: se la pagina si chiude, al ritorno si può scaricare.
+  var REC_KEY = "uq-rec-on", REC_BPS = 2500000, REC_FPS = 30;
+  // rec = lo stato del pannello; rec.job = la registrazione in corso (job.meta = la riga salvata in IndexedDB, solo dati semplici)
+  var rec = { sup:false, want:false, on:false, job:null, uiAt:0, v:null, c:null, g:null, ac:null, dest:null, src:null, vt:null, at:null,
+              tick:null, showId:null, title:"", mime:"", memFiles:{}, lowSpace:false };
+  function recSupported(){
+    try { return !!(window.MediaRecorder && window.MediaStream && HTMLCanvasElement.prototype.captureStream && (window.AudioContext || window.webkitAudioContext)); }
+    catch(e){ return false; }
+  }
+  function recMime(){
+    var L = ["video/mp4;codecs=avc1.42E01E,mp4a.40.2", "video/mp4;codecs=avc1,mp4a.40.2", "video/mp4", "video/webm;codecs=vp9,opus", "video/webm;codecs=vp8,opus", "video/webm"];
+    for (var i = 0; i < L.length; i++){ try { if (MediaRecorder.isTypeSupported(L[i])) return L[i]; } catch(e){} }
+    return "";
+  }
+  function recBusy(){ return !!(rec.job && rec.job.mr.state !== "inactive"); }
+  // IndexedDB: «recs» = una riga per registrazione, «chunks» = i pezzi in ordine
+  var recDbP = null;
+  function recDb(){
+    if (recDbP) return recDbP;
+    recDbP = new Promise(function(res, rej){
+      if (!window.indexedDB){ rej(new Error("idb")); return; }
+      var r = indexedDB.open("uq-rec", 1);
+      r.onupgradeneeded = function(){ var d = r.result; if (!d.objectStoreNames.contains("recs")) d.createObjectStore("recs", { keyPath:"id" }); if (!d.objectStoreNames.contains("chunks")) d.createObjectStore("chunks", { keyPath:["rec", "seq"] }); };
+      r.onsuccess = function(){ res(r.result); };
+      r.onerror = function(){ rej(r.error || new Error("idb")); };
+      r.onblocked = function(){ rej(new Error("idb bloccato")); };
+    });
+    recDbP.catch(function(){ recDbP = null; });
+    return recDbP;
+  }
+  function idb(stores, mode, fn){
+    return recDb().then(function(d){ return new Promise(function(res, rej){
+      var tx = d.transaction(stores, mode), req = fn(tx);
+      tx.oncomplete = function(){ res(req ? req.result : undefined); };
+      tx.onerror = tx.onabort = function(){ rej(tx.error || new Error("idb")); };
+    }); });
+  }
+  function recRange(id){ return IDBKeyRange.bound([id, 0], [id, Infinity]); }
+  function recList(){ return idb(["recs"], "readonly", function(tx){ return tx.objectStore("recs").getAll(); }); }
+  function recChunks(id){ return idb(["chunks"], "readonly", function(tx){ return tx.objectStore("chunks").getAll(recRange(id)); }); }
+  function recPutMeta(m){ return idb(["recs"], "readwrite", function(tx){ tx.objectStore("recs").put(m); }); }
+  function recDelete(id){ return idb(["recs", "chunks"], "readwrite", function(tx){ tx.objectStore("recs").delete(id); tx.objectStore("chunks").delete(recRange(id)); }); }
+  function recSave(job, blob){
+    var id = job.meta.id, seq = job.seq++;
+    job.bytes += blob.size;
+    job.q = job.q.then(function(){
+      if (job.mem){ job.mem.push(blob); return; }
+      return idb(["chunks"], "readwrite", function(tx){ tx.objectStore("chunks").put({ rec:id, seq:seq, data:blob }); }).catch(function(e){
+        // spazio finito o archivio non disponibile: da qui in poi i pezzi restano in memoria fino alla fine
+        console.warn("rec idb", e); job.mem = [blob]; rec.lowSpace = true; recUi();
+      });
+    });
+  }
+  function recBlob(meta, extra){
+    var p = meta.memOnly ? Promise.resolve([]) : recChunks(meta.id).catch(function(){ return []; });
+    return p.then(function(rows){
+      rows.sort(function(a, b){ return a.seq - b.seq; });
+      var parts = rows.map(function(r){ return r.data; }).concat(extra || []);
+      return new Blob(parts, { type: String(meta.mime || "video/webm").split(";")[0] });
+    });
+  }
+  function recName(meta){
+    var d = new Date(meta.started || Date.now());
+    function p(n){ return (n < 10 ? "0" : "") + n; }
+    var t = String(meta.title || "diretta");
+    try { t = t.normalize("NFD").replace(/[̀-ͯ]/g, ""); } catch(e){}
+    t = t.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 40) || "diretta";
+    return "uniqaia-" + t + "-" + d.getFullYear() + "-" + p(d.getMonth() + 1) + "-" + p(d.getDate()) + "-" + p(d.getHours()) + p(d.getMinutes()) + "." + (meta.ext || "webm");
+  }
+  function recDownload(meta, blob){
+    var u = URL.createObjectURL(blob), a = document.createElement("a");
+    a.href = u; a.download = recName(meta); a.rel = "noopener"; a.style.display = "none";
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(function(){ URL.revokeObjectURL(u); }, 120000);
+  }
+  function recSize(b){
+    var mb = (b || 0) / 1048576;
+    if (mb >= 1024) return (mb / 1024).toLocaleString("it-IT", { maximumFractionDigits:1 }) + "\u00a0GB";
+    return (mb < 10 ? mb.toLocaleString("it-IT", { maximumFractionDigits:1 }) : Math.round(mb)) + "\u00a0MB";
+  }
+  function recClock(ms){
+    var s = Math.floor((ms || 0) / 1000), h = Math.floor(s / 3600), m = Math.floor(s / 60) % 60, x = s % 60;
+    return (h ? h + ":" + (m < 10 ? "0" : "") : "") + m + ":" + (x < 10 ? "0" : "") + x;
+  }
+  // un battito costante anche se la scheda passa in secondo piano (i timer delle schede nascoste rallentano, quelli dei worker no)
+  function recTicker(fn){
+    try {
+      var url = URL.createObjectURL(new Blob(["setInterval(function(){postMessage(0)}," + Math.round(1000 / REC_FPS) + ")"], { type:"text/javascript" }));
+      var w = new Worker(url); w.onmessage = fn;
+      return { stop: function(){ w.terminate(); URL.revokeObjectURL(url); } };
+    } catch(e){
+      var t = setInterval(fn, Math.round(1000 / REC_FPS));
+      return { stop: function(){ clearInterval(t); } };
+    }
+  }
+  function recAudio(){
+    try {
+      var AC = window.AudioContext || window.webkitAudioContext;
+      if (!rec.ac) rec.ac = new AC();
+      if (rec.ac.state === "suspended" && rec.ac.resume) rec.ac.resume();
+      if (!rec.dest) rec.dest = rec.ac.createMediaStreamDestination();
+    } catch(e){ console.warn("rec audio", e); }
+  }
+  function recPrime(){ if (rec.want && rec.sup) recAudio(); }
+  function recTrack(src){
+    var pub = cam.room && cam.room.localParticipant.getTrackPublication(src);
+    var t = pub && pub.track && pub.track.mediaStreamTrack;
+    return t && t.readyState === "live" ? t : null;
+  }
+  function recDraw(){
+    var v = rec.v, c = rec.c, g = rec.g; if (!v || !c) return;
+    var W = c.width, H = c.height, vw = v.videoWidth, vh = v.videoHeight; if (!vw || !vh) return;
+    var k = Math.min(W / vw, H / vh), dw = vw * k, dh = vh * k;
+    g.fillStyle = "#000"; g.fillRect(0, 0, W, H);
+    g.drawImage(v, (W - dw) / 2, (H - dh) / 2, dw, dh);
+  }
+  function recTick(){
+    if (!rec.on) return;
+    var LK = window.LivekitClient; if (!LK || !LK.Track) return;
+    var vt = recTrack(LK.Track.Source.Camera), at = recTrack(LK.Track.Source.Microphone);
+    if (vt !== rec.vt){
+      rec.vt = vt;
+      try { rec.v.srcObject = vt ? new MediaStream([vt]) : null; if (vt){ var pl = rec.v.play(); if (pl && pl.catch) pl.catch(function(){}); } } catch(e){ console.warn("rec video", e); }
+    }
+    if (at !== rec.at){
+      if (rec.src){ try { rec.src.disconnect(); } catch(e){} rec.src = null; }
+      rec.at = at;
+      if (at && rec.ac && rec.dest){ try { rec.src = rec.ac.createMediaStreamSource(new MediaStream([at])); rec.src.connect(rec.dest); } catch(e){ console.warn("rec mic", e); } }
+    }
+    var ok = !!(vt && rec.v.readyState >= 2 && rec.v.videoWidth > 0), job = rec.job;
+    if (!job){ if (ok) recBegin(rec.v.videoWidth, rec.v.videoHeight); return; }
+    var now = Date.now(), mr = job.mr;
+    if (mr.state === "recording") job.ms += now - job.last;
+    job.last = now;
+    if (ok){ recDraw(); if (mr.state === "paused"){ try { mr.resume(); } catch(e){} } }
+    else if (mr.state === "recording"){ try { mr.pause(); } catch(e){} }
+    if (now - rec.uiAt > 1000){ rec.uiAt = now; recUi(); }
+  }
+  function recBegin(vw, vh){
+    var k = Math.min(1, 1280 / Math.max(vw, vh));
+    rec.c.width = Math.round(vw * k / 2) * 2; rec.c.height = Math.round(vh * k / 2) * 2;
+    recDraw();
+    var vtracks = rec.c.captureStream(REC_FPS).getVideoTracks(), tracks = vtracks.slice();
+    if (rec.dest) tracks = tracks.concat(rec.dest.stream.getAudioTracks());
+    // un fotogramma chiave ogni 2 secondi: con l'MP4 di Chrome i pezzi arrivano solo ai fotogrammi chiave, così si salvano davvero ogni pochi secondi
+    var mr, opts = { videoBitsPerSecond: REC_BPS, audioBitsPerSecond: 128000, videoKeyFrameIntervalDuration: 2000 };
+    if (rec.mime) opts.mimeType = rec.mime;
+    try { mr = new MediaRecorder(new MediaStream(tracks), opts); }
+    catch(e){
+      try { mr = new MediaRecorder(new MediaStream(tracks)); }
+      catch(e2){ console.warn("rec", e2); vtracks.forEach(function(t){ t.stop(); }); rec.want = false; recStop(); toast("La registrazione non è partita su questo browser"); return; }
+    }
+    var mime = mr.mimeType || rec.mime || "video/webm";
+    var meta = { id: "r" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6), show: rec.showId, title: rec.title, started: new Date().toISOString(),
+                 mime: mime, ext: /mp4/i.test(mime) ? "mp4" : "webm", w: rec.c.width, h: rec.c.height, done: false };
+    var job = { meta: meta, mr: mr, vtracks: vtracks, seq: 0, bytes: 0, ms: 0, last: Date.now(), mem: null, memOnly: false, finished: false };
+    job.q = recPutMeta(meta).catch(function(){ job.memOnly = true; job.mem = []; recUi(); });
+    mr.ondataavailable = function(e){ if (e.data && e.data.size) recSave(job, e.data); };
+    mr.onstop = function(){ recFinish(job); };
+    mr.onerror = function(e){ console.warn("rec", e && e.error || e); toast("Errore della registrazione: quello registrato finora resta salvato"); recStop(); };
+    rec.job = job;
+    mr.start(4000);
+    toast("Registrazione avviata");
+    recUi();
+  }
+  function recStart(){
+    if (rec.on || !state.show) return;
+    rec.on = true; rec.showId = state.show.id; rec.title = state.show.title || "diretta"; rec.mime = recMime();
+    rec.v = document.createElement("video"); rec.v.muted = true; rec.v.playsInline = true; rec.v.setAttribute("playsinline", ""); rec.v.setAttribute("aria-hidden", "true");
+    rec.v.style.cssText = "position:fixed;left:0;top:0;width:2px;height:2px;opacity:0;pointer-events:none";
+    document.body.appendChild(rec.v);
+    rec.c = document.createElement("canvas"); rec.g = rec.c.getContext("2d");
+    recAudio();
+    rec.vt = null; rec.at = null; rec.job = null;
+    rec.tick = recTicker(recTick);
+  }
+  // ferma la cattura subito (così una nuova registrazione può partire); il file si chiude quando il registratore consegna l'ultimo pezzo
+  function recStop(){
+    if (!rec.on) return;
+    var job = rec.job;
+    rec.on = false; rec.job = null;
+    if (rec.tick){ rec.tick.stop(); rec.tick = null; }
+    if (rec.src){ try { rec.src.disconnect(); } catch(e){} rec.src = null; }
+    if (rec.v){ try { rec.v.srcObject = null; rec.v.remove(); } catch(e){} rec.v = null; }
+    rec.c = null; rec.g = null; rec.vt = null; rec.at = null;
+    recUi();
+    if (!job) return;
+    if (job.mr.state !== "inactive"){ try { job.mr.stop(); return; } catch(e){} }
+    recFinish(job);
+  }
+  function recFinish(job){
+    if (job.finished) return; job.finished = true;
+    job.vtracks.forEach(function(t){ try { t.stop(); } catch(e){} });
+    var meta = job.meta;
+    recUi();
+    job.q.then(function(){
+      var extra = job.mem; job.mem = null;
+      meta.done = true; meta.bytes = job.bytes; meta.ms = job.ms;
+      if (job.memOnly) meta.memOnly = true; else if (extra) meta.partial = true;
+      return (job.memOnly ? Promise.resolve() : recPutMeta(meta).catch(function(){})).then(function(){ return recBlob(meta, extra); }).then(function(blob){
+        if (extra) rec.memFiles[meta.id] = { meta: meta, blob: blob };
+        if (!blob.size){ toast("La registrazione è vuota: la camera non trasmetteva"); delete rec.memFiles[meta.id]; return job.memOnly ? null : recDelete(meta.id).catch(function(){}); }
+        recDownload(meta, blob);
+        toast("Registrazione pronta (" + recSize(blob.size) + "): controlla i download");
+      });
+    }).catch(function(e){ console.warn("rec fine", e); toast("Non riesco a preparare il file: premi «Scarica» qui sotto"); }).then(recRender);
+  }
+  function recUi(){
+    var box = $("recBox"); if (!box) return;
+    var cb = $("recOn"), st = $("recState"), job = rec.job, st8 = job ? job.mr.state : "", t;
+    cb.checked = rec.want; cb.disabled = !rec.sup;
+    box.className = "rec" + (job ? " on" : "");
+    if (!rec.sup) t = "Questo browser non può registrare la diretta. Usa Chrome o Edge aggiornati.";
+    else if (!rec.want) t = "Spenta. Se la accendi, il video della tua camera con il tuo audio si salva su questo dispositivo, non sul sito. Serve spazio libero: circa 1,2 GB per un’ora.";
+    else if (st8 === "recording") t = '<span class="dot"></span><b>Registrazione in corso</b> · ' + recClock(job.ms) + " · " + recSize(job.bytes) + ". Tieni aperta questa pagina: quando termini la diretta, il file si scarica.";
+    else if (st8 === "paused") t = "<b>Registrazione in pausa</b> · " + recClock(job.ms) + ": riparte da sola quando la camera trasmette di nuovo.";
+    else if (rec.on) t = "Accesa: parte appena la tua camera trasmette.";
+    else t = "Accesa: parte quando sei «In diretta» con la camera accesa e si ferma quando termini la diretta.";
+    if (rec.sup && rec.want && job && job.mem && !job.memOnly) t += " <b>Spazio del browser finito:</b> il resto della registrazione resta in memoria; non chiudere la pagina prima della fine.";
+    else if (rec.sup && rec.want && job && job.memOnly) t += " <b>Attenzione:</b> questo browser non salva i pezzi; se chiudi la pagina prima della fine, la registrazione si perde.";
+    else if (rec.sup && rec.want && rec.lowSpace) t += " <b>Spazio quasi finito</b> su questo dispositivo: libera spazio prima della diretta.";
+    st.innerHTML = t;
+  }
+  function recSpace(){
+    try { if (navigator.storage && navigator.storage.estimate) navigator.storage.estimate().then(function(e){ rec.lowSpace = !!(e && e.quota && e.quota - (e.usage || 0) < 1.3e9); recUi(); }).catch(function(){}); } catch(e){}
+  }
+  function recSync(){
+    if (!rec.sup) return;
+    var s = state.show, ok = rec.want && s && s.status === "live";
+    if (rec.on && (!ok || s.id !== rec.showId)) recStop();
+    if (ok && !rec.on) recStart();
+    recUi();
+  }
+  // registrazioni rimaste nel browser: complete (da scaricare di nuovo o eliminare) o interrotte (pagina chiusa durante la diretta)
+  function recRender(){
+    var box = $("recFiles"); if (!box) return;
+    var p = window.indexedDB ? recList().catch(function(){ return []; }) : Promise.resolve([]);
+    p.then(function(list){
+      var seen = {}; list.forEach(function(m){ seen[m.id] = 1; });
+      Object.keys(rec.memFiles).forEach(function(id){ if (!seen[id]) list.push(rec.memFiles[id].meta); });
+      list = list.filter(function(m){ return !(rec.job && m.id === rec.job.meta.id); });
+      list.sort(function(a, b){ return String(b.started).localeCompare(String(a.started)); });
+      return Promise.all(list.map(function(m){
+        if (rec.memFiles[m.id]) return rec.memFiles[m.id].blob.size;
+        if (m.done && m.bytes && !m.partial) return m.bytes;
+        return recChunks(m.id).then(function(r){ return r.reduce(function(n, x){ return n + (x.data ? x.data.size : 0); }, 0); }).catch(function(){ return 0; });
+      })).then(function(sizes){
+        box.innerHTML = "";
+        list.forEach(function(m, i){
+          var row = document.createElement("div"); row.className = "rec-file";
+          var stato = rec.memFiles[m.id] ? "completa · resta qui solo finché non chiudi questa pagina" : (!m.done ? "interrotta: la pagina si è chiusa durante la diretta" : (m.partial ? "salvata solo in parte nel browser" : "completa"));
+          row.innerHTML = '<span><b>' + esc(m.title || "Diretta") + '</b> · ' + esc(fmtShort(m.started)) + ' · ' + recSize(sizes[i]) + (m.ms ? ' · ' + recClock(m.ms) : '') + '<br><small>' + esc(stato) + '</small></span>';
+          var acts = document.createElement("div"); acts.className = "acts";
+          var dl = document.createElement("button"); dl.type = "button"; dl.className = "btn sm dark"; dl.textContent = "Scarica";
+          dl.addEventListener("click", function(){
+            var mf = rec.memFiles[m.id];
+            (mf ? Promise.resolve(mf.blob) : recBlob(m)).then(function(b){ if (!b.size){ toast("Il file è vuoto"); return; } recDownload(m, b); }).catch(function(){ toast("Non riesco a leggere il file"); });
+          });
+          var rm = document.createElement("button"); rm.type = "button"; rm.className = "btn sm"; rm.textContent = "Elimina dal browser";
+          rm.addEventListener("click", function(){
+            if (!rm.dataset.ok){ rm.dataset.ok = "1"; rm.textContent = "Confermi? Elimina"; setTimeout(function(){ if (rm.isConnected){ rm.dataset.ok = ""; rm.textContent = "Elimina dal browser"; } }, 5000); return; }
+            delete rec.memFiles[m.id];
+            (m.memOnly ? Promise.resolve() : recDelete(m.id)).then(function(){ toast("Registrazione eliminata dal browser"); }).catch(function(){ toast("Eliminazione non riuscita"); }).then(recRender);
+          });
+          acts.appendChild(dl); acts.appendChild(rm); row.appendChild(acts); box.appendChild(row);
+        });
+        if (list.length){ var n = document.createElement("small"); n.style.color = "var(--muted)"; n.textContent = "Quando hai controllato che il file si apre sul tuo dispositivo, premi «Elimina dal browser» per liberare spazio."; box.appendChild(n); }
+      });
+    }).catch(function(e){ console.warn("rec lista", e); });
+  }
+  rec.sup = recSupported();
+  try { rec.want = rec.sup && localStorage.getItem(REC_KEY) === "1"; } catch(e){}
+  $("recOn").addEventListener("change", function(){
+    rec.want = this.checked;
+    try { localStorage.setItem(REC_KEY, rec.want ? "1" : ""); } catch(e){}
+    if (rec.want){ recAudio(); recSpace(); }
+    if (state.show) recSync(); else recUi();
+  });
+  recUi(); recRender();
+  if (rec.want) recSpace();
 
   var pending = [];
   function myRole(){ return state.role === "gemologist" ? "gemologist" : "shop"; }
@@ -651,6 +956,7 @@ label input,label select,label textarea{width:100%}
     });
   }
   $("toggle").addEventListener("click", function(){
+    recPrime();
     var s = state.show, next;
     if (s.status === "scheduled") next = "live";
     else if (s.status === "live"){ if (!state.pendingStop){ state.pendingStop = true; this.textContent = "Confermi? Termina la diretta"; return; } next = "ended"; }

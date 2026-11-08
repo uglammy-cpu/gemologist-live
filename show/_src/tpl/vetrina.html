@@ -617,16 +617,18 @@ input,select,textarea{border-color:var(--edge);background:var(--cream)}
     return sb.from("shows").select("id,jeweler_id,slug,title,title_i18n,scheduled_at,status,lang,likes,current_piece_id,categories,price_range,night_id").eq("visibility", "public").in("status", ["live","scheduled"]).gte("scheduled_at", since).order("scheduled_at").then(function(r){
       state.shows = r.data || [];
       var ids = state.shows.map(function(s){ return s.id; });
-      if (!ids.length) return;
+      // 8/11/2026: le slide editoriali si caricano sempre; prima arrivavano solo se c'era almeno una diretta,
+      // e senza dirette in programma la home restava senza carosello (collaudo di Nikita delle 6:54)
+      var hl = sb.from("highlights").select("id,position,title_i18n,subtitle_i18n,link,image,video_url").order("position").then(function(h){ state.highlights = h.data || []; });
+      if (!ids.length) return hl;
       return Promise.all([
         sb.from("show_covers").select("show_id,data").in("show_id", ids),
         sb.from("pieces").select("id,show_id,art,position").in("show_id", ids).order("position"),
-        sb.from("highlights").select("id,position,title_i18n,subtitle_i18n,link,image,video_url").order("position")
+        hl
       ]).then(function(res){
         state.covers = {}; (res[0].data || []).forEach(function(c){ state.covers[c.show_id] = c.data; });
         var byShow = {}; (res[1].data || []).forEach(function(p){ (byShow[p.show_id] = byShow[p.show_id] || []).push(p); });
         state.shows.forEach(function(s){ s.pieces = byShow[s.id] || []; });
-        state.highlights = res[2].data || [];
         var firstIds = state.shows.map(function(s){ return s.pieces[0] && s.pieces[0].id; }).filter(Boolean);
         if (firstIds.length) return sb.from("piece_photos").select("piece_id,data").in("piece_id", firstIds).then(function(ph){ state.photos = {}; (ph.data || []).forEach(function(x){ state.shows.forEach(function(s){ if (s.pieces[0] && s.pieces[0].id === x.piece_id) state.photos[s.id] = x.data; }); }); });
       });

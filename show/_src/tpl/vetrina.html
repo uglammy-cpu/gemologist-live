@@ -432,7 +432,7 @@ input,select,textarea{border-color:var(--edge);background:var(--cream)}
     state.highlights.forEach(function(h){
       if (!HOME.slides.hasOwnProperty("h" + h.id)) return;
       var l = h.link || "", art = l.indexOf("cat:") === 0 ? catArt(l.slice(4)) : CFG.art.sparkle;
-      hl.push({ key: "h" + h.id, img: h.image || "", video: h.video_url || "", art: art, cat: vetrinaSlug(HOME.slides["h" + h.id]), eyebrow: "", title: HOME.slides["h" + h.id], sub: "", cta: t.discover, href: linkOf(h), live: false });
+      hl.push({ key: "h" + h.id, img: h.image || "", video: h.video_url || "", art: art, cat: vetrinaSlug(HOME.slides["h" + h.id]), eyebrow: "", title: HOME.slides["h" + h.id], sub: "", cta: t.discover, href: (CATPAGES[vetrinaSlug(HOME.slides["h" + h.id])] ? catPageUrl(vetrinaSlug(HOME.slides["h" + h.id])) : linkOf(h)), live: false });
     });
     weekShows().forEach(function(s){
       if (!HOME.slides.hasOwnProperty("s" + s.id)) return;

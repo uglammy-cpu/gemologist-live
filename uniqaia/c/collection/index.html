@@ -842,6 +842,9 @@ function lkAttachRemote(room, tiles, LK){
   try { var c0 = new URLSearchParams(location.search).get("c") || ""; if (/^[a-z0-9-]{2,40}$/.test(c0)) state.cat = c0; } catch(e){}
   // Pagine di categoria (/c/<pagina>/): il build scrive qui quali esistono e, nella pagina, la sua categoria
   var CATPAGES = {"nuovi-talenti":"independent-designers","fatto-a-mano":"the-gem-room","gioielli-indiani":"collection","perle":"pearls-corals","gemme-di-colore":"specials","made-in-italy":"the-classics"}, PAGECAT = "gioielli-indiani";
+  // versione delle foto editoriali (la scrive il build): una foto cambiata ha un indirizzo nuovo, così anche l'app la vede subito
+  var IMGV = "14df474f";
+  function vimg(u){ return (IMGV && u && !/^data:/.test(u) && u.indexOf("?") < 0 && /\/img\/(tiles|cat|slides)\//.test(u)) ? u + "?v=" + IMGV : u; }
   if (PAGECAT) state.cat = PAGECAT;
   function catPageUrl(slug){ return CFG.base + "/c/" + CATPAGES[slug] + "/?lang=" + lang; }
   $("searchIc").innerHTML = ICON.search;
@@ -879,7 +882,7 @@ function lkAttachRemote(room, tiles, LK){
       var n = state.shows.filter(function(s){ return (s.categories || []).indexOf(c.slug) >= 0; }).length;
       var p = pal(c.slug);
       var b = document.createElement("button"); b.type = "button"; b.className = "tile ph" + (state.cat === c.slug ? " on" : ""); b.style.cssText = "--c1:" + p[0] + ";--c2:" + p[1];
-      b.innerHTML = '<img class="ti" alt="" loading="lazy" src="' + CFG.base + "/img/tiles/" + c.slug + '.jpg" onerror="this.parentNode.classList.remove(\'ph\');this.remove()">' + (CFG.art[c.art] || CFG.art.ring) + '<b>' + esc(tileName(c.slug)) + '</b>';
+      b.innerHTML = '<img class="ti" alt="" loading="lazy" src="' + vimg(CFG.base + "/img/tiles/" + c.slug + ".jpg") + '" onerror="this.parentNode.classList.remove(\'ph\');this.remove()">' + (CFG.art[c.art] || CFG.art.ring) + '<b>' + esc(tileName(c.slug)) + '</b>';
       b.addEventListener("click", function(){ if (PAGECAT){ location.href = CATPAGES[c.slug] ? catPageUrl(c.slug) : CFG.base + "/?c=" + encodeURIComponent(c.slug) + "&lang=" + lang; return; } setCat(c.slug); var el = $("live"); if (el) el.scrollIntoView({ behavior:"smooth", block:"start" }); });
       box.appendChild(b);
     });
@@ -974,7 +977,7 @@ function lkAttachRemote(room, tiles, LK){
     state.highlights.forEach(function(h){
       if (!HOME.slides.hasOwnProperty("h" + h.id)) return;
       var l = h.link || "", art = l.indexOf("cat:") === 0 ? catArt(l.slice(4)) : CFG.art.sparkle;
-      hl.push({ key: "h" + h.id, img: h.image || "", video: h.video_url || "", art: art, cat: vetrinaSlug(HOME.slides["h" + h.id]), eyebrow: "", title: HOME.slides["h" + h.id], sub: "", cta: t.discover, href: (CATPAGES[vetrinaSlug(HOME.slides["h" + h.id])] ? catPageUrl(vetrinaSlug(HOME.slides["h" + h.id])) : linkOf(h)), live: false });
+      hl.push({ key: "h" + h.id, img: vimg(h.image || ""), video: h.video_url || "", art: art, cat: vetrinaSlug(HOME.slides["h" + h.id]), eyebrow: "", title: HOME.slides["h" + h.id], sub: "", cta: t.discover, href: (CATPAGES[vetrinaSlug(HOME.slides["h" + h.id])] ? catPageUrl(vetrinaSlug(HOME.slides["h" + h.id])) : linkOf(h)), live: false });
     });
     weekShows().forEach(function(s){
       if (!HOME.slides.hasOwnProperty("s" + s.id)) return;
@@ -1156,7 +1159,7 @@ function lkAttachRemote(room, tiles, LK){
     var name = tileName(PAGECAT), sp = /^(specials)\s*:\s*(.+)$/i.exec(name), lead = ((t.trustCats || {})[PAGECAT] || [])[0] || "";
     document.title = name + " · " + CFG.name;
     h.innerHTML = '<a class="crumb" href="' + CFG.base + "/?lang=" + lang + '#browse">' + esc(t.hCats) + '</a>'
-      + '<figure><img alt="" src="' + CFG.base + "/img/cat/" + PAGECAT + '.jpg" onerror="this.onerror=null;this.src=\'' + CFG.base + "/img/tiles/" + PAGECAT + '.jpg\'"></figure>'
+      + '<figure><img alt="" src="' + vimg(CFG.base + "/img/cat/" + PAGECAT + ".jpg") + '" onerror="this.onerror=null;this.src=\'' + vimg(CFG.base + "/img/tiles/" + PAGECAT + ".jpg") + '\'"></figure>'
       + '<div class="ctxt"><p class="eyebrow">' + esc(c.eyebrow) + '</p><h1>' + esc(sp && c.theme ? sp[1] : name) + '</h1>' + (sp && c.theme ? '<p class="theme">' + esc(c.theme) + ' <b>' + esc(sp[2]) + '</b></p>' : '')
       + (lead ? '<p class="lead">' + esc(lead) + '</p>' : '') + '<p>' + esc(c.intro) + '</p>'
       + '<ul>' + c.items.concat([t.trust[2]]).map(function(x){ return '<li>' + esc(x) + '</li>'; }).join("") + '</ul></div>';

@@ -1,15 +1,15 @@
 {
-  "_nota": "Copione di Gemma, la jewelry expert di Uniqaia e avatar animato di Elena, sulla pagina /join (4 novembre 2026; saluto cambiato il 6 novembre 2026: per motivi legali Gemma non si presenta mai come gemmologa GIA). Unica fonte dei testi: lo legge avatar.js (fumetto) e lo leggerà ops/avatar/genera-voce.mjs (voce). Russo e arabo da far rivedere a un madrelingua. Se cambia un passo del percorso seller, va aggiornato qui.",
+  "_nota": "Copione di Gemma, la jewelry expert di Uniqaia e avatar animato di Elena, sulla pagina /join (4 novembre 2026; saluto cambiato il 6 novembre 2026: per motivi legali Gemma non si presenta mai come gemmologa GIA; passi dall'account alla diretta riscritti l'8 novembre 2026 sul flusso del seller del 7 novembre: una sola email con l'esito, serata assegnata all'approvazione, prenotazione dal calendario del pannello a orari liberi, gemmologa su prenotazione a 50 € l'ora, niente più 18-19-20 né regalo della ruota). Unica fonte dei testi: lo legge avatar.js (fumetto) e lo leggerà ops/avatar/genera-voce.mjs (voce). Russo e arabo da far rivedere a un madrelingua. Se cambia un passo del percorso seller, va aggiornato qui.",
   "it": {
     "ui": { "eyebrow": "Come si entra", "region": "Gemma ti spiega come si entra in Uniqaia", "alt": "Gemma, la jewelry expert di Uniqaia, avatar animato di Elena Goglio", "stepOf": "Passo {n} di {t}", "prev": "Indietro", "next": "Avanti", "pause": "Pausa", "play": "Riprendi", "replay": "Ricomincia", "listen": "Ascolta", "stopVoice": "Ferma la voce", "cta": "Crea il tuo account", "voicePreview": "Anteprima con la voce del browser: la voce vera sarà quella registrata" },
     "steps": [
       { "id": "saluto", "t": "Ciao, sono Gemma", "s": "Sono la jewelry expert di Uniqaia. In sei passi ti spiego come si entra e come si va in onda." },
-      { "id": "account", "t": "Crea il tuo account", "s": "Bastano email e password. L'account conserva la tua candidatura e l'eventuale regalo di benvenuto, su qualunque dispositivo." },
-      { "id": "candidatura", "t": "Compila la candidatura", "s": "Raccontaci chi sei: brand, ragione sociale e partita IVA, da una a tre categorie, il logo e due foto dei tuoi pezzi. Scegli anche la serata in cui vorresti andare in onda." },
-      { "id": "valutazione", "t": "La valutiamo entro 24 ore", "s": "Ti arriva subito un'email di conferma, e valutiamo il tuo brand entro 24 ore." },
-      { "id": "attivazione", "t": "Attiva l'abbonamento", "s": "Se il tuo brand è approvato, ricevi un link di pagamento sicuro: 149 euro al mese, quattro dirette al mese fino a 60 minuti ciascuna. L'eventuale offerta di benvenuto vale sul primo mese." },
-      { "id": "palinsesto", "t": "Programma le tue dirette", "s": "Con il pagamento confermato ricevi il link del tuo pannello. Scegli le serate a tema, alle 18, alle 19 o alle 20, e prepara i pezzi con le caratteristiche che dichiari." },
-      { "id": "in-onda", "t": "Vai in onda", "s": "Inquadri i gioielli dal tuo negozio e, se lo desideri, ci sono anch'io in collegamento. Il pubblico legge i sottotitoli in cinque lingue, e chi compra paga direttamente a te: Uniqaia non trattiene commissioni." },
+      { "id": "account", "t": "Crea il tuo account", "s": "Bastano email e password. L'account conserva la tua candidatura e il suo esito, su qualunque dispositivo." },
+      { "id": "candidatura", "t": "Compila la candidatura", "s": "Raccontaci chi sei: brand, ragione sociale e partita IVA, da una a tre categorie, il logo e due foto dei tuoi pezzi. Se vuoi, indica la serata che preferisci." },
+      { "id": "valutazione", "t": "Ti rispondiamo entro 24 ore", "s": "Valutiamo il tuo brand e ti rispondiamo entro 24 ore con una sola email: l'esito. Lo vedi anche qui, entrando nel tuo account." },
+      { "id": "attivazione", "t": "Attiva l'abbonamento", "s": "Se il tuo brand è approvato, nel tuo account trovi la tua serata, le prossime date e il pagamento sicuro: 149 euro al mese, quattro dirette al mese fino a 60 minuti ciascuna." },
+      { "id": "palinsesto", "t": "Prenota le tue dirette", "s": "Con l'abbonamento attivo, nel tuo account trovi il pannello. Dal calendario scegli un giorno della tua serata e l'ora che preferisci, nel tuo fuso orario: una diretta a settimana. Poi prepari i pezzi con le caratteristiche che dichiari." },
+      { "id": "in-onda", "t": "Vai in onda", "s": "All'ora della diretta accendi la camera dal pannello e inquadri i gioielli dal tuo negozio. Se vuoi la gemmologa con te, la aggiungi quando prenoti: 50 euro l'ora. Il pubblico ha i sottotitoli in più lingue e chi compra paga direttamente a te: Uniqaia non trattiene commissioni." },
       { "id": "fine", "t": "Tutto chiaro?", "s": "Comincia da qui: crea il tuo account. Ci vediamo in diretta!" }
     ]
   },
@@ -17,12 +17,12 @@
     "ui": { "eyebrow": "How to join", "region": "Gemma explains how to join Uniqaia", "alt": "Gemma, Uniqaia's jewelry expert, Elena Goglio's animated avatar", "stepOf": "Step {n} of {t}", "prev": "Back", "next": "Next", "pause": "Pause", "play": "Resume", "replay": "Start again", "listen": "Listen", "stopVoice": "Stop the voice", "cta": "Create your account", "voicePreview": "Preview with the browser's voice: the real voice will be the recorded one" },
     "steps": [
       { "id": "saluto", "t": "Hi, I'm Gemma", "s": "I'm Uniqaia's jewelry expert. In six steps, I'll show you how to join and go live." },
-      { "id": "account", "t": "Create your account", "s": "All it takes is an email and a password. Your account keeps your application and any welcome gift, on any device." },
-      { "id": "candidatura", "t": "Fill in your application", "s": "Tell us who you are: brand, company name and VAT number, one to three categories, your logo and two photos of your pieces. Pick the evening you'd like to go live, too." },
-      { "id": "valutazione", "t": "We review it within 24 hours", "s": "You'll get a confirmation email straight away, and we review your brand within 24 hours." },
-      { "id": "attivazione", "t": "Activate your subscription", "s": "If your brand is approved, you'll receive a secure payment link: €149 a month, four live shows a month, up to 60 minutes each. Any welcome offer applies to the first month." },
-      { "id": "palinsesto", "t": "Schedule your live shows", "s": "Once payment is confirmed, you'll receive the link to your dashboard. Choose your themed evenings, at 6, 7 or 8 pm Italian time, and prepare your pieces with the details you declare." },
-      { "id": "in-onda", "t": "Go live", "s": "You film the jewellery from your own shop and, if you wish, I join in too. Viewers read subtitles in five languages, and buyers pay you directly: Uniqaia takes no commission." },
+      { "id": "account", "t": "Create your account", "s": "All it takes is an email and a password. Your account keeps your application and its outcome, on any device." },
+      { "id": "candidatura", "t": "Fill in your application", "s": "Tell us who you are: brand, company name and VAT number, one to three categories, your logo and two photos of your pieces. If you like, tell us which night you'd prefer." },
+      { "id": "valutazione", "t": "We reply within 24 hours", "s": "We review your brand and reply within 24 hours with a single email: the outcome. You'll also see it here when you sign in to your account." },
+      { "id": "attivazione", "t": "Activate your subscription", "s": "If your brand is approved, your account shows your night, the next dates and the secure payment: €149 a month, four live shows a month, up to 60 minutes each." },
+      { "id": "palinsesto", "t": "Book your live shows", "s": "Once your subscription is active, you'll find your panel in your account. In its calendar, choose one of your night's dates and the time you prefer, in your own time zone: one live show a week. Then prepare your pieces with the details you declare." },
+      { "id": "in-onda", "t": "Go live", "s": "When it's time, switch on the camera from your panel and show the jewellery from your own shop. If you'd like the gemologist with you, add her when you book: €50 an hour. Viewers get subtitles in several languages and buyers pay you directly: Uniqaia takes no commission." },
       { "id": "fine", "t": "All clear?", "s": "Start here: create your account. See you live!" }
     ]
   },
@@ -30,12 +30,12 @@
     "ui": { "eyebrow": "Comment nous rejoindre", "region": "Gemma vous explique comment rejoindre Uniqaia", "alt": "Gemma, l'experte en joaillerie d'Uniqaia, avatar animé d'Elena Goglio", "stepOf": "Étape {n} sur {t}", "prev": "Retour", "next": "Suivant", "pause": "Pause", "play": "Reprendre", "replay": "Recommencer", "listen": "Écouter", "stopVoice": "Arrêter la voix", "cta": "Créer votre compte", "voicePreview": "Aperçu avec la voix du navigateur : la vraie voix sera celle enregistrée" },
     "steps": [
       { "id": "saluto", "t": "Bonjour, je suis Gemma", "s": "Je suis l'experte en joaillerie d'Uniqaia. En six étapes, je vous explique comment nous rejoindre et passer en direct." },
-      { "id": "account", "t": "Créez votre compte", "s": "Un e-mail et un mot de passe suffisent. Votre compte conserve votre candidature et votre éventuel cadeau de bienvenue, sur tous vos appareils." },
-      { "id": "candidatura", "t": "Remplissez votre candidature", "s": "Présentez-vous : marque, raison sociale et numéro de TVA, une à trois catégories, votre logo et deux photos de vos pièces. Choisissez aussi la soirée où vous aimeriez passer en direct." },
-      { "id": "valutazione", "t": "Nous l'examinons sous 24 heures", "s": "Vous recevez tout de suite un e-mail de confirmation, et nous examinons votre marque sous 24 heures." },
-      { "id": "attivazione", "t": "Activez votre abonnement", "s": "Si votre marque est acceptée, vous recevez un lien de paiement sécurisé : 149 € par mois, quatre directs par mois, jusqu'à 60 minutes chacun. L'éventuelle offre de bienvenue s'applique au premier mois." },
-      { "id": "palinsesto", "t": "Programmez vos directs", "s": "Une fois le paiement confirmé, vous recevez le lien de votre espace. Choisissez vos soirées thématiques, à 18 h, 19 h ou 20 h (heure italienne), et préparez vos pièces avec les caractéristiques que vous déclarez." },
-      { "id": "in-onda", "t": "Passez en direct", "s": "Vous filmez les bijoux depuis votre boutique et, si vous le souhaitez, je suis en liaison moi aussi. Le public lit les sous-titres en cinq langues, et l'acheteur vous paie directement : Uniqaia ne prend aucune commission." },
+      { "id": "account", "t": "Créez votre compte", "s": "Un e-mail et un mot de passe suffisent. Votre compte conserve votre candidature et sa réponse, sur tous vos appareils." },
+      { "id": "candidatura", "t": "Remplissez votre candidature", "s": "Présentez-vous : marque, raison sociale et numéro de TVA, une à trois catégories, votre logo et deux photos de vos pièces. Si vous le souhaitez, indiquez la soirée que vous préférez." },
+      { "id": "valutazione", "t": "Réponse sous 24 heures", "s": "Nous examinons votre marque et vous envoyons notre réponse sous 24 heures, par un seul e-mail. Vous la voyez aussi ici, en vous connectant à votre compte." },
+      { "id": "attivazione", "t": "Activez votre abonnement", "s": "Si votre marque est acceptée, votre compte affiche votre soirée, les prochaines dates et le paiement sécurisé : 149 € par mois, quatre directs par mois, jusqu'à 60 minutes chacun." },
+      { "id": "palinsesto", "t": "Réservez vos directs", "s": "Une fois l'abonnement actif, vous trouvez votre espace dans votre compte. Dans son calendrier, choisissez une date de votre soirée et l'heure que vous préférez, dans votre fuseau horaire : un direct par semaine. Puis préparez vos pièces avec les caractéristiques que vous déclarez." },
+      { "id": "in-onda", "t": "Passez en direct", "s": "À l'heure du direct, allumez la caméra depuis votre espace et filmez les bijoux dans votre boutique. Si vous voulez la gemmologue avec vous, ajoutez-la lors de la réservation : 50 € de l'heure. Le public a des sous-titres en plusieurs langues et l'acheteur vous paie directement : Uniqaia ne prend aucune commission." },
       { "id": "fine", "t": "C'est clair ?", "s": "Commencez ici : créez votre compte. À très vite en direct !" }
     ]
   },
@@ -43,12 +43,12 @@
     "ui": { "eyebrow": "Как присоединиться", "region": "Джемма рассказывает, как присоединиться к Uniqaia", "alt": "Джемма, ювелирный эксперт Uniqaia, анимированный аватар Элены Гольо", "stepOf": "Шаг {n} из {t}", "prev": "Назад", "next": "Далее", "pause": "Пауза", "play": "Продолжить", "replay": "Сначала", "listen": "Слушать", "stopVoice": "Остановить голос", "cta": "Создать аккаунт", "voicePreview": "Предпросмотр с голосом браузера: настоящим будет записанный голос" },
     "steps": [
       { "id": "saluto", "t": "Здравствуйте, я Джемма", "s": "Я ювелирный эксперт Uniqaia. За шесть шагов расскажу, как присоединиться и выйти в эфир." },
-      { "id": "account", "t": "Создайте аккаунт", "s": "Нужны только email и пароль. В аккаунте сохраняются ваша заявка и приветственный подарок, если он есть, — на любом устройстве." },
-      { "id": "candidatura", "t": "Заполните заявку", "s": "Расскажите о себе: бренд, название компании и номер плательщика НДС, от одной до трёх категорий, логотип и две фотографии ваших изделий. Выберите и вечер, в который хотели бы выйти в эфир." },
-      { "id": "valutazione", "t": "Рассмотрим за 24 часа", "s": "Сразу придёт письмо с подтверждением, а ваш бренд мы рассмотрим в течение 24 часов." },
-      { "id": "attivazione", "t": "Активируйте подписку", "s": "Если бренд одобрен, вы получите защищённую ссылку на оплату: 149 € в месяц, четыре эфира в месяц продолжительностью до 60 минут. Приветственное предложение, если оно есть, действует на первый месяц." },
-      { "id": "palinsesto", "t": "Запланируйте эфиры", "s": "После подтверждения оплаты вы получите ссылку на свою панель. Выберите тематические вечера — в 18, 19 или 20 часов по итальянскому времени — и подготовьте изделия с заявленными вами характеристиками." },
-      { "id": "in-onda", "t": "Выходите в эфир", "s": "Вы показываете украшения из своего магазина, а если хотите, подключаюсь и я. Зрители читают субтитры на пяти языках, а покупатель платит напрямую вам: Uniqaia не берёт комиссию." },
+      { "id": "account", "t": "Создайте аккаунт", "s": "Нужны только email и пароль. В аккаунте сохраняются ваша заявка и ответ на неё — на любом устройстве." },
+      { "id": "candidatura", "t": "Заполните заявку", "s": "Расскажите о себе: бренд, название компании и номер плательщика НДС, от одной до трёх категорий, логотип и две фотографии ваших изделий. Если хотите, укажите, какой вечер вам удобнее." },
+      { "id": "valutazione", "t": "Ответим за 24 часа", "s": "Мы рассмотрим ваш бренд и в течение 24 часов пришлём одно письмо — с ответом. Его также видно здесь, когда вы входите в аккаунт." },
+      { "id": "attivazione", "t": "Активируйте подписку", "s": "Если бренд одобрен, в аккаунте появятся ваш вечер, ближайшие даты и защищённая оплата: 149 € в месяц, четыре эфира в месяц продолжительностью до 60 минут." },
+      { "id": "palinsesto", "t": "Забронируйте эфиры", "s": "Когда подписка активна, в аккаунте появится ваша панель. В её календаре выберите один из дней вашего вечера и удобное время в вашем часовом поясе: один эфир в неделю. Затем подготовьте изделия с заявленными вами характеристиками." },
+      { "id": "in-onda", "t": "Выходите в эфир", "s": "В назначенное время включите камеру в панели и покажите украшения из своего магазина. Если хотите провести эфир вместе с геммологом, добавьте её при бронировании: 50 € в час. У зрителей есть субтитры на нескольких языках, а покупатель платит напрямую вам: Uniqaia не берёт комиссию." },
       { "id": "fine", "t": "Всё понятно?", "s": "Начните здесь: создайте аккаунт. До встречи в эфире!" }
     ]
   },
@@ -56,12 +56,12 @@
     "ui": { "eyebrow": "كيف تنضم", "region": "جيما تشرح لك كيف تنضم إلى Uniqaia", "alt": "جيما، خبيرة المجوهرات في Uniqaia، الشخصية الرمزية المتحركة لإيلينا غوليو", "stepOf": "الخطوة {n} من {t}", "prev": "السابق", "next": "التالي", "pause": "إيقاف مؤقت", "play": "متابعة", "replay": "من البداية", "listen": "استمع", "stopVoice": "إيقاف الصوت", "cta": "أنشئ حسابك", "voicePreview": "معاينة بصوت المتصفح: الصوت الحقيقي سيكون الصوت المسجّل" },
     "steps": [
       { "id": "saluto", "t": "مرحبًا، أنا جيما", "s": "أنا خبيرة المجوهرات في Uniqaia. في ست خطوات أشرح لك كيف تنضم وتبدأ البث المباشر." },
-      { "id": "account", "t": "أنشئ حسابك", "s": "يكفي بريد إلكتروني وكلمة مرور. يحتفظ حسابك بطلبك وبهدية الترحيب إن وُجدت، على أي جهاز." },
-      { "id": "candidatura", "t": "املأ طلب الانضمام", "s": "عرّفنا بنفسك: العلامة التجارية، والاسم القانوني للشركة، ورقم ضريبة القيمة المضافة، ومن فئة إلى ثلاث فئات، والشعار وصورتين لقطعك. واختر أيضًا الأمسية التي تودّ البث فيها." },
-      { "id": "valutazione", "t": "نراجع طلبك خلال 24 ساعة", "s": "تصلك فورًا رسالة تأكيد بالبريد الإلكتروني، ونراجع علامتك التجارية خلال 24 ساعة." },
-      { "id": "attivazione", "t": "فعّل اشتراكك", "s": "إذا تمت الموافقة على علامتك، يصلك رابط دفع آمن: 149 يورو شهريًا، وأربعة بثوث مباشرة في الشهر، مدة كل منها حتى 60 دقيقة. يسري عرض الترحيب، إن وُجد، على الشهر الأول." },
-      { "id": "palinsesto", "t": "حدّد مواعيد بثوثك", "s": "بعد تأكيد الدفع يصلك رابط لوحة التحكم الخاصة بك. اختر الأمسيات الموضوعية في الساعة 18 أو 19 أو 20 بتوقيت إيطاليا، وجهّز قطعك مع المواصفات التي تصرّح بها." },
-      { "id": "in-onda", "t": "ابدأ البث", "s": "تصوّر المجوهرات من متجرك، وإن رغبت أنضمّ إليك أنا أيضًا. يقرأ الجمهور الترجمة بخمس لغات، ويدفع المشتري لك مباشرة: لا تأخذ Uniqaia أي عمولة." },
+      { "id": "account", "t": "أنشئ حسابك", "s": "يكفي بريد إلكتروني وكلمة مرور. يحتفظ حسابك بطلبك وبالرد عليه، على أي جهاز." },
+      { "id": "candidatura", "t": "املأ طلب الانضمام", "s": "عرّفنا بنفسك: العلامة التجارية، والاسم القانوني للشركة، ورقم ضريبة القيمة المضافة، ومن فئة إلى ثلاث فئات، والشعار وصورتين لقطعك. وإن شئت، اذكر الأمسية التي تفضّلها." },
+      { "id": "valutazione", "t": "نردّ عليك خلال 24 ساعة", "s": "نراجع علامتك التجارية ونردّ عليك خلال 24 ساعة برسالة بريد إلكتروني واحدة تحمل النتيجة. وتجدها هنا أيضًا عند الدخول إلى حسابك." },
+      { "id": "attivazione", "t": "فعّل اشتراكك", "s": "إذا تمت الموافقة على علامتك، تجد في حسابك أمسيتك والمواعيد القادمة والدفع الآمن: 149 يورو شهريًا، وأربعة بثوث مباشرة في الشهر، مدة كل منها حتى 60 دقيقة." },
+      { "id": "palinsesto", "t": "احجز بثوثك", "s": "بعد تفعيل الاشتراك تجد لوحة التحكم في حسابك. اختر من التقويم يومًا من أيام أمسيتك والوقت الذي يناسبك بتوقيتك المحلي: بثّ واحد في الأسبوع. ثم جهّز قطعك مع المواصفات التي تصرّح بها." },
+      { "id": "in-onda", "t": "ابدأ البث", "s": "في موعد البث شغّل الكاميرا من لوحة التحكم واعرض المجوهرات من متجرك. وإذا أردت أن تكون خبيرة الأحجار الكريمة معك، أضفها عند الحجز، مقابل 50 € للساعة. تتوفر للجمهور ترجمة نصية بعدة لغات، ويدفع المشتري لك مباشرة: لا تأخذ Uniqaia أي عمولة." },
       { "id": "fine", "t": "هل كل شيء واضح؟", "s": "ابدأ من هنا: أنشئ حسابك. نراك في البث المباشر!" }
     ]
   }

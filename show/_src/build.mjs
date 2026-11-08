@@ -25,7 +25,7 @@ const common = {
 };
 // Pagine di categoria (8/11, Elena): slug della categoria nel database -> indirizzo <prefix>/c/<pagina>/.
 // Si aggiungono una alla volta, dopo l'approvazione di Elena. Testi in tpl/t.txt, chiave catPage.
-const CATPAGES = { "nuovi-talenti": "independent-designers" };
+const CATPAGES = { "nuovi-talenti": "independent-designers", "fatto-a-mano": "the-gem-room" };
 const CATVAR = 'var CATPAGES = {}, PAGECAT = "";';
 function catPageDoc(t, html, cat, page) {
   const P = t.prefix, TJ = JSON.parse(parts.T), HOMEC = JSON.parse(tpl("vetrina.html").match(/var HOME = (\{.*\});/)[1]).cats, name = HOMEC[cat] || cat;

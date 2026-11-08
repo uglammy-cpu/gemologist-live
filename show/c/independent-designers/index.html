@@ -844,7 +844,12 @@ function lkAttachRemote(room, tiles, LK){
   // Pagine di categoria (/c/<pagina>/): il build scrive qui quali esistono e, nella pagina, la sua categoria
   var CATPAGES = {"nuovi-talenti":"independent-designers","fatto-a-mano":"the-gem-room","gioielli-indiani":"collection","perle":"pearls-corals","gemme-di-colore":"specials","made-in-italy":"the-classics"}, PAGECAT = "nuovi-talenti";
   // versione delle foto editoriali (la scrive il build): una foto cambiata ha un indirizzo nuovo, così anche l'app la vede subito
-  var IMGV = "3369ae71";
+  var IMGV = "c35eec69";
+  // sopratitolo di una slide editoriale (HOME.sub): sparisce da solo dopo la data «until» (giorno, ora di Roma)
+  function subLive(k){ var s = HOME.sub && HOME.sub[k]; if (!s) return null; try { if (s.until && new Intl.DateTimeFormat("en-CA", { timeZone:"Europe/Rome", year:"numeric", month:"2-digit", day:"2-digit" }).format(new Date()) > s.until) return null; } catch(e){} return s; }
+  function subOf(k){ var s = subLive(k); return s ? (s[lang] || s.en || "") : ""; }
+  // titolo dell'evento al posto di quello della slide, fino alla stessa data (la categoria resta quella di HOME.slides)
+  function titleOf(k){ var s = subLive(k); return (s && s.title) ? (s.title[lang] || s.title.en || "") : ""; }
   function vimg(u){ return (IMGV && u && !/^data:/.test(u) && u.indexOf("?") < 0 && /\/img\/(tiles|cat|slides)\//.test(u)) ? u + "?v=" + IMGV : u; }
   if (PAGECAT) state.cat = PAGECAT;
   function catPageUrl(slug){ return CFG.base + "/show/c/" + CATPAGES[slug] + "/?lang=" + lang; }
@@ -856,7 +861,7 @@ function lkAttachRemote(room, tiles, LK){
   function title(s){ var i = s.title_i18n || {}; return i[lang] || (lang !== "it" && i.en) || s.title; }
   function kindLabel(j){ return j.kind === "gems" ? t.gems : t.shop; }
   // Home, 6/11/2026: restano visibili solo queste 6 categorie e queste 6 slide, con il titolo qui sotto e senza sottotitolo. Le altre sono intatte nel database.
-  var HOME = {"cats":{"nuovi-talenti":"Independent Designers","gemme-di-colore":"Specials: Paraiba","perle":"Pearls & Corals","fatto-a-mano":"The Gem Room","made-in-italy":"The Classics","gioielli-indiani":"Collection"},"slides":{"hfdb187af-0950-405c-92c3-6962d3811966":"From Milano Jewelry Week 2026","h0006b902-4b5a-4b09-8da3-a43c4e6b23b9":"Independent Designers","h571995b3-38c4-489f-84ff-b4b8116badfd":"Specials: Paraiba","hc5f064a4-5691-4553-96b1-14e595c5a7ef":"Pearls & Corals","hdf891468-4660-490a-b3a7-a3f06d5cc865":"The Gem Room","hb874aefd-1994-4ad7-8263-d24e4e1b5068":"The Classics","he39c5743-9aa6-4c42-b626-400a32319a1c":"Collection"},"sub":{"hfdb187af-0950-405c-92c3-6962d3811966":{"it":"Lunedì [[16 novembre]] · Designers to Watch","en":"Monday [[16 November]] · Designers to Watch","fr":"Lundi [[16 novembre]] · Designers to Watch","ar":"الاثنين [[16 نوفمبر]] · Designers to Watch","ru":"Понедельник, [[16 ноября]] · Designers to Watch"}}};
+  var HOME = {"cats":{"nuovi-talenti":"Independent Designers","gemme-di-colore":"Specials: Paraiba","perle":"Pearls & Corals","fatto-a-mano":"The Gem Room","made-in-italy":"The Classics","gioielli-indiani":"Collection"},"slides":{"hfdb187af-0950-405c-92c3-6962d3811966":"From Milano Jewelry Week 2026","h0006b902-4b5a-4b09-8da3-a43c4e6b23b9":"Independent Designers","h571995b3-38c4-489f-84ff-b4b8116badfd":"Specials: Paraiba","hc5f064a4-5691-4553-96b1-14e595c5a7ef":"Pearls & Corals","hdf891468-4660-490a-b3a7-a3f06d5cc865":"The Gem Room","hb874aefd-1994-4ad7-8263-d24e4e1b5068":"The Classics","he39c5743-9aa6-4c42-b626-400a32319a1c":"Collection"},"sub":{"hfdb187af-0950-405c-92c3-6962d3811966":{"it":"Lunedì [[16 novembre]] · Designers to Watch","en":"Monday [[16 November]] · Designers to Watch","fr":"Lundi [[16 novembre]] · Designers to Watch","ar":"الاثنين [[16 نوفمبر]] · Designers to Watch","ru":"Понедельник, [[16 ноября]] · Designers to Watch","until":"2026-11-16"},"hdf891468-4660-490a-b3a7-a3f06d5cc865":{"until":"2026-11-12","it":"Giovedì [[12 novembre]]","en":"Thursday [[12 November]]","fr":"Jeudi [[12 novembre]]","ar":"الخميس [[12 نوفمبر]]","ru":"Четверг, [[12 ноября]]","title":{"it":"The Gem Room: Smeraldi, Zaffiri e Rubini","en":"The Gem Room: Emeralds, Sapphires and Rubies","fr":"The Gem Room : émeraudes, saphirs et rubis","ar":"The Gem Room: الزمرد والياقوت الأزرق والياقوت الأحمر","ru":"The Gem Room: изумруды, сапфиры и рубины"}}}};
   function shownCat(c){ return HOME.cats.hasOwnProperty(c.slug); }
   function tileName(slug){ return HOME.cats.hasOwnProperty(slug) ? HOME.cats[slug] : catName(slug); }
   function catName(slug){ var c = null; for (var i = 0; i < state.cats.length; i++) if (state.cats[i].slug === slug) c = state.cats[i]; if (!c) return slug; var n = c.name_i18n || {}; return n[lang] || n.en || n.it || slug; }
@@ -978,7 +983,7 @@ function lkAttachRemote(room, tiles, LK){
     state.highlights.forEach(function(h){
       if (!HOME.slides.hasOwnProperty("h" + h.id)) return;
       var l = h.link || "", art = l.indexOf("cat:") === 0 ? catArt(l.slice(4)) : CFG.art.sparkle;
-      hl.push({ key: "h" + h.id, img: vimg(h.image || ""), video: h.video_url || "", art: art, cat: vetrinaSlug(HOME.slides["h" + h.id]), eyebrow: (HOME.sub && HOME.sub["h" + h.id]) ? (HOME.sub["h" + h.id][lang] || HOME.sub["h" + h.id].en || "") : "", title: HOME.slides["h" + h.id], sub: "", cta: t.discover, href: (CATPAGES[vetrinaSlug(HOME.slides["h" + h.id])] ? catPageUrl(vetrinaSlug(HOME.slides["h" + h.id])) : linkOf(h)), live: false });
+      hl.push({ key: "h" + h.id, img: vimg(h.image || ""), video: h.video_url || "", art: art, cat: vetrinaSlug(HOME.slides["h" + h.id]), eyebrow: subOf("h" + h.id), title: titleOf("h" + h.id) || HOME.slides["h" + h.id], sub: "", cta: t.discover, href: (CATPAGES[vetrinaSlug(HOME.slides["h" + h.id])] ? catPageUrl(vetrinaSlug(HOME.slides["h" + h.id])) : linkOf(h)), live: false });
     });
     weekShows().forEach(function(s){
       if (!HOME.slides.hasOwnProperty("s" + s.id)) return;

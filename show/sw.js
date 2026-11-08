@@ -1,4 +1,4 @@
-var V = "uniqaia-3369ae71", START = "/show/?src=app";
+var V = "uniqaia-c35eec69", START = "/show/?src=app";
 self.addEventListener("install", function(){ self.skipWaiting(); });
 self.addEventListener("activate", function(e){ e.waitUntil(caches.keys().then(function(ks){ return Promise.all(ks.map(function(k){ return k === V ? null : caches.delete(k); })); }).then(function(){ return self.clients.claim(); })); });
 self.addEventListener("fetch", function(e){

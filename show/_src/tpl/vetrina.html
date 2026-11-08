@@ -312,7 +312,7 @@ input,select,textarea{border-color:var(--edge);background:var(--cream)}
   function title(s){ var i = s.title_i18n || {}; return i[lang] || (lang !== "it" && i.en) || s.title; }
   function kindLabel(j){ return j.kind === "gems" ? t.gems : t.shop; }
   // Home, 6/11/2026: restano visibili solo queste 6 categorie e queste 6 slide, con il titolo qui sotto e senza sottotitolo. Le altre sono intatte nel database.
-  var HOME = {"cats":{"nuovi-talenti":"Independent Designers","gemme-di-colore":"Specials: Paraiba","perle":"Pearls & Corals","fatto-a-mano":"The Gem Room","made-in-italy":"Precious Objects","gioielli-indiani":"Collection"},"slides":{"h0006b902-4b5a-4b09-8da3-a43c4e6b23b9":"Independent Designers","h571995b3-38c4-489f-84ff-b4b8116badfd":"Specials: Paraiba","s1de93cf4-1489-46bb-8eec-4e83d822c02a":"Pearls & Corals","hdf891468-4660-490a-b3a7-a3f06d5cc865":"The Gem Room","hb874aefd-1994-4ad7-8263-d24e4e1b5068":"Precious Objects","he39c5743-9aa6-4c42-b626-400a32319a1c":"Collection"}};
+  var HOME = {"cats":{"nuovi-talenti":"Independent Designers","gemme-di-colore":"Specials: Paraiba","perle":"Pearls & Corals","fatto-a-mano":"The Gem Room","made-in-italy":"Precious Objects","gioielli-indiani":"Collection"},"slides":{"h0006b902-4b5a-4b09-8da3-a43c4e6b23b9":"Independent Designers","h571995b3-38c4-489f-84ff-b4b8116badfd":"Specials: Paraiba","hc5f064a4-5691-4553-96b1-14e595c5a7ef":"Pearls & Corals","hdf891468-4660-490a-b3a7-a3f06d5cc865":"The Gem Room","hb874aefd-1994-4ad7-8263-d24e4e1b5068":"Precious Objects","he39c5743-9aa6-4c42-b626-400a32319a1c":"Collection"}};
   function shownCat(c){ return HOME.cats.hasOwnProperty(c.slug); }
   function tileName(slug){ return HOME.cats.hasOwnProperty(slug) ? HOME.cats[slug] : catName(slug); }
   function catName(slug){ var c = null; for (var i = 0; i < state.cats.length; i++) if (state.cats[i].slug === slug) c = state.cats[i]; if (!c) return slug; var n = c.name_i18n || {}; return n[lang] || n.en || n.it || slug; }
@@ -614,7 +614,7 @@ input,select,textarea{border-color:var(--edge);background:var(--cream)}
     var name = tileName(PAGECAT), lead = ((t.trustCats || {})[PAGECAT] || [])[0] || "";
     document.title = name + " · " + CFG.name;
     h.innerHTML = '<a class="crumb" href="' + CFG.base + "/live?lang=" + lang + '#browse">' + esc(t.hCats) + '</a>'
-      + '<figure><img alt="" src="' + CFG.base + "/show/img/tiles/" + PAGECAT + '.jpg"></figure>'
+      + '<figure><img alt="" src="' + CFG.base + "/show/img/cat/" + PAGECAT + '.jpg" onerror="this.onerror=null;this.src=\'' + CFG.base + "/show/img/tiles/" + PAGECAT + '.jpg\'"></figure>'
       + '<div class="ctxt"><p class="eyebrow">' + esc(c.eyebrow) + '</p><h1>' + esc(name) + '</h1>'
       + (lead ? '<p class="lead">' + esc(lead) + '</p>' : '') + '<p>' + esc(c.intro) + '</p>'
       + '<ul>' + c.items.concat([t.trust[2]]).map(function(x){ return '<li>' + esc(x) + '</li>'; }).join("") + '</ul></div>';

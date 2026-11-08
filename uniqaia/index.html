@@ -1053,14 +1053,19 @@ function lkAttachRemote(room, tiles, LK){
         wd = new Intl.DateTimeFormat(LOC[lang], { weekday:"short" }).format(d0);
         dn = new Intl.DateTimeFormat(LOC[lang], { day:"numeric" }).format(d0);
       } catch(e){}
-      var quante = state.shows.filter(function(x){ return x.night_id === n.id; }).length;
+      var diQuesta = state.shows.filter(function(x){ return x.night_id === n.id; }), quante = diQuesta.length;
       var titolo = i18n(n.title_i18n, n.title);
       // La domenica il tema E' la categoria: scriverla due volte fa sciatto.
       var tl = titolo.toLowerCase();
       var nrm = function(x){ return String(x || "").toLowerCase().replace(/s$/, ""); };
       var cats = (n.categories || []).filter(function(sl){ return nrm(catName(sl)) !== nrm(titolo) && nrm(tileName(sl)) !== nrm(titolo); }).map(catName);
       var etichetta = "";
-      var el = document.createElement("div"); el.className = "ag night";
+      // 8/11/2026 (Elena): la riga porta da qualche parte. Con dirette: alla prima diretta della serata;
+      // con le candidature aperte: alla pagina per candidarsi, con la serata già scelta nel modulo
+      var href = "", j0 = quante ? state.jewelers[diQuesta[0].jeweler_id] : null;
+      if (quante && j0) href = showUrl(diQuesta[0], j0);
+      else if (!quante && n.applications_open) href = CFG.base + "/join/?lang=" + lang + "&night=" + encodeURIComponent(n.id) + "#acct";
+      var el = document.createElement(href ? "a" : "div"); el.className = "ag night"; if (href) el.href = href;
       el.innerHTML = '<div class="agd"><small>' + esc(wd) + '</small><b>' + esc(dn) + '</b></div>' +
         '<div class="agt"><small>' + esc(etichetta) + '</small>' +
         '<b dir="auto">' + esc(titolo) + '</b>' +

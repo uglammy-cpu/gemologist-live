@@ -88,6 +88,10 @@ body,body.vetrina{background:var(--paper);color:var(--ink)}
 .slide h2{font-family:var(--serif);font-weight:600;font-size:clamp(24px,3.4vw,34px);line-height:1.1;letter-spacing:-.005em;text-shadow:0 1px 14px rgba(0,0,0,.28)}
 .slide .go{margin-top:12px;background:transparent;color:#fff;border:1.5px solid rgba(255,255,255,.9);font-family:var(--body);font-weight:500;font-size:14px;padding:8px 18px;transition:background .25s,color .25s}
 .slide:hover .go{background:#fff;color:var(--ink)}
+.slide .acts{display:flex;flex-wrap:wrap;gap:10px;margin-top:12px;align-self:flex-start}
+.slide .acts .go{margin-top:0;align-self:auto;cursor:pointer}
+.slide .gosub{background:#fff;color:var(--ink);border-color:#fff;font-weight:600}
+#subModal .mcard .btn{width:100%}
 /* solo se la slide è una diretta in corso il bottone diventa rosso */
 .slide:has(.lbl:not(.off)) .go{background:var(--red);border-color:var(--red);color:#fff}
 .hero .arr{background:rgba(255,252,248,.94);color:var(--ink);box-shadow:0 4px 16px rgba(0,0,0,.18)}
@@ -313,6 +317,10 @@ input,select,textarea{border-color:var(--edge);background:var(--cream)}
   function subLive(k){ var s = HOME.sub && HOME.sub[k]; if (!s) return null; try { if (s.until && new Intl.DateTimeFormat("en-CA", { timeZone:"Europe/Rome", year:"numeric", month:"2-digit", day:"2-digit" }).format(new Date()) > s.until) return null; } catch(e){} return s; }
   function subOf(k){ var s = subLive(k); return s ? (s[lang] || s.en || "") : ""; }
   // titolo dell'evento al posto di quello della slide, fino alla stessa data (la categoria resta quella di HOME.slides)
+  function dayRome(d){ try { return new Intl.DateTimeFormat("en-CA", { timeZone:"Europe/Rome", year:"numeric", month:"2-digit", day:"2-digit" }).format(d); } catch(e){ return d.toISOString().slice(0, 10); } }
+  // 8/11 (Elena): sulle slide degli eventi il visitatore si iscrive alla live. La serata è quella del giorno dell'evento (HOME.sub.until)
+  function nightOfSub(k){ var s = subLive(k); if (!s || !s.until) return null; var n = (state.nights || []).filter(function(x){ return x.is_public !== false && dayRome(new Date(x.starts_at)) === s.until; }); return n[0] || null; }
+  function subNights(){ try { return JSON.parse(localStorage.getItem("uniqaia-sub-nights") || "[]"); } catch(e){ return []; } }
   function titleOf(k){ var s = subLive(k); return (s && s.title) ? (s.title[lang] || s.title.en || "") : ""; }
   function vimg(u){ return (IMGV && u && !/^data:/.test(u) && u.indexOf("?") < 0 && /\/img\/(tiles|cat|slides)\//.test(u)) ? u + "?v=" + IMGV : u; }
   if (PAGECAT) state.cat = PAGECAT;
@@ -447,7 +455,7 @@ input,select,textarea{border-color:var(--edge);background:var(--cream)}
     state.highlights.forEach(function(h){
       if (!HOME.slides.hasOwnProperty("h" + h.id)) return;
       var l = h.link || "", art = l.indexOf("cat:") === 0 ? catArt(l.slice(4)) : CFG.art.sparkle;
-      hl.push({ key: "h" + h.id, img: vimg(h.image || ""), video: h.video_url || "", art: art, cat: vetrinaSlug(HOME.slides["h" + h.id]), eyebrow: subOf("h" + h.id), title: titleOf("h" + h.id) || HOME.slides["h" + h.id], sub: "", cta: t.discover, href: (CATPAGES[vetrinaSlug(HOME.slides["h" + h.id])] ? catPageUrl(vetrinaSlug(HOME.slides["h" + h.id])) : linkOf(h)), live: false });
+      hl.push({ key: "h" + h.id, img: vimg(h.image || ""), video: h.video_url || "", art: art, cat: vetrinaSlug(HOME.slides["h" + h.id]), eyebrow: subOf("h" + h.id), title: titleOf("h" + h.id) || HOME.slides["h" + h.id], night: nightOfSub("h" + h.id), sub: "", cta: t.discover, href: (CATPAGES[vetrinaSlug(HOME.slides["h" + h.id])] ? catPageUrl(vetrinaSlug(HOME.slides["h" + h.id])) : linkOf(h)), live: false });
     });
     weekShows().forEach(function(s){
       if (!HOME.slides.hasOwnProperty("s" + s.id)) return;
@@ -476,11 +484,46 @@ input,select,textarea{border-color:var(--edge);background:var(--cream)}
     list.forEach(function(sl, i){
       var p = pal(sl.key);
       var a = document.createElement("a"); a.className = "slide" + (i === 0 ? " on" : ""); a.href = sl.href; a.style.cssText = "--c1:" + p[0] + ";--c2:" + p[1];
-      a.innerHTML = slideMedia(sl) + MOTION + (sl.live ? '<span class="lbl"><i></i>' + esc(t.live) + '</span>' : '') + (sl.eyebrow ? '<span class="eyebrow">' + esc(sl.eyebrow).replace(/\[\[(.+?)\]\]/g, '<b class="ered">$1</b>') + '</span>' : '') + '<h2 dir="auto">' + esc(sl.title) + '</h2>' + (sl.sub ? '<p dir="auto">' + esc(sl.sub) + '</p>' : '') + '<span class="go">' + esc(sl.cta) + '</span>';
+      a.innerHTML = slideMedia(sl) + MOTION + (sl.live ? '<span class="lbl"><i></i>' + esc(t.live) + '</span>' : '') + (sl.eyebrow ? '<span class="eyebrow">' + esc(sl.eyebrow).replace(/\[\[(.+?)\]\]/g, '<b class="ered">$1</b>') + '</span>' : '') + '<h2 dir="auto">' + esc(sl.title) + '</h2>' + (sl.sub ? '<p dir="auto">' + esc(sl.sub) + '</p>' : '') + (sl.night ? '<span class="acts"><span class="go gosub" role="button" tabindex="0" data-night="' + esc(sl.night.id) + '">' + esc(subNights().indexOf(sl.night.id) >= 0 ? t.subDone : t.subLive) + '</span><span class="go">' + esc(sl.cta) + '</span></span>' : '<span class="go">' + esc(sl.cta) + '</span>');
+      if (sl.night) (function(b, sl){ var open = function(e){ e.preventDefault(); e.stopPropagation(); openSub(sl); }; b.addEventListener("click", open); b.addEventListener("keydown", function(e){ if (e.key === "Enter" || e.key === " ") open(e); }); })(a.querySelector(".gosub"), sl);
       track.appendChild(a);
       var d = document.createElement("button"); d.type = "button"; d.className = i === 0 ? "on" : ""; d.setAttribute("aria-label", String(i + 1)); d.addEventListener("click", function(){ goSlide(i, true); }); dots.appendChild(d);
     });
     state.slideCats = list.map(function(sl){ return sl.cat || ""; }); state.slide = 0; setTrust(); fitTrust(); startAuto();
+  }
+  function subModal(html){
+    var m = $("subModal"); if (!m){ m = document.createElement("div"); m.id = "subModal"; m.className = "modal"; document.body.appendChild(m); m.addEventListener("click", function(e){ if (e.target === m) closeSub(); }); }
+    m.innerHTML = '<div class="mcard" role="dialog" aria-modal="true">' + html + '<button class="x" type="button" aria-label="×">×</button></div>'; m.hidden = false;
+    m.querySelector(".x").addEventListener("click", closeSub); if (state.timer) clearInterval(state.timer);
+    return m;
+  }
+  function closeSub(){ var m = $("subModal"); if (m){ m.hidden = true; m.innerHTML = ""; } startAuto(); }
+  function calLinks(sl){
+    var n = sl.night, d = dayRome(new Date(n.starts_at)).replace(/-/g, ""), e = new Date(Date.UTC(+d.slice(0, 4), +d.slice(4, 6) - 1, +d.slice(6, 8) + 1)).toISOString().slice(0, 10).replace(/-/g, "");
+    var url = new URL(sl.href, location.href).href, title = CFG.name + " · " + sl.title, txt = (sl.eyebrow || "").replace(/\[\[|\]\]/g, "");
+    var ical = function(x){ return String(x).replace(/\\/g, "\\\\").replace(/[,;]/g, "\\$&").replace(/\n/g, "\\n"); };
+    var ics = ["BEGIN:VCALENDAR", "VERSION:2.0", "PRODID:-//Uniqaia//Live//IT", "BEGIN:VEVENT", "UID:" + n.id + "@uniqaia.com", "DTSTAMP:" + new Date().toISOString().replace(/[-:]/g, "").slice(0, 15) + "Z",
+      "DTSTART;VALUE=DATE:" + d, "DTEND;VALUE=DATE:" + e, "SUMMARY:" + ical(title), "DESCRIPTION:" + ical(txt + "\n" + url), "URL:" + url, "END:VEVENT", "END:VCALENDAR"].join("\r\n");
+    var g = "https://calendar.google.com/calendar/render?action=TEMPLATE&text=" + encodeURIComponent(title) + "&dates=" + d + "/" + e + "&details=" + encodeURIComponent(txt + "\n" + url);
+    return '<a class="btn dark" href="data:text/calendar;charset=utf-8,' + encodeURIComponent(ics) + '" download="uniqaia-' + d + '.ics">' + esc(t.subCal) + '</a><a class="btn" href="' + esc(g) + '" target="_blank" rel="noopener">Google Calendar</a>';
+  }
+  function subDoneHtml(sl){ return '<p class="eyebrow">' + esc(t.subDone) + '</p><h3 dir="auto">' + esc(sl.title) + '</h3><p class="muted">' + esc(t.subOk) + '</p>' + calLinks(sl); }
+  function openSub(sl){
+    var n = sl.night, quando = ""; try { quando = new Intl.DateTimeFormat(LOC[lang], { weekday:"long", day:"numeric", month:"long", timeZone:"Europe/Rome" }).format(new Date(n.starts_at)); } catch(e){}
+    if (subNights().indexOf(n.id) >= 0){ subModal(subDoneHtml(sl)); return; }
+    var em = ""; try { em = localStorage.getItem("uniqaia-email") || ""; } catch(e){}
+    var m = subModal('<p class="eyebrow">' + esc(t.subLive) + '</p><h3 dir="auto">' + esc(sl.title) + '</h3><p class="muted" style="font-size:14px">' + esc(quando) + ' · ' + esc(t.subLead) + '</p>'
+      + '<form id="subForm"><input id="subEmail" type="email" placeholder="Email" autocomplete="email" required value="' + esc(em) + '"><button class="btn dark" type="submit">' + esc(t.subBtn) + '</button></form>');
+    var f = m.querySelector("#subForm"), inp = m.querySelector("#subEmail"); inp.focus();
+    f.addEventListener("submit", function(e){
+      e.preventDefault(); var v = (inp.value || "").trim(), btn = f.querySelector("button"); btn.disabled = true;
+      sb.rpc("follow_night", { p_email: v, p_night: n.id, p_lang: lang }).then(function(r){
+        btn.disabled = false;
+        if (r.error){ toast(/email/i.test(r.error.message) ? t.subBad : r.error.message); return; }
+        try { var l = subNights(); if (l.indexOf(n.id) < 0) l.push(n.id); localStorage.setItem("uniqaia-sub-nights", JSON.stringify(l)); localStorage.setItem("uniqaia-email", v); localStorage.setItem("live-contact", v); } catch(x){}
+        subModal(subDoneHtml(sl)); Array.prototype.forEach.call(document.querySelectorAll('.gosub[data-night="' + n.id + '"]'), function(x){ x.textContent = t.subDone; });
+      }, function(){ btn.disabled = false; toast(t.subBad); });
+    });
   }
   function markSlide(){
     var track = $("track");

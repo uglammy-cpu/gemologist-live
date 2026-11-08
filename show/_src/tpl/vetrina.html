@@ -156,6 +156,7 @@ body,body.vetrina{background:var(--paper);color:var(--ink)}
 /* «Candidature aperte»: rosso solo quando le candidature sono davvero aperte (la scritta compare da sola, senza numero) */
 .agn small:only-child{color:var(--red-text);font-weight:600;font-size:12px;letter-spacing:.01em;white-space:nowrap}
 .ag.night .agn{max-width:none}
+.agn small.chiuse:only-child{color:var(--muted);font-weight:500}
 @media (max-width:719px){.agn small:only-child{font-size:11.5px}}
 
 /* ---------- 10. Card delle dirette ---------- */
@@ -575,7 +576,7 @@ input,select,textarea{border-color:var(--edge);background:var(--cream)}
         (i18n(n.description_i18n, n.description) ? '<span dir="auto">' + esc(i18n(n.description_i18n, n.description)) + '</span>' : '') + '</div>' +
         '<div class="agn">' + (quante
           ? '<b>' + quante + '</b><small>' + esc(quante === 1 ? t.nightOne : t.nightMany) + '</small>'
-          : (n.applications_open ? '<small>' + esc(t.nightOpen) + '</small>' : '')) + '</div>';
+          : (n.applications_open ? '<small>' + esc(t.nightOpen) + '</small>' : '<small class="chiuse">' + esc(t.nightClosed) + '</small>')) + '</div>';   // 8/11 (Elena): le serate chiuse lo dicono
       list.appendChild(el);
     });
     box.appendChild(list);

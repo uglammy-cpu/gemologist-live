@@ -848,7 +848,7 @@ function lkAttachRemote(room, tiles, LK){
   // Pagine di categoria (/c/<pagina>/): il build scrive qui quali esistono e, nella pagina, la sua categoria
   var CATPAGES = {"nuovi-talenti":"independent-designers","fatto-a-mano":"the-gem-room","gioielli-indiani":"collection","perle":"pearls-corals","gemme-di-colore":"specials","made-in-italy":"the-classics"}, PAGECAT = "gemme-di-colore";
   // versione delle foto editoriali (la scrive il build): una foto cambiata ha un indirizzo nuovo, così anche l'app la vede subito
-  var IMGV = "990716bb";
+  var IMGV = "57ceee6f";
   // sopratitolo di una slide editoriale (HOME.sub): sparisce da solo dopo la data «until» (giorno, ora di Roma)
   function subLive(k){ var s = HOME.sub && HOME.sub[k]; if (!s) return null; try { if (s.until && new Intl.DateTimeFormat("en-CA", { timeZone:"Europe/Rome", year:"numeric", month:"2-digit", day:"2-digit" }).format(new Date()) > s.until) return null; } catch(e){} return s; }
   function subOf(k){ var s = subLive(k); return s ? (s[lang] || s.en || "") : ""; }

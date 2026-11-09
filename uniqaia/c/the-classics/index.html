@@ -3,7 +3,7 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@0,6..96,400..600;1,6..96,400..600&family=Cormorant+Garamond:wght@500&family=Jost:wght@300..600&display=swap">
 <link rel="icon" type="image/svg+xml" href="/img/uniqaia-icon.svg"><link rel="icon" type="image/png" sizes="512x512" href="/img/uniqaia-icon.png"><link rel="apple-touch-icon" href="/img/uniqaia-icon.png"><meta name="theme-color" content="#15121C">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.4/dist/umd/supabase.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/livekit-client@2.22.0/dist/livekit-client.umd.min.js" onerror="var s=document.createElement('script');s.src='https://unpkg.com/livekit-client@2.22.0/dist/livekit-client.umd.min.js';document.head.appendChild(s)"></script><title>The Classics · Uniqaia</title><meta name="robots" content="noindex,nofollow"><link rel="manifest" href="/manifest.webmanifest"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="Uniqaia"><meta name="apple-mobile-web-app-status-bar-style" content="default"><meta property="og:type" content="website"><meta property="og:site_name" content="Uniqaia"><meta property="og:title" content="The Classics · Uniqaia"><meta property="og:description" content="I gioielli di sempre: anelli di fidanzamento, bracciali tennis, anelli trilogy e punti luce. Timeless jewellery: engagement rings, tennis bracelets, three-stone rings and solitaire pendants."><meta property="og:url" content="https://uniqaia.com/c/the-classics/"><meta property="og:image" content="https://uniqaia.com/img/uniqaia-og.jpg"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630"><meta name="twitter:card" content="summary_large_image"><meta name="description" content="I gioielli di sempre: anelli di fidanzamento, bracciali tennis, anelli trilogy e punti luce. Timeless jewellery: engagement rings, tennis bracelets, three-stone rings and solitaire pendants."><style>
+<script src="https://cdn.jsdelivr.net/npm/livekit-client@2.22.0/dist/livekit-client.umd.min.js" onerror="var s=document.createElement('script');s.src='https://unpkg.com/livekit-client@2.22.0/dist/livekit-client.umd.min.js';document.head.appendChild(s)"></script><title>The Classics · Uniqaia</title><link rel="manifest" href="/manifest.webmanifest"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="Uniqaia"><meta name="apple-mobile-web-app-status-bar-style" content="default"><meta property="og:type" content="website"><meta property="og:site_name" content="Uniqaia"><meta property="og:title" content="The Classics · Uniqaia"><meta property="og:description" content="I gioielli di sempre: anelli di fidanzamento, bracciali tennis, anelli trilogy e punti luce. Timeless jewellery: engagement rings, tennis bracelets, three-stone rings and solitaire pendants."><meta property="og:url" content="https://uniqaia.com/c/the-classics/"><meta property="og:image" content="https://uniqaia.com/img/uniqaia-og.jpg"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630"><meta name="twitter:card" content="summary_large_image"><meta name="description" content="I gioielli di sempre: anelli di fidanzamento, bracciali tennis, anelli trilogy e punti luce. Timeless jewellery: engagement rings, tennis bracelets, three-stone rings and solitaire pendants."><style>
 :root{--paper:#FFFFFF;--ink:#16181D;--muted:#5B606A;--line:#E7E4DC;--soft:#F6F4EF;--soft-2:#F8F1DF;--gold-hi:#EDD596;--gold:#CBA44F;--gold-lo:#A9833A;--gold-edge:#8C6A2B;--gold-ink:#1C1406;--live:#1E7A4F;--livered:#E11D2E;--heart:#C6364E;--video:#1E2128;--display:"Bodoni Moda","Bodoni 72",Didot,Georgia,serif;--body:"Jost","Futura","Century Gothic","Helvetica Neue",Arial,sans-serif;color-scheme:light}
 *,*::before,*::after{box-sizing:border-box}
 html,body{margin:0;padding:0}
@@ -836,7 +836,7 @@ input,select,textarea{border-color:var(--edge);background:var(--cream)}
   <section id="browse"><div class="sh"><h2 data-t="hCats"></h2></div><div class="tiles" id="tiles"></div><p class="ainote" data-t="aiImages" style="font-size:11px;line-height:1.4;color:#8a8078;margin:6px 0 0"></p></section>
   <div class="cta" id="cta"></div>
 </div></main>
-<footer class="wrap" id="foot"></footer><p class="demo"><b>Demo</b><span data-t="demoNote">Vetrina dimostrativa: gioiellieri, dirette e prezzi sono esempi. Le dirette vere partono con i gioiellieri selezionati.</span></p>
+<footer class="wrap" id="foot"></footer>
 <div class="install" id="install" hidden><span class="ic"><img src="/img/uniqaia-icon-192.png" alt="" width="42" height="42"></span><span class="tx"><b data-t="installT"></b><small id="installS"></small></span><button class="btn sm dark" type="button" id="installGo"></button><button class="no" type="button" id="installX" aria-label="Chiudi">×</button></div>
 <div class="welcome" id="welcome" hidden></div>
 <script>
@@ -932,6 +932,7 @@ function lkAttachRemote(room, tiles, LK){
   try { lang = localStorage.getItem("vetrina-lang") || ""; } catch(e){}
   if (!TT[lang]) { var nav = (CFG.lang || navigator.language || "it").slice(0,2).toLowerCase(); lang = TT[nav] ? nav : "it"; }
   var t = TT[lang];
+  var DEMO_SELLERS = ["rossi", "ferri", "lombardi", "marchetti", "pietrerare"];   // seller dimostrativi, fuori dalla vetrina dal 9/11/2026 (LEG-005, punto 16)
   var state = { jewelers:{}, shows:[], nights:[], week:[], covers:{}, photos:{}, viewers:{}, channels:{}, cats:[], cat:"", highlights:[], slide:0, timer:null };
   try { var c0 = new URLSearchParams(location.search).get("c") || ""; if (/^[a-z0-9-]{2,40}$/.test(c0)) state.cat = c0; } catch(e){}
   // Pagine di categoria (/c/<pagina>/): il build scrive qui quali esistono e, nella pagina, la sua categoria
@@ -1350,7 +1351,7 @@ function lkAttachRemote(room, tiles, LK){
   function loadShows(){
     var since = new Date(Date.now() - 12 * 3600 * 1000).toISOString();
     return sb.from("shows").select("id,jeweler_id,slug,title,title_i18n,scheduled_at,status,lang,likes,current_piece_id,categories,price_range,night_id").eq("visibility", "public").in("status", ["live","scheduled"]).gte("scheduled_at", since).order("scheduled_at").then(function(r){
-      state.shows = r.data || [];
+      state.shows = (r.data || []).filter(function(s){ return state.jewelers[s.jeweler_id]; });
       var ids = state.shows.map(function(s){ return s.id; });
       // 8/11/2026: le slide editoriali si caricano sempre; prima arrivavano solo se c'era almeno una diretta,
       // e senza dirette in programma la home restava senza carosello (collaudo di Nikita delle 6:54)
@@ -1378,7 +1379,7 @@ function lkAttachRemote(room, tiles, LK){
       sb.rpc("list_nights", { p_from: null }),
       sb.rpc("list_template")
     ]).then(function(r){
-      (r[0].data || []).forEach(function(j){ state.jewelers[j.id] = j; });
+      (r[0].data || []).forEach(function(j){ if (DEMO_SELLERS.indexOf(j.slug) < 0) state.jewelers[j.id] = j; });   // 9/11: i seller dimostrativi non sono più in vetrina
       state.cats = r[1].data || [];
       state.nights = (r[2] && r[2].data) || [];
       state.week = (r[3] && r[3].data) || [];

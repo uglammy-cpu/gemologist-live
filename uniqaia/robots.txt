@@ -5,3 +5,4 @@ Disallow: /wheel-admin/
 Disallow: /admin/
 Disallow: /pay/
 Disallow: /social/
+Sitemap: https://uniqaia.com/sitemap.xml

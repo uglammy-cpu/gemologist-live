@@ -435,7 +435,8 @@ input,select,textarea{border-color:var(--edge);background:var(--cream)}
   // Messaggi sotto il carosello: i primi due seguono la categoria della slide (per slug, non per posizione), il terzo resta uguale.
   function vetrinaSlug(name){ var k, sp = /^specials\b/i.test(name || ""); for (k in HOME.cats) if (HOME.cats.hasOwnProperty(k) && HOME.cats[k] === name) return k; if (sp) for (k in HOME.cats) if (HOME.cats.hasOwnProperty(k) && /^specials\b/i.test(HOME.cats[k])) return k; return ""; }
   function showSlideCat(s){ var title = HOME.slides["s" + s.id], c = (s.categories || []).filter(function(x){ return HOME.cats[x] === title; })[0]; return c || vetrinaSlug(title); }
-  function trustItems(cat){ var m = (t.trustCats || {})[cat]; return [m ? m[0] : t.trust[0], m ? m[1] : t.trust[1], t.trust[2]]; }
+  // 9/11 (Elena): sotto le slide degli eventi niente «Gemmologa in diretta su richiesta» (la categoria arriva con «|ev»)
+  function trustItems(cat){ var ev = /\|ev$/.test(cat || ""); cat = (cat || "").replace(/\|ev$/, ""); var m = (t.trustCats || {})[cat], r = [m ? m[0] : t.trust[0], m ? m[1] : t.trust[1]]; if (!ev) r.push(t.trust[2]); return r; }
   function trustHtml(cat){ return trustItems(cat).map(function(x){ return '<span><i></i>' + esc(x) + '</span>'; }).join(""); }
   function setTrust(){ var el = $("trust"); if (!el) return; var cat = (state.slideCats || [])[state.slide || 0] || ""; if (el.getAttribute("data-cat") === cat && el.getAttribute("data-lang") === lang && el.innerHTML) return; el.innerHTML = trustHtml(cat); el.setAttribute("data-cat", cat); el.setAttribute("data-lang", lang); }
   // l'altezza si fissa sul blocco piu' lungo: cosi' al cambio di slide la pagina sotto non salta
@@ -449,7 +450,7 @@ input,select,textarea{border-color:var(--edge);background:var(--cream)}
     state.highlights.forEach(function(h){
       if (!HOME.slides.hasOwnProperty("h" + h.id)) return;
       var l = h.link || "", art = l.indexOf("cat:") === 0 ? catArt(l.slice(4)) : CFG.art.sparkle;
-      hl.push({ key: "h" + h.id, img: vimg(h.image || ""), video: h.video_url || "", art: art, cat: vetrinaSlug(HOME.slides["h" + h.id]), eyebrow: subOf("h" + h.id), title: titleOf("h" + h.id) || HOME.slides["h" + h.id], sub: "", cta: t.discover, href: (CATPAGES[vetrinaSlug(HOME.slides["h" + h.id])] ? catPageUrl(vetrinaSlug(HOME.slides["h" + h.id])) : linkOf(h)), live: false });
+      hl.push({ key: "h" + h.id, img: vimg(h.image || ""), video: h.video_url || "", art: art, cat: vetrinaSlug(HOME.slides["h" + h.id]), eyebrow: subOf("h" + h.id), title: titleOf("h" + h.id) || HOME.slides["h" + h.id], ev: !!subLive("h" + h.id), sub: "", cta: t.discover, href: (CATPAGES[vetrinaSlug(HOME.slides["h" + h.id])] ? catPageUrl(vetrinaSlug(HOME.slides["h" + h.id])) : linkOf(h)), live: false });
     });
     weekShows().forEach(function(s){
       if (!HOME.slides.hasOwnProperty("s" + s.id)) return;
@@ -482,7 +483,7 @@ input,select,textarea{border-color:var(--edge);background:var(--cream)}
       track.appendChild(a);
       var d = document.createElement("button"); d.type = "button"; d.className = i === 0 ? "on" : ""; d.setAttribute("aria-label", String(i + 1)); d.addEventListener("click", function(){ goSlide(i, true); }); dots.appendChild(d);
     });
-    state.slideCats = list.map(function(sl){ return sl.cat || ""; }); state.slide = 0; setTrust(); fitTrust(); startAuto();
+    state.slideCats = list.map(function(sl){ return (sl.cat || "") + (sl.ev ? "|ev" : ""); }); state.slide = 0; setTrust(); fitTrust(); startAuto();
   }
   function markSlide(){
     var track = $("track");

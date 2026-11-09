@@ -421,10 +421,10 @@ body.dark:has(#gate.on) .toast{background:var(--ink);color:var(--paper)}
     });
   }
   var DEMO_SUBS = {
-    it:["Questo è uno zaffiro Ceylon non riscaldato, da 2,14 carati.","Guardate il taglio a cuscino: le faccette prendono la luce da ogni lato.","Il certificato GIA conferma l'assenza di trattamenti termici.","La montatura è in oro bianco 18 carati, con pavé di diamanti."],
+    it:["Questo è uno zaffiro Ceylon non riscaldato, da 2,14 carati.","Guardate il taglio a cuscino: le faccette prendono la luce da ogni lato.","Il rapporto GIA conferma l'assenza di trattamenti termici.","La montatura è in oro bianco 18 carati, con pavé di diamanti."],
     en:["This is an unheated Ceylon sapphire, 2.14 carats.","Look at the cushion cut: the facets catch the light from every side.","The GIA report confirms there is no heat treatment.","The setting is 18 carat white gold, with a diamond pavé."],
-    fr:["Voici un saphir de Ceylan non chauffé, de 2,14 carats.","Regardez la taille coussin : les facettes captent la lumière de tous les côtés.","Le certificat GIA confirme l'absence de traitement thermique.","La monture est en or blanc 18 carats, avec un pavé de diamants."],
-    ru:["Это негретый цейлонский сапфир весом 2,14 карата.","Посмотрите на огранку «кушон»: грани ловят свет со всех сторон.","Сертификат GIA подтверждает отсутствие термической обработки.","Оправа — белое золото 750 пробы с паве из бриллиантов."],
+    fr:["Voici un saphir de Ceylan non chauffé, de 2,14 carats.","Regardez la taille coussin : les facettes captent la lumière de tous les côtés.","Le rapport GIA confirme l'absence de traitement thermique.","La monture est en or blanc 18 carats, avec un pavé de diamants."],
+    ru:["Это негретый цейлонский сапфир весом 2,14 карата.","Посмотрите на огранку «кушон»: грани ловят свет со всех сторон.","Отчёт GIA подтверждает отсутствие термической обработки.","Оправа — белое золото 750 пробы с паве из бриллиантов."],
     ar:["هذا ياقوت سيلاني غير معالج حرارياً، وزنه 2.14 قيراط.","انظروا إلى القصّ الوسادي: الأوجه تلتقط الضوء من كل جانب.","تقرير GIA يؤكد عدم وجود معالجة حرارية.","الطوق من الذهب الأبيض عيار 18 قيراطاً، مرصّع بالألماس."]
   };
   function startDemo(){
@@ -465,7 +465,8 @@ body.dark:has(#gate.on) .toast{background:var(--ink);color:var(--paper)}
           if (r.error){ toast(r.error.message); return; }
           addClaim(r.data);
           toast(state.t.sentInterest + state.jeweler.name + (p ? ": " + tr(p.name_i18n, p.short || p.name) : ""));
-          if (state.show.status !== "ended") sendClient(state.t.interestMsg + (p ? tr(p.name_i18n, p.short || p.name) : showTitle()));
+          // «Mi interessa» in chat senza il nome del visitatore: compare come «Ospite» (decisione di Elena del 9/11, LEG-006)
+          if (state.show.status !== "ended") sb.rpc("client_message", { p_show: state.show.id, p_invite: null, p_guest: state.t.guest || "", p_body: state.t.interestMsg + (p ? tr(p.name_i18n, p.short || p.name) : showTitle()) });
         });
       });
     });

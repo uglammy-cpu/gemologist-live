@@ -616,6 +616,8 @@ body,body.vetrina{background:var(--paper);color:var(--ink)}
 .ag.night .agn{max-width:none}
 .nseller{margin:16px 0 0;font-size:14.5px}
 .nseller a{color:var(--gold-edge);text-decoration:underline;text-underline-offset:3px}
+.nseller a.nsgo{display:inline-block;background:var(--red);color:#fff;font-weight:600;font-size:14px;line-height:1.2;padding:12px 22px;border-radius:999px;text-decoration:none;transition:background .2s}
+.nseller a.nsgo:hover{background:var(--red-deep)}
 .agn small.chiuse:only-child{color:var(--muted);font-weight:500}
 @media (max-width:719px){.agn small:only-child{font-size:11.5px}}
 
@@ -1127,7 +1129,7 @@ function lkAttachRemote(room, tiles, LK){
     });
     box.appendChild(list);
     // per i seller una riga sola, che porta alle serate con le candidature su «Trasmetti con noi»
-    if (!PAGECAT){ var ns = document.createElement("p"); ns.className = "nseller"; ns.innerHTML = '<a href="' + CFG.base + '/join/?lang=' + lang + '#serate">' + esc(t.nSeller) + '</a>'; box.appendChild(ns); }
+    if (!PAGECAT){ var ns = document.createElement("p"); ns.className = "nseller"; ns.innerHTML = '<a class="nsgo" href="' + CFG.base + '/join/?lang=' + lang + '#serate">' + esc(t.ctaBtn) + '</a>'; box.appendChild(ns); }   // 9/11 (Elena): pulsante rosso «Apply to go Live»
   }
   function renderWeek(){
     var box = $("weekBody"); box.innerHTML = "";

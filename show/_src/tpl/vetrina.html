@@ -189,6 +189,10 @@ body,body.vetrina{background:var(--paper);color:var(--ink)}
 .cta b{font-family:var(--serif);font-weight:600;font-size:24px;letter-spacing:-.005em;margin-bottom:6px}
 .cta small{display:block;font-size:14.5px;line-height:1.55;color:#2E2A31}
 .cta small.cnote{margin-top:6px;font-size:13px;color:var(--muted)}
+.cta small.coffer{margin-top:10px;font-weight:600}
+.cta .clist{margin:4px 0 0;padding:0;list-style:none;display:flex;flex-direction:column;gap:4px}
+.cta .clist li{position:relative;padding-inline-start:18px;font-size:14.5px;line-height:1.5;color:#2E2A31}
+.cta .clist li::before{content:"";position:absolute;inset-inline-start:2px;top:.62em;width:6px;height:6px;border-radius:50%;background:var(--gold-edge)}
 .cta .go{background:var(--red);color:#fff;font-weight:600;transition:background .2s}
 .cta .go:hover{background:var(--red-deep)}
 
@@ -376,7 +380,7 @@ input,select,textarea{border-color:var(--edge);background:var(--cream)}
     $("tag").innerHTML = tagHtml(); $("q").placeholder = t.search; $("aboutBtn").textContent = "i"; $("aboutBtn").title = t.about; $("aboutBtn").setAttribute("aria-label", t.about);
     setTrust(); fitTrust();
     Array.prototype.forEach.call(document.querySelectorAll("#langMenu button"), function(b){ b.classList.toggle("on", b.getAttribute("data-lang") === lang); });
-    $("cta").innerHTML = '<div><b>' + esc(t.ctaTitle) + '</b><small>' + esc(t.ctaText) + '</small><small class="cnote">' + esc(t.ctaNote) + '</small></div><a class="go" id="joinLink" href="' + CFG.base + '/live/join?lang=' + lang + '">' + esc(t.ctaBtn) + '</a>';
+    $("cta").innerHTML = '<div><b>' + esc(t.ctaTitle) + '</b><small>' + esc(t.ctaText) + '</small><small class="coffer">' + esc(t.ctaOfferH) + '</small><ul class="clist">' + t.ctaOffer.map(function(x){ return '<li>' + esc(x) + '</li>'; }).join("") + '</ul></div><a class="go" id="joinLink" href="' + CFG.base + '/live/join?lang=' + lang + '">' + esc(t.ctaBtn) + '</a>';
     var jl = $("joinLink"); if (jl) jl.href = CFG.base + "/live/join?lang=" + lang;   // dal 7/11 la sezione dei venditori non c'e' piu'
     $("foot").innerHTML = esc(t.foot);   // 7/11, Elena: via «Gioiellerie e gem dealer entrano su invito, dopo verifica.»
     $("emptyLive").innerHTML = '<b>' + esc(t.emptyLiveT) + '</b>' + esc(t.emptyLive);

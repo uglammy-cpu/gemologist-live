@@ -355,7 +355,7 @@ body.dark:has(#gate.on) .toast{background:var(--ink);color:var(--paper)}
   function requireContact(cb){
     var n = guestName();
     if (n && state.contact){ cb(n, state.contact); return; }
-    openModal('<p class="eyebrow">' + esc(state.t.yourName) + '</p><p class="muted" style="font-size:14px">' + esc(state.t.contactLead) + '</p><form id="cf"><input id="nameIn" type="text" maxlength="60" autocomplete="name" placeholder="' + esc(state.t.yourName) + '" value="' + esc(n || "") + '"><input id="contactIn" type="text" maxlength="120" autocomplete="email" inputmode="email" placeholder="' + esc(state.t.contact) + '" value="' + esc(state.contact || "") + '"><button class="btn dark" type="submit">' + esc(state.t.cont) + '</button></form>');
+    openModal('<p class="eyebrow">' + esc(state.t.yourName) + '</p><p class="muted" style="font-size:14px">' + esc(state.t.contactLead) + ' <a href="https://uniqaia.com/privacy/" target="_blank" rel="noopener">' + esc(state.t.lgPrivacy) + '</a></p><form id="cf"><input id="nameIn" type="text" maxlength="60" autocomplete="name" placeholder="' + esc(state.t.yourName) + '" value="' + esc(n || "") + '"><input id="contactIn" type="text" maxlength="120" autocomplete="email" inputmode="email" placeholder="' + esc(state.t.contact) + '" value="' + esc(state.contact || "") + '"><button class="btn dark" type="submit">' + esc(state.t.cont) + '</button></form>');
     (n ? $("contactIn") : $("nameIn")).focus();
     $("cf").addEventListener("submit", function(e){
       e.preventDefault(); var v = ($("nameIn").value || "").trim(), c = ($("contactIn").value || "").trim();
@@ -520,7 +520,7 @@ body.dark:has(#gate.on) .toast{background:var(--ink);color:var(--paper)}
     $("gateT").textContent = t.gateTitle; $("gateL").textContent = t.gateLead;
     $("gateName").placeholder = t.gateName; $("gateMail").placeholder = t.gateEmail;
     $("gateConsT").textContent = t.gateConsent; $("gateGo").textContent = t.gateGo;
-    $("gateP").textContent = t.gatePrivacy;
+    $("gateP").innerHTML = esc(t.gatePrivacy) + ' <a href="https://uniqaia.com/privacy/" target="_blank" rel="noopener">' + esc(t.lgPrivacy) + '</a>';
     g.setAttribute("dir", state.lang === "ar" ? "rtl" : "ltr");
     $("gateName").value = guestName() || "";
     g.className = "gate on";

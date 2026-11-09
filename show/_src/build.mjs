@@ -206,7 +206,7 @@ function landingDoc(t, body, lang, extraHead, bodyAttrs, langRow) {
 <body class="vetrina"${bodyAttrs || ""}>
 <header class="topv wrap"><div class="col"><div class="brand"><a class="logo" href="${t.site}${P}/?lang=${lang}" aria-label="${common.NAME}">${tpl("vetrina.html").match(/<a class="logo"[^>]*>([\s\S]*?)<\/a>/)[1]}</a><small><span class="tl1">${H(T[lang].tagLine || T[lang].tag)}</span><span class="tl2">${H((T[lang].tagSocial || [])[0] || "")}<b class="tlive">${H((T[lang].tagSocial || [])[1] || "")}</b>${H((T[lang].tagSocial || [])[2] || "")}</span></small></div>${langRow || ""}</div></header>
 <main class="wrap"><div class="col" id="page">${body.html}</div></main>
-<footer class="wrap">${H(T[lang].foot)}<br>${H(T[lang].footJoin)}</footer>${DEMO_NOTE}
+<footer class="wrap">${H(T[lang].foot)}<br><a href="https://uniqaia.com/privacy/">${H(T[lang].lgPrivacy)}</a> · <a href="https://uniqaia.com/condizioni/">${H(T[lang].lgSeller)}</a> · <a href="https://uniqaia.com/termini/">${H(T[lang].lgTerms)}</a> · ${H(T[lang].lgCookies)}</footer>${DEMO_NOTE}
 <script>
 (function(){
   // ora locale del visitatore e stato aggiornato (in diretta / terminata)

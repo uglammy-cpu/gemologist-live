@@ -902,11 +902,11 @@ label input,label select,label textarea{width:100%}
       testa.innerHTML = '<span class="meta">' + rows.length + (rows.length === 1 ? " ingresso" : " ingressi") + " · " + ok.length + " con consenso alle comunicazioni</span>";
       var cp = document.createElement("button"); cp.type = "button"; cp.className = "btn sm";
       cp.style.cssText = "min-height:0;padding:3px 10px;margin-top:8px;align-self:flex-start";
-      cp.textContent = "Copia le email col consenso";
+      cp.hidden = true; // 9/11, Legal: al seller solo i numeri (LEG-006)
       cp.disabled = !ok.length;
       cp.addEventListener("click", function(){ copy(ok.map(function(x){ return x.email; }).join(", "), this); });
       testa.appendChild(cp); box.appendChild(testa);
-      rows.forEach(function(x){
+      if (false) rows.forEach(function(x){
         var d = document.createElement("div"); d.className = "item";
         d.innerHTML = '<b style="font-weight:500">' + esc(x.name || "—") + '</b>' +
           '<span><a href="mailto:' + esc(x.email) + '">' + esc(x.email) + '</a></span>' +

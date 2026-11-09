@@ -610,11 +610,12 @@ function lkAttachRemote(room, tiles, LK){
       (j.website ? '<a class="btn sm" href="' + esc(siteHref(j.website)) + '" target="_blank" rel="noopener">' + esc(t.website) + '</a>' : '') +
       (j.shop_url ? '<a class="btn sm" href="' + esc(siteHref(j.shop_url)) + '" target="_blank" rel="noopener">' + esc(t.shopLink) + '</a>' : '') + '</div>';
     if (live) html += '<a class="livebox" href="' + showUrl(live) + '"><span><span class="lbl" style="position:static"><i></i>' + esc(t.live) + '</span><b>' + esc(title(live)) + '</b><small>' + esc(fmtK(live.likes, LOC[lang])) + ' ♥</small></span><span class="go">' + esc(t.enterLive) + '</span></a>';
-    html += '<section style="margin-top:28px"><div class="sh"><h2>' + esc(t.upcomingP) + '</h2></div>';
+    // 9/11 (Elena): senza dirette in programma la sezione non compare (niente «Nessuna diretta in programma al momento»)
     if (soon.length){
+      html += '<section style="margin-top:28px"><div class="sh"><h2>' + esc(t.upcomingP) + '</h2></div>';
       html += '<div class="grid">' + soon.map(function(s, i){ return '<div class="vcard"><a class="vcard" href="' + showUrl(s) + '">' + cover(s, '<span class="lbl off"><i></i>' + esc(t.soon) + '</span><div class="when"><small>' + esc(fday(s.scheduled_at)) + '</small><b>' + esc(ftime(s.scheduled_at)) + '</b></div><div class="ctitle" dir="auto">' + label(s) + esc(title(s)) + '</div>') + '</a><a class="btn sm" style="align-self:flex-start;color:var(--gold-edge);border-color:var(--gold-hi);font-size:13px;min-height:34px" download="' + esc(CFG.slug) + '-live.ics" href="' + icsUrl(s) + '">' + esc(t.remind) + '</a></div>'; }).join("") + '</div>';
-    } else html += '<div class="empty">' + esc(t.noShowsP) + '</div>';
-    html += '</section>';
+      html += '</section>';
+    }
     if (past.length) html += '<section style="margin-top:28px"><div class="sh"><h2>' + esc(t.pastShows) + '</h2></div><div class="past">' + past.map(function(s){ return '<div><span dir="auto">' + esc(title(s)) + '</span><small>' + esc(fdate(s.scheduled_at)) + '</small></div>'; }).join("") + '</div></section>';
     html += '<div class="howbox"><p class="eyebrow">' + esc(t.howTitle) + '</p><p>' + esc(t.howInterest) + '</p><p>' + esc(t.howBook) + '</p><p>' + esc(t.howBuy) + '</p></div>';
     html += '<p style="margin-top:22px"><a class="btn sm" href="' + CFG.base + '/?lang=' + lang + '">← ' + esc(t.backTo) + '</a></p>';

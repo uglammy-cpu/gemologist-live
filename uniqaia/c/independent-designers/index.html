@@ -1221,7 +1221,9 @@ function lkAttachRemote(room, tiles, LK){
   function renderWeek(){
     var box = $("weekBody"); box.innerHTML = "";
     var rows = weekShows();
-    if (!rows.length){ box.innerHTML = '<div class="empty">' + esc(t.noWeek) + '</div>'; return; }
+    // 9/11 (Elena): niente scritte «nessuna diretta»: se la settimana è vuota la sezione non compare
+    if (!rows.length){ $("week").hidden = true; return; }
+    $("week").hidden = false;
     var list = document.createElement("div"); list.className = "agenda";
     rows.forEach(function(s){
       var j = state.jewelers[s.jeweler_id], p = pal(j.slug), live = s.status === "live", img = state.covers[s.id] || state.photos[s.id] || "";
@@ -1273,8 +1275,8 @@ function lkAttachRemote(room, tiles, LK){
     h.hidden = false;
     var week = weekShows().length;
     $("week").hidden = !week;
-    var none = state.ready && !week && $("live").hidden && $("soon").hidden;
-    jb.innerHTML = (none ? '<p class="catnone">' + esc(t.noneCat) + '</p>' : '') + '<div class="cjrow"><span>' + esc(c.seller) + '</span><a id="catJoinBtn" href="' + CFG.base + '/join/?lang=' + lang + '">' + esc(t.jTitle) + '</a></div>';
+    // 9/11 (Elena): niente «Nessuna diretta in questa categoria per ora»: a un seller che guarda toglie la voglia
+    jb.innerHTML = '<div class="cjrow"><span>' + esc(c.seller) + '</span><a id="catJoinBtn" href="' + CFG.base + '/join/?lang=' + lang + '">' + esc(t.jTitle) + '</a></div>';
     jb.hidden = false;
     // come «Trasmetti con noi» in home: se la ruota dei seller è attiva si apre la ruota
     $("catJoinBtn").addEventListener("click", function(e){ var st = window.UQWheel && UQWheel.state && UQWheel.state(); if (st && st.mode && st.mode !== "off"){ e.preventDefault(); UQWheel.open(); } });

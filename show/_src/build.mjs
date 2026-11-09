@@ -319,7 +319,7 @@ function prerenderVetrina(t, html) {
   // messaggi sotto il carosello della prima slide e box «Vendi in diretta», come li scrive la pagina: senza JS, per Google e le anteprime dei link
   const slugOf = (title) => { title = title || ""; return Object.keys(HOME.cats).find((k) => HOME.cats[k] === title || (/^Specials/.test(title) && /^Specials/.test(HOME.cats[k]))) || ""; };
   const tCat = slides[0] ? slugOf(slides[0].title) : "";
-  const trustItems = ((tt.trustCats || {})[tCat] || [tt.trust[0], tt.trust[1]]).concat(slides[0] && slides[0].ev ? [] : [tt.trust[2]]);
+  const tCatItems = (tt.trustCats || {})[tCat], trustItems = (tCatItems || [tt.trust[0], tt.trust[1]]).concat(tCatItems || (slides[0] && slides[0].ev) ? [] : [tt.trust[2]]);   // 9/11 (Elena): gemmologa solo nel messaggio generico
   const trust = trustItems.map((x) => `<span><i></i>${H(x)}</span>`).join("");
   const cta = `<div><b>${H(tt.ctaTitle)}</b><small>${H(tt.ctaText)}</small><small class="cnote">${H(tt.ctaNote)}</small></div><a class="go" id="joinLink" href="${t.site}${P}/join/?lang=${lang}">${H(tt.ctaBtn)}</a>`;
   const dots = slides.slice(0, 12).map((_, i) => `<button type="button" class="${i === 0 ? "on" : ""}" aria-label="${i + 1}"></button>`).join("");

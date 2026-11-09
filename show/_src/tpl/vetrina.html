@@ -436,7 +436,7 @@ input,select,textarea{border-color:var(--edge);background:var(--cream)}
   function vetrinaSlug(name){ var k, sp = /^specials\b/i.test(name || ""); for (k in HOME.cats) if (HOME.cats.hasOwnProperty(k) && HOME.cats[k] === name) return k; if (sp) for (k in HOME.cats) if (HOME.cats.hasOwnProperty(k) && /^specials\b/i.test(HOME.cats[k])) return k; return ""; }
   function showSlideCat(s){ var title = HOME.slides["s" + s.id], c = (s.categories || []).filter(function(x){ return HOME.cats[x] === title; })[0]; return c || vetrinaSlug(title); }
   // 9/11 (Elena): sotto le slide degli eventi niente «Gemmologa in diretta su richiesta» (la categoria arriva con «|ev»)
-  function trustItems(cat){ var ev = /\|ev$/.test(cat || ""); cat = (cat || "").replace(/\|ev$/, ""); var m = (t.trustCats || {})[cat], r = [m ? m[0] : t.trust[0], m ? m[1] : t.trust[1]]; if (!ev) r.push(t.trust[2]); return r; }
+  function trustItems(cat){ var ev = /\|ev$/.test(cat || ""); cat = (cat || "").replace(/\|ev$/, ""); var m = (t.trustCats || {})[cat], r = [m ? m[0] : t.trust[0], m ? m[1] : t.trust[1]]; if (!ev && !m) r.push(t.trust[2]); return r; }   // e nemmeno sotto le slide delle categorie (9/11)
   function trustHtml(cat){ return trustItems(cat).map(function(x){ return '<span><i></i>' + esc(x) + '</span>'; }).join(""); }
   function setTrust(){ var el = $("trust"); if (!el) return; var cat = (state.slideCats || [])[state.slide || 0] || ""; if (el.getAttribute("data-cat") === cat && el.getAttribute("data-lang") === lang && el.innerHTML) return; el.innerHTML = trustHtml(cat); el.setAttribute("data-cat", cat); el.setAttribute("data-lang", lang); }
   // l'altezza si fissa sul blocco piu' lungo: cosi' al cambio di slide la pagina sotto non salta
@@ -638,7 +638,7 @@ input,select,textarea{border-color:var(--edge);background:var(--cream)}
       + '<figure><img alt="" src="' + vimg(CFG.base + "/show/img/cat/" + PAGECAT + ".jpg") + '" onerror="this.onerror=null;this.src=\'' + vimg(CFG.base + "/show/img/tiles/" + PAGECAT + ".jpg") + '\'"></figure>'
       + '<div class="ctxt"><p class="eyebrow">' + esc(c.eyebrow) + '</p><h1>' + esc(sp && c.theme ? sp[1] : name) + '</h1>' + (sp && c.theme ? '<p class="theme">' + esc(c.theme) + ' <b>' + esc(sp[2]) + '</b></p>' : '')
       + (lead ? '<p class="lead">' + esc(lead) + '</p>' : '') + '<p>' + esc(c.intro) + '</p>'
-      + '<ul>' + c.items.concat([t.trust[2]]).map(function(x){ return '<li>' + esc(x) + '</li>'; }).join("") + '</ul></div>';
+      + '<ul>' + c.items.map(function(x){ return '<li>' + esc(x) + '</li>'; }).join("") + '</ul></div>';
     h.hidden = false;
     var week = weekShows().length;
     $("week").hidden = !week;

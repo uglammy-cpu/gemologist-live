@@ -56,7 +56,9 @@ body,body.vetrina{background:var(--paper);color:var(--ink)}
 .tab{color:var(--muted)}
 .tab.on{color:var(--ink);border-color:var(--ink)}
 .tab .n{background:var(--red)}
-.tabjoin{background:linear-gradient(180deg,var(--gold-hi),var(--gold))!important;border-color:var(--gold-edge)!important;color:var(--ink)!important;box-shadow:none!important;margin-inline-start:18px!important}
+/* 9/11 (Elena): «Trasmetti con noi» rosso con la scritta bianca */
+.tabjoin{background:var(--red)!important;border-color:var(--red)!important;color:#fff!important;box-shadow:none!important;margin-inline-start:18px!important;transition:background .2s}
+.tabjoin:hover{background:var(--red-deep)!important;border-color:var(--red-deep)!important}
 /* «Trasmetti con noi» è per i venditori: alla sua sinistra una piccola fascia color carta,
    con un filo verticale, lo stacca dalle voci per gli spettatori che scorrono sotto */
 .tabjoin::before{content:"";position:absolute;inset-inline-end:100%;top:-6px;bottom:-6px;width:30px;pointer-events:none;

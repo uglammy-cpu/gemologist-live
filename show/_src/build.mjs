@@ -14,7 +14,7 @@ const HERE = path.dirname(new URL(import.meta.url).pathname);
 const ROOT = path.resolve(HERE, "..", "..");         // radice del repository
 // Vetrina dimostrativa: gioiellieri, dirette e prezzi sono di esempio.
 // Al lancio con i gioiellieri veri: mettere DEMO = false (toglie noindex, riapre robots.txt e nasconde la riga in fondo alle pagine).
-const DEMO = true;
+const DEMO = false;   // spenta il 9/11/2026 (Elena, LEG-005 punto 16): niente più riga «Vetrina dimostrativa», sito indicizzabile
 const DEMO_META = DEMO ? '<meta name="robots" content="noindex,nofollow">' : "";
 const DEMO_NOTE = DEMO ? '<p class="demo"><b>Demo</b><span data-t="demoNote">Vetrina dimostrativa: gioiellieri, dirette e prezzi sono esempi. Le dirette vere partono con i gioiellieri selezionati.</span></p>' : "";
 
@@ -100,6 +100,13 @@ const sellers = DATA.jewelers.map((j) => j.slug).filter((s) => /^[a-z0-9-]{2,40}
 // categorie attive per il modulo di candidatura (solo slug e nomi)
 parts.CATS = JSON.stringify((DATA.categories || []).map((c) => ({ slug: c.slug, name_i18n: c.name_i18n })));
 const jById = Object.fromEntries(DATA.jewelers.map((j) => [j.id, j]));
+// Seller dimostrativi (9/11/2026, Elena, LEG-005 punto 16): spariscono dalla vetrina pubblica (home, categorie, negozi, sitemap)
+// prima che i social portino pubblico vero. Le loro pagine restano, non collegate e con noindex, solo per i collaudi di Nikita.
+const DEMO_SELLERS = ["rossi", "ferri", "lombardi", "marchetti", "pietrerare"];
+const PUB = DATA.jewelers.filter((j) => !DEMO_SELLERS.includes(j.slug));
+const pubById = Object.fromEntries(PUB.map((j) => [j.id, j]));
+const NOINDEX = '<meta name="robots" content="noindex,nofollow">';
+const noindex = (doc) => doc.includes(NOINDEX) ? doc : doc.replace("</title>", "</title>" + NOINDEX);
 const piecesByShow = {}; for (const p of DATA.pieces) (piecesByShow[p.show_id] = piecesByShow[p.show_id] || []).push(p);
 const coverByShow = Object.fromEntries(DATA.covers.map((c) => [c.show_id, c.data]));
 const photoByPiece = Object.fromEntries(DATA.photos.map((p) => [p.piece_id, p.data]));
@@ -280,7 +287,7 @@ function prerenderVetrina(t, html) {
   const HOME = JSON.parse(tpl("vetrina.html").match(/var HOME = (\{.*\});/)[1]);
   const catName = (slug) => { const c = DATA.categories.find((x) => x.slug === slug); return c ? (c.name_i18n[lang] || slug) : slug; };
   const now = Date.now() - 12 * 3600000;
-  const rows = DATA.shows.filter((s) => jById[s.jeweler_id] && (s.status === "live" || (s.status === "scheduled" && new Date(s.scheduled_at).getTime() > now)));
+  const rows = DATA.shows.filter((s) => pubById[s.jeweler_id] && (s.status === "live" || (s.status === "scheduled" && new Date(s.scheduled_at).getTime() > now)));
   const card = (s) => {
     const j = jById[s.jeweler_id];
     const url = s.status === "live" ? `${t.site}${P}/${j.slug}/?s=${s.id}` : `${t.site}${P}/${j.slug}/${s.slug}/`;
@@ -326,7 +333,7 @@ function prerenderVetrina(t, html) {
   const agenda = week.length ? `<div class="agenda">${week.map((s) => { const j = jById[s.jeweler_id]; const p = palOf(j.slug); const pc = (piecesByShow[s.id] || [])[0]; const img = coverSrc(t, P, s.id) || (pc && photoFile[pc.id] ? `${t.site}${P}/img/${photoFile[pc.id]}` : ""); const d = new Date(s.scheduled_at); const wd = new Intl.DateTimeFormat(LOC[lang], { weekday: "short", timeZone: "Europe/Rome" }).format(d), dn = new Intl.DateTimeFormat(LOC[lang], { day: "numeric", timeZone: "Europe/Rome" }).format(d), tm = new Intl.DateTimeFormat(LOC[lang], { hour: "2-digit", minute: "2-digit", hour12: false, timeZone: "Europe/Rome" }).format(d); const bits = [(s.lang || "").toUpperCase(), ...(s.categories || []).filter((c) => Object.hasOwn(HOME.cats, c)).slice(0, 2).map((c) => HOME.cats[c]), s.price_range].filter(Boolean).join(" · "); return `<a class="ag${s.status === "live" ? " live" : ""}" href="${s.status === "live" ? `${t.site}${P}/${j.slug}/?s=${s.id}` : `${t.site}${P}/${j.slug}/${s.slug}/`}"><div class="agd"><small>${H(s.status === "live" ? tt.live : wd)}</small><b>${H(dn)}</b><span>${H(tm)}</span></div><div class="agi" style="--c1:${p[0]};--c2:${p[1]}">${img ? `<img alt="" src="${img}">` : (pc ? (ART[pc.art] || ART.ring) : ART.ring)}</div><div class="agt"><small>${H(bits)}</small><b>${H(s.title)}</b><span>${H(j.name)}${j.city ? " · " + H(j.city) : ""}</span></div></a>`; }).join("")}</div>` : `<div class="empty">${H(tt.noWeek)}</div>`;
   const soon = rows.filter((s) => s.status !== "live" && new Date(s.scheduled_at).getTime() > Date.now() + 7 * 86400000).sort((a, b) => new Date(a.scheduled_at) - new Date(b.scheduled_at)).map(card).join("");
   const tiles = DATA.categories.filter((c) => Object.hasOwn(HOME.cats, c.slug)).map((c) => `<a class="tile ph" href="${t.site}${P}/?c=${c.slug}"><img class="ti" alt="" src="${t.site}${P}/img/tiles/${c.slug}.jpg">${ART[c.art] || ART.ring}<b>${H(HOME.cats[c.slug])}</b></a>`).join("");
-  const shops = DATA.jewelers.map((j) => `<a class="seller" href="${t.site}${P}/${j.slug}/profile/"><span class="big">${H(j.name.charAt(0).toUpperCase())}</span><b>${H(j.name)}</b><small>${H(j.city || "")}<br>${H(j.kind === "gems" ? tt.gems : tt.shop)}</small></a>`).join("");
+  const shops = PUB.map((j) => `<a class="seller" href="${t.site}${P}/${j.slug}/profile/"><span class="big">${H(j.name.charAt(0).toUpperCase())}</span><b>${H(j.name)}</b><small>${H(j.city || "")}<br>${H(j.kind === "gems" ? tt.gems : tt.shop)}</small></a>`).join("");
   html = html.replace(/<(\w+)([^>]*) data-t="(\w+)"([^>]*)><\/\1>/g, (m, tag, a, key, b) => `<${tag}${a} data-t="${key}"${b}>${H(tt[key] || "")}</${tag}>`).replace('<small id="tag"></small>', `<small id="tag"><span class="tl1">${H(tt.tagLine || tt.tag)}</span><span class="tl2">${H((tt.tagSocial || [])[0] || "")}<b class="tlive">${H((tt.tagSocial || [])[1] || "")}</b>${H((tt.tagSocial || [])[2] || "")}</span></small>`);
   return html.replace('<div class="track" id="track"></div>', `<div class="track" id="track">${hero}</div>`).replace('<div class="dots" id="dots"></div>', `<div class="dots" id="dots">${dots}</div>`).replace('<div id="weekBody"></div>', `<div id="weekBody">${agenda}</div>`)
     .replace('<div class="grid" id="gridLive"></div>', `<div class="grid" id="gridLive">${live}</div>`)
@@ -401,17 +408,17 @@ self.addEventListener("fetch", function(e){
   write("_profile.html", profile);
   write("_landing.html", landingFallback(t));
   // Una cartella per ogni venditore noto (indirizzi "veri" con risposta 200); gli altri passano dal 404.html
-  for (const s of sellers) { write(`${s}/index.html`, viewer); write(`${s}/panel/index.html`, panel); write(`${s}/profile/index.html`, profile); }
+  for (const s of sellers) { const d = DEMO_SELLERS.includes(s), f = (x) => d ? noindex(x) : x; write(`${s}/index.html`, f(viewer)); write(`${s}/panel/index.html`, f(panel)); write(`${s}/profile/index.html`, f(profile)); }
   // Una pagina per ogni diretta pubblica
-  const urls = [`${t.site}${P}/`, `${t.site}${P}/join/`, ...sellers.map((s) => `${t.site}${P}/${s}/profile/`)];
+  const urls = [`${t.site}${P}/`, `${t.site}${P}/join/`, ...sellers.filter((s) => !DEMO_SELLERS.includes(s)).map((s) => `${t.site}${P}/${s}/profile/`)];
   for (const [cat, page] of Object.entries(CATPAGES)) { write(`c/${page}/index.html`, vimgHtml(catPageDoc(t, vetFor(cat), cat, page))); urls.push(`${t.site}${P}/c/${page}/`); }
   let nLanding = 0;
   for (const s of DATA.shows) {
     const j = jById[s.jeweler_id]; if (!j || !s.slug) continue;
     for (const lang of LANGS) {
-      const doc = landingFor(t, s, lang); if (!doc) continue;
+      const demo = DEMO_SELLERS.includes(j.slug); let doc = landingFor(t, s, lang); if (!doc) continue; if (demo) doc = noindex(doc);
       write(lang === "it" ? `${j.slug}/${s.slug}/index.html` : `${j.slug}/${s.slug}/${lang}/index.html`, doc);
-      urls.push(lang === "it" ? `${t.site}${P}/${j.slug}/${s.slug}/` : `${t.site}${P}/${j.slug}/${s.slug}/${lang}/`);
+      if (!demo) urls.push(lang === "it" ? `${t.site}${P}/${j.slug}/${s.slug}/` : `${t.site}${P}/${j.slug}/${s.slug}/${lang}/`);
       if (lang === "it") nLanding++;
     }
   }

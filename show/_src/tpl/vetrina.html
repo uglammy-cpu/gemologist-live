@@ -199,6 +199,7 @@ body,body.vetrina{background:var(--paper);color:var(--ink)}
 .cta .clist li::before{content:"";position:absolute;inset-inline-start:2px;top:.62em;width:6px;height:6px;border-radius:50%;background:var(--gold-edge)}
 .cta .cwo{margin-top:12px;padding:10px 14px;border-inline-start:3px solid var(--red);background:var(--cream);border-radius:10px}
 .cta .cwo b{display:block;font-family:var(--body);font-size:15px;font-weight:600;letter-spacing:0;margin:0;color:var(--ink)}
+.cta .cwo .woren{display:block;font-size:14px;line-height:1.45;color:var(--ink);margin-top:2px}
 .cta .cwo small{font-size:12.5px;line-height:1.5;color:var(--muted);margin-top:4px}
 .cta .go{background:var(--red);color:#fff;font-weight:600;transition:background .2s}
 .cta .go:hover{background:var(--red-deep)}
@@ -258,6 +259,7 @@ input,select,textarea{border-color:var(--edge);background:var(--cream)}
 .wv3 .woffer .wotag{display:block;font-size:11px;letter-spacing:.18em;font-weight:600;color:var(--red);text-transform:uppercase}
 .wv3 .woffer b{display:block;font-family:var(--serif);font-weight:600;font-size:clamp(20px,1.7vw,24px);line-height:1.25;letter-spacing:-.01em;margin-top:6px}
 .wv3 .woffer b em{font-style:normal;color:var(--red)}
+.wv3 .woffer .woren{display:block;font-size:14px;line-height:1.45;color:var(--ink);margin-top:4px}
 .wv3 .woffer small{display:block;font-size:12px;line-height:1.5;color:var(--muted);margin-top:8px}
 .wv3 .wfeat{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));margin-top:40px;padding-top:18px;border-top:1px solid var(--line)}
 .wv3 .wfeat div{display:flex;gap:10px;align-items:flex-start;font-size:13.5px;font-weight:500;line-height:1.35;color:var(--ink);padding-inline-end:12px}
@@ -754,12 +756,12 @@ input,select,textarea{border-color:var(--edge);background:var(--cream)}
   // La legge il database (welcome_offer): compare solo se è accesa e la ruota non è pubblica; anteprima con ?welcome=preview.
   // Il prezzo lo applica il server all'approvazione (_billing_open): qui si mostra soltanto. Testi: LEG-012.
   function eurW(c){ var loc = lang === "ar" ? "ar-AE-u-nu-latn" : lang; try { return new Intl.NumberFormat(loc, { style: "currency", currency: "EUR", minimumFractionDigits: c % 100 ? 2 : 0, maximumFractionDigits: 2 }).format(c / 100); } catch(e){ return "€" + (c / 100); } }
-  function woFill(k, o){ var v = { p: eurW(o.active ? o.first_cents : o.preview_cents), s: eurW(o.std_cents || 14900) }; return String(t[k] || TT.en[k] || "").replace(/\{(\w+)\}/g, function(m, n){ return v[n] != null ? v[n] : m; }); }
+  function woFill(k, o){ var v = { p: eurW(o.active ? o.first_cents : o.preview_cents), s: eurW(o.std_cents || 14900), n: o.lives || 4, m: o.max_min || 60 }; return String(t[k] || TT.en[k] || "").replace(/\{(\w+)\}/g, function(m, n){ return v[n] != null ? v[n] : m; }); }
   function woUntil(o){ if (!o.active || !o.until) return ""; var d = new Date(o.until), loc = lang === "ar" ? "ar-AE-u-nu-latn" : lang; try { d = d.toLocaleDateString(loc, { day: "numeric", month: "long", year: "numeric", timeZone: "Europe/Rome" }); } catch(e){ d = d.toISOString().slice(0, 10); } return " " + String(t.woUntil || TT.en.woUntil).replace("{d}", d); }
   function renderOffer(){
     var o = state.wo, a = $("wOffer"), c = $("ctaWo"), href = CFG.base + "/live/join?lang=" + lang;
-    if (a) a.innerHTML = o ? '<a class="woffer" href="' + href + '"><span class="wotag">' + esc(t.woTag || TT.en.woTag) + '</span><b>' + esc(woFill("woMain", o)).replace(esc(eurW(o.active ? o.first_cents : o.preview_cents)), function(m){ return '<em>' + m + '</em>'; }) + '</b><small>' + esc(woFill("woTerms", o) + woUntil(o)) + ' ' + esc(t.jVat || "") + '</small></a>' : "";
-    if (c) c.innerHTML = o ? '<div class="cwo"><b>' + esc(woFill("woLine", o)) + '</b><small>' + esc(woFill("woTerms", o) + woUntil(o)) + ' ' + esc(t.jVat || "") + '</small></div>' : "";
+    if (a) a.innerHTML = o ? '<a class="woffer" href="' + href + '"><span class="wotag">' + esc(t.woTag || TT.en.woTag) + '</span><b>' + esc(woFill("woMain", o)).replace(esc(eurW(o.active ? o.first_cents : o.preview_cents)), function(m){ return '<em>' + m + '</em>'; }) + '</b><span class="woren">' + esc(woFill("woRenews", o)) + '</span><small>' + esc(woFill("woTerms", o) + woUntil(o)) + ' ' + esc(t.jVat || "") + '</small></a>' : "";
+    if (c) c.innerHTML = o ? '<div class="cwo"><b>' + esc(woFill("woLine", o)) + '</b><span class="woren">' + esc(woFill("woRenews", o)) + '</span><small>' + esc(woFill("woTerms", o) + woUntil(o)) + ' ' + esc(t.jVat || "") + '</small></div>' : "";
   }
   function renderWelcome(){
     var w = $("welcome"), W = t.wel || TT.en.wel, n = WCATS.length, two = function(x){ return (x < 10 ? "0" : "") + x; };

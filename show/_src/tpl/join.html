@@ -234,6 +234,9 @@
     }
   };
   function j(k, v){ var s = (J[lang] && J[lang][k]) || J.en[k] || ""; return s.replace(/\{(\w+)\}/g, function(m, n){ return v && v[n] != null ? v[n] : m; }); }
+  // offerta di benvenuto uguale per tutti (Elena, 7/11 e 9/11/2026): primo mese a 119 € invece di 149 €; testi LEG-012
+  function woFill(k){ var o = ST.wo, v = { p: eur(o.active ? o.first_cents : o.preview_cents), s: eur(o.std_cents || 14900) }; return String(t[k] || TT.en[k] || "").replace(/\{(\w+)\}/g, function(m, n){ return v[n] != null ? v[n] : m; }); }
+  function woUntil(){ var o = ST.wo; if (!o.active || !o.until) return ""; var d = new Date(o.until), loc = lang === "ar" ? "ar-AE-u-nu-latn" : lang; try { d = d.toLocaleDateString(loc, { day: "numeric", month: "long", year: "numeric", timeZone: "Europe/Rome" }); } catch(e){ d = d.toISOString().slice(0, 10); } return " " + String(t.woUntil || TT.en.woUntil).replace("{d}", d); }
   function eur(c){ var loc = lang === "ar" ? "ar-AE-u-nu-latn" : lang; try { return new Intl.NumberFormat(loc, { style: "currency", currency: "EUR", minimumFractionDigits: c % 100 ? 2 : 0, maximumFractionDigits: 2 }).format(c / 100); } catch(e){ return "€" + (c / 100); } }
   var COUNTRIES = ["IT","SM","VA","CH","FR","MC","DE","AT","ES","PT","BE","NL","LU","IE","GB","DK","SE","NO","FI","IS","PL","CZ","SK","HU","SI","HR","GR","CY","MT","RO","BG","EE","LV","LT","RS","AL","ME","US","CA","MX","BR","AE","SA","QA","KW","BH","OM","IL","TR","EG","MA","ZA","IN","LK","TH","SG","HK","JP","KR","CN","AU","RU","UA"];
 
@@ -287,6 +290,7 @@
       '<p class="aidisc" style="font-size:12px;line-height:1.4;color:#8a8078;margin:4px 0 16px">' + esc(t.aiGemma || "") + '</p>' +
       '<h3>' + esc(t.jWhatH) + '</h3>' + li(t.jWhat) + '<h3>' + esc(t.jWhoH) + '</h3>' + li(t.jWho) +
       '<div class="price"><b>' + esc(eur(((ST.terms && ST.terms.price_cents) || 14900))) + '</b> ' + esc(t.jPrice) + '</div>' +
+      (ST.wo ? '<p class="woline">' + esc(woFill("woLine")) + '</p><p class="woterms">' + esc(woFill("woTerms") + woUntil()) + '</p>' : "") +
       '<p class="hint" style="font-size:12px;line-height:1.4;color:#8a8078;margin:4px 0 0">' + esc(t.jVat || "") + '</p>' +
       (ST.fLeft != null ? '<p class="fdleft">' + esc(ST.fLeft > 0 ? j("fdLeft", { n: ST.fLeft }) : j("fdFull")) + '</p>' : "") +
       '<section class="jnights" id="serate"></section>' +
@@ -545,6 +549,9 @@
   rpc("site_terms", {}).then(function(x){ ST.terms = x; renderAcct(); }, function(){});
   // Founding 20: il contatore è vero, letto dal database (se la funzione non c'è ancora non compare niente)
   rpc("founding_left", {}).then(function(n){ if (typeof n === "number"){ ST.fLeft = n; render(); } }, function(){});
+  // offerta di benvenuto: la riga sotto il prezzo c'è solo quando è accesa (o in anteprima con ?welcome=preview) e la ruota non è pubblica
+  rpc("welcome_offer", {}).then(function(o){ var pv = /[?&]welcome=preview\b/.test(location.search); try { if (pv) sessionStorage.setItem("uqo-preview", "1"); pv = pv || sessionStorage.getItem("uqo-preview") === "1"; } catch(e){}
+    if (o && !o.wheel_live && (o.active || pv)) { ST.wo = o; render(); } }, function(){});
   rpc("list_nights", { p_from: null }).then(function(r){ ST.allNights = r || []; ST.nights = ST.allNights.filter(function(n){ return n.applications_open; }); renderNights(); if (SESS && ST.me) renderAcct(); }, function(){});
   if (/#serate$/.test(location.hash)) setTimeout(function(){ var b = $("serate"); if (b) b.scrollIntoView(); }, 400);
   if (SESS) loadMe();
@@ -596,6 +603,8 @@
 .guide ol li b{display:block;margin-bottom:2px}
 .founding{border:1px solid var(--line);border-radius:12px;padding:10px 14px;margin:0}
 .fdleft{font-size:13.5px;color:var(--muted);margin:8px 0 0}
+.woline{font-size:15px;line-height:1.45;color:var(--ink,#1D1A1F);margin:12px 0 0;font-weight:600;padding:10px 14px;border:1px solid #F1D3D6;border-inline-start:3px solid var(--red,#E11D2E);background:#FFF8F8;border-radius:12px}
+.woterms{font-size:12px;line-height:1.45;color:#8a8078;margin:6px 0 0}
 .jnights{margin-top:22px;scroll-margin-top:80px}
 .jnights .jnlead{font-size:14.5px;color:var(--muted);margin:2px 0 10px}
 .jnlist{display:flex;flex-direction:column;border-top:1px solid var(--line)}

@@ -700,10 +700,13 @@ input,select,textarea{border-color:var(--edge);background:var(--cream)}
     box.appendChild(list);
   }
   // ---- invito a installare l'app (icona sulla schermata Home)
+  // 12/11/2026, Elena: invito nascosto dal sito, su iPhone e su Android, finché non decide come fare l'app (da riprendere il 15/12).
+  // Il browser non propone neanche la sua installazione (beforeinstallprompt resta bloccato). Per riaccenderlo: INSTALL_ON = true.
+  var INSTALL_ON = false;
   var installEv = null;
   function standalone(){ try { return matchMedia("(display-mode: standalone)").matches || navigator.standalone === true; } catch(e){ return false; } }
   function showInstall(ios){
-    if (standalone()) return;
+    if (!INSTALL_ON || standalone()) return;
     try { if (localStorage.getItem("uniqaia-install") === "no") return; } catch(e){}
     var box = $("install"); if (!box) return;
     $("installS").textContent = ios ? t.installIos : t.installText;

@@ -456,6 +456,11 @@ body.dark .demo{color:rgba(247,235,203,.55)}body.dark .demo b{color:var(--gold-h
 .brand small .tl1,.brand small .tl2{display:block;overflow:hidden;text-overflow:ellipsis}
 .brand small .tl2{margin-top:2px}
 .tlive{color:#D31A2B;font-weight:600}
+/* 12/11 (Elena): countdown rosso sulle slide del carosello con una data */
+.slide .cdown{position:absolute;top:14px;inset-inline-start:14px;z-index:2;display:inline-flex;align-items:center;gap:6px;background:var(--livered,#E11D2E);color:#fff;border-radius:999px;padding:5px 11px 5px 9px;font-size:12.5px;font-weight:600;letter-spacing:.02em;font-variant-numeric:tabular-nums;line-height:1.2;box-shadow:0 6px 18px rgba(225,29,46,.35)}
+.slide .cdown svg{flex:none;display:block}
+.slide .cdown b{font-weight:600;unicode-bidi:plaintext}
+@media (min-width:720px){.slide .cdown{top:18px;inset-inline-start:18px;font-size:13px}}
 
 .wa{max-width:1080px;margin:0 auto;padding:22px 16px 80px;display:flex;flex-direction:column;gap:18px}
 .wa h1{font-family:var(--display);font-size:clamp(24px,4vw,32px)}

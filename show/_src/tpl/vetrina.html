@@ -543,23 +543,47 @@ input,select,textarea{border-color:var(--edge);background:var(--cream)}
     state.highlights.forEach(function(h){
       if (!HOME.slides.hasOwnProperty("h" + h.id)) return;
       var l = h.link || "", art = l.indexOf("cat:") === 0 ? catArt(l.slice(4)) : CFG.art.sparkle;
-      hl.push({ key: "h" + h.id, img: vimg(h.image || ""), video: h.video_url || "", art: art, cat: vetrinaSlug(HOME.slides["h" + h.id]), eyebrow: subOf("h" + h.id), title: titleOf("h" + h.id) || HOME.slides["h" + h.id], ev: !!subLive("h" + h.id), sub: "", cta: t.discover, href: (CATPAGES[vetrinaSlug(HOME.slides["h" + h.id])] ? catPageUrl(vetrinaSlug(HOME.slides["h" + h.id])) : linkOf(h)), live: false });
+      var sv = subLive("h" + h.id);
+      hl.push({ key: "h" + h.id, img: vimg(h.image || ""), video: h.video_url || "", art: art, cat: vetrinaSlug(HOME.slides["h" + h.id]), eyebrow: subOf("h" + h.id), title: titleOf("h" + h.id) || HOME.slides["h" + h.id], ev: !!sv, sub: "", cta: t.discover, href: (CATPAGES[vetrinaSlug(HOME.slides["h" + h.id])] ? catPageUrl(vetrinaSlug(HOME.slides["h" + h.id])) : linkOf(h)), live: false, at: sv && sv.until ? romeMidnight(sv.until) : 0, day: true });
     });
     weekShows().forEach(function(s){
       if (!HOME.slides.hasOwnProperty("s" + s.id)) return;
       var j = state.jewelers[s.jeweler_id], live = s.status === "live";
       var firstCat = (s.categories || [])[0];
-      sh.push({ key: "s" + s.id, img: state.covers[s.id] || state.photos[s.id] || "", art: s.pieces && s.pieces[0] ? (CFG.art[s.pieces[0].art] || CFG.art.ring) : catArt(firstCat), cat: showSlideCat(s), eyebrow: (firstCat && HOME.cats.hasOwnProperty(firstCat) && HOME.cats[firstCat] !== HOME.slides["s" + s.id] ? HOME.cats[firstCat] + " · " : "") + j.name, title: HOME.slides["s" + s.id], sub: "", cta: live ? t.enter : t.discover, href: showUrl(s, j), live: live });
+      sh.push({ key: "s" + s.id, img: state.covers[s.id] || state.photos[s.id] || "", art: s.pieces && s.pieces[0] ? (CFG.art[s.pieces[0].art] || CFG.art.ring) : catArt(firstCat), cat: showSlideCat(s), eyebrow: (firstCat && HOME.cats.hasOwnProperty(firstCat) && HOME.cats[firstCat] !== HOME.slides["s" + s.id] ? HOME.cats[firstCat] + " · " : "") + j.name, title: HOME.slides["s" + s.id], sub: "", cta: live ? t.enter : t.discover, href: showUrl(s, j), live: live, at: live ? 0 : new Date(s.scheduled_at).getTime(), day: false });
     });
-    // una slide editoriale, una diretta: così le dirette della settimana restano in vista
-    var out = [], i = 0, j = 0;
-    while (j < sh.length && sh[j].live) out.push(sh[j++]);
-    while (i < hl.length || j < sh.length){
-      if (i < hl.length) out.push(hl[i++]);
-      if (j < sh.length) out.push(sh[j++]);
-    }
-    return out.slice(0, 12);
+    // 12/11 (Elena): carosello in ordine cronologico. Prima le dirette in onda, poi tutte le slide con una data
+    // (serate degli eventi e dirette in programma) dalla più vicina, poi quelle senza data nell'ordine di sempre.
+    var out = [], dated = [], undated = [];
+    sh.forEach(function(x){ if (x.live) out.push(x); else dated.push(x); });
+    hl.forEach(function(x){ if (x.at) dated.push(x); else undated.push(x); });
+    dated.sort(function(a, b){ return a.at - b.at; });
+    return out.concat(dated, undated).slice(0, 12);
   }
+  // mezzanotte (ora italiana) del giorno «AAAA-MM-GG»: con gli orari liberi la serata dura tutto il giorno
+  function romeMidnight(ymd){
+    var p = String(ymd).split("-"), g = Date.UTC(+p[0], +p[1] - 1, +p[2]);
+    try {
+      var o = {}; new Intl.DateTimeFormat("en-US", { timeZone:"Europe/Rome", hourCycle:"h23", year:"numeric", month:"2-digit", day:"2-digit", hour:"2-digit", minute:"2-digit" }).formatToParts(new Date(g)).forEach(function(x){ o[x.type] = x.value; });
+      return g - (Date.UTC(+o.year, +o.month - 1, +o.day, +o.hour % 24, +o.minute) - g);
+    } catch(e){ return g - 3600000; }
+  }
+  // 12/11 (Elena): countdown rosso sulle slide con una data. Serate: fino al giorno dell'evento, poi «Oggi». Dirette: fino all'inizio.
+  var CLOCK = '<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 2M9.5 2.5h5"/></svg>';
+  function pad2(n){ return (n < 10 ? "0" : "") + n; }
+  function cdText(at, day){
+    var ms = at - Date.now();
+    if (ms <= 0) return day && ms > -86400000 ? (t.cdToday || "") : "";
+    var x = Math.floor(ms / 1000), d = Math.floor(x / 86400), hms = pad2(Math.floor(x % 86400 / 3600)) + ":" + pad2(Math.floor(x % 3600 / 60)) + ":" + pad2(x % 60);
+    return ((d ? t.cdFmt : t.cdFmt0) || "{t}").replace("{d}", d).replace("{t}", hms);
+  }
+  function cdTick(){
+    Array.prototype.forEach.call(document.querySelectorAll(".cdown[data-at]"), function(el){
+      var tx = cdText(+el.getAttribute("data-at"), el.getAttribute("data-day") === "1"), b = el.querySelector("b");
+      el.hidden = !tx; if (b && b.textContent !== tx) b.textContent = tx;
+    });
+  }
+  setInterval(function(){ if (!document.hidden) cdTick(); }, 1000);
   var MOTION = '<span class="grain"></span><span class="sheen"></span><span class="dust"><i style="inset-inline-start:8%;animation-duration:16s;animation-delay:0s"></i><i style="inset-inline-start:18%;animation-duration:21s;animation-delay:3s"></i><i style="inset-inline-start:27%;animation-duration:13s;animation-delay:6s"></i><i style="inset-inline-start:38%;animation-duration:19s;animation-delay:1.5s"></i><i style="inset-inline-start:46%;animation-duration:24s;animation-delay:8s"></i><i style="inset-inline-start:55%;animation-duration:15s;animation-delay:11s"></i><i style="inset-inline-start:64%;animation-duration:22s;animation-delay:4.5s"></i><i style="inset-inline-start:73%;animation-duration:18s;animation-delay:9.5s"></i><i style="inset-inline-start:84%;animation-duration:25s;animation-delay:13s"></i><i style="inset-inline-start:92%;animation-duration:17s;animation-delay:6.5s"></i></span><span class="sparks"><i style="top:21%;inset-inline-start:14%;animation-delay:0.2s"></i><i style="top:33%;inset-inline-start:72%;animation-delay:1.1s"></i><i style="top:15%;inset-inline-start:52%;animation-delay:2.0s"></i><i style="top:47%;inset-inline-start:30%;animation-delay:1.6s"></i><i style="top:26%;inset-inline-start:86%;animation-delay:0.7s"></i><i style="top:55%;inset-inline-start:62%;animation-delay:2.6s"></i></span>', MOTION_ART = '<span class="lights"><i></i><i></i></span><span class="halo"></span>';
   function slideMedia(sl){
     if (sl.video) return '<video class="cv" autoplay muted loop playsinline preload="metadata"' + (sl.img ? ' poster="' + sl.img + '"' : '') + ' src="' + sl.video + '"></video>';
@@ -572,11 +596,11 @@ input,select,textarea{border-color:var(--edge);background:var(--cream)}
     list.forEach(function(sl, i){
       var p = pal(sl.key);
       var a = document.createElement("a"); a.className = "slide" + (i === 0 ? " on" : ""); a.href = sl.href; a.style.cssText = "--c1:" + p[0] + ";--c2:" + p[1];
-      a.innerHTML = slideMedia(sl) + MOTION + (sl.live ? '<span class="lbl"><i></i>' + esc(t.live) + '</span>' : '') + (sl.eyebrow ? '<span class="eyebrow">' + esc(sl.eyebrow).replace(/\[\[(.+?)\]\]/g, '<b class="ered">$1</b>') + '</span>' : '') + '<h2 dir="auto">' + esc(sl.title) + '</h2>' + (sl.sub ? '<p dir="auto">' + esc(sl.sub) + '</p>' : '') + '<span class="go">' + esc(sl.cta) + '</span>';
+      a.innerHTML = slideMedia(sl) + MOTION + (sl.live ? '<span class="lbl"><i></i>' + esc(t.live) + '</span>' : '') + (sl.at ? '<span class="cdown" data-at="' + sl.at + '" data-day="' + (sl.day ? 1 : 0) + '" hidden>' + CLOCK + '<b></b></span>' : '') + (sl.eyebrow ? '<span class="eyebrow">' + esc(sl.eyebrow).replace(/\[\[(.+?)\]\]/g, '<b class="ered">$1</b>') + '</span>' : '') + '<h2 dir="auto">' + esc(sl.title) + '</h2>' + (sl.sub ? '<p dir="auto">' + esc(sl.sub) + '</p>' : '') + '<span class="go">' + esc(sl.cta) + '</span>';
       track.appendChild(a);
       var d = document.createElement("button"); d.type = "button"; d.className = i === 0 ? "on" : ""; d.setAttribute("aria-label", String(i + 1)); d.addEventListener("click", function(){ goSlide(i, true); }); dots.appendChild(d);
     });
-    state.slideCats = list.map(function(sl){ return (sl.cat || "") + (sl.ev ? "|ev" : ""); }); state.slide = 0; setTrust(); fitTrust(); startAuto();
+    state.slideCats = list.map(function(sl){ return (sl.cat || "") + (sl.ev ? "|ev" : ""); }); state.slide = 0; setTrust(); fitTrust(); startAuto(); cdTick();
   }
   function markSlide(){
     var track = $("track");

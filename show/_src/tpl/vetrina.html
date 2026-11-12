@@ -544,13 +544,13 @@ input,select,textarea{border-color:var(--edge);background:var(--cream)}
       if (!HOME.slides.hasOwnProperty("h" + h.id)) return;
       var l = h.link || "", art = l.indexOf("cat:") === 0 ? catArt(l.slice(4)) : CFG.art.sparkle;
       var sv = subLive("h" + h.id);
-      hl.push({ key: "h" + h.id, img: vimg(h.image || ""), video: h.video_url || "", art: art, cat: vetrinaSlug(HOME.slides["h" + h.id]), eyebrow: subOf("h" + h.id), title: titleOf("h" + h.id) || HOME.slides["h" + h.id], ev: !!sv, sub: "", cta: t.discover, href: (CATPAGES[vetrinaSlug(HOME.slides["h" + h.id])] ? catPageUrl(vetrinaSlug(HOME.slides["h" + h.id])) : linkOf(h)), live: false, at: sv && sv.until ? romeMidnight(sv.until) : 0, day: true });
+      hl.push({ key: "h" + h.id, img: vimg(h.image || ""), video: h.video_url || "", art: art, cat: vetrinaSlug(HOME.slides["h" + h.id]), eyebrow: subOf("h" + h.id), title: titleOf("h" + h.id) || HOME.slides["h" + h.id], ev: !!sv, sub: "", cta: t.discover, href: (CATPAGES[vetrinaSlug(HOME.slides["h" + h.id])] ? catPageUrl(vetrinaSlug(HOME.slides["h" + h.id])) : linkOf(h)), live: false, at: sv && sv.until ? (sv.start ? romeTime(sv.start) : romeTime(sv.until)) : 0, end: sv && sv.until ? romeTime(nextDay(sv.until)) : 0 });
     });
     weekShows().forEach(function(s){
       if (!HOME.slides.hasOwnProperty("s" + s.id)) return;
       var j = state.jewelers[s.jeweler_id], live = s.status === "live";
       var firstCat = (s.categories || [])[0];
-      sh.push({ key: "s" + s.id, img: state.covers[s.id] || state.photos[s.id] || "", art: s.pieces && s.pieces[0] ? (CFG.art[s.pieces[0].art] || CFG.art.ring) : catArt(firstCat), cat: showSlideCat(s), eyebrow: (firstCat && HOME.cats.hasOwnProperty(firstCat) && HOME.cats[firstCat] !== HOME.slides["s" + s.id] ? HOME.cats[firstCat] + " · " : "") + j.name, title: HOME.slides["s" + s.id], sub: "", cta: live ? t.enter : t.discover, href: showUrl(s, j), live: live, at: live ? 0 : new Date(s.scheduled_at).getTime(), day: false });
+      sh.push({ key: "s" + s.id, img: state.covers[s.id] || state.photos[s.id] || "", art: s.pieces && s.pieces[0] ? (CFG.art[s.pieces[0].art] || CFG.art.ring) : catArt(firstCat), cat: showSlideCat(s), eyebrow: (firstCat && HOME.cats.hasOwnProperty(firstCat) && HOME.cats[firstCat] !== HOME.slides["s" + s.id] ? HOME.cats[firstCat] + " · " : "") + j.name, title: HOME.slides["s" + s.id], sub: "", cta: live ? t.enter : t.discover, href: showUrl(s, j), live: live, at: live ? 0 : new Date(s.scheduled_at).getTime(), end: 0 });
     });
     // 12/11 (Elena): carosello in ordine cronologico. Prima le dirette in onda, poi tutte le slide con una data
     // (serate degli eventi e dirette in programma) dalla più vicina, poi quelle senza data nell'ordine di sempre.
@@ -560,9 +560,14 @@ input,select,textarea{border-color:var(--edge);background:var(--cream)}
     dated.sort(function(a, b){ return a.at - b.at; });
     return out.concat(dated, undated).slice(0, 12);
   }
-  // mezzanotte (ora italiana) del giorno «AAAA-MM-GG»: con gli orari liberi la serata dura tutto il giorno
-  function romeMidnight(ymd){
-    var p = String(ymd).split("-"), g = Date.UTC(+p[0], +p[1] - 1, +p[2]);
+  // Regola di Elena (12/11) per tutti i caroselli con eventi: ordine cronologico e countdown funzionante.
+  // Ogni evento in HOME.sub ha «until» (AAAA-MM-GG, ora di Roma) e, se ha un orario fisso, «start» (AAAA-MM-GGTHH:MM, ora di Roma).
+  // Senza «start» il countdown arriva alla mezzanotte del giorno (con gli orari liberi la serata dura tutto il giorno);
+  // da «start» a fine giornata dice «Oggi». build.mjs si ferma se un evento non ha date valide.
+  function nextDay(ymd){ var p = String(ymd).split("-"), d = new Date(Date.UTC(+p[0], +p[1] - 1, +p[2] + 1)); return d.toISOString().slice(0, 10); }
+  // istante di «AAAA-MM-GG» o «AAAA-MM-GGTHH:MM» letto come ora di Roma
+  function romeTime(ymdhm){
+    var q = String(ymdhm).split("T"), p = q[0].split("-"), hm = (q[1] || "00:00").split(":"), g = Date.UTC(+p[0], +p[1] - 1, +p[2], +hm[0], +hm[1]);
     try {
       var o = {}; new Intl.DateTimeFormat("en-US", { timeZone:"Europe/Rome", hourCycle:"h23", year:"numeric", month:"2-digit", day:"2-digit", hour:"2-digit", minute:"2-digit" }).formatToParts(new Date(g)).forEach(function(x){ o[x.type] = x.value; });
       return g - (Date.UTC(+o.year, +o.month - 1, +o.day, +o.hour % 24, +o.minute) - g);
@@ -571,15 +576,15 @@ input,select,textarea{border-color:var(--edge);background:var(--cream)}
   // 12/11 (Elena): countdown rosso sulle slide con una data. Serate: fino al giorno dell'evento, poi «Oggi». Dirette: fino all'inizio.
   var CLOCK = '<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 2M9.5 2.5h5"/></svg>';
   function pad2(n){ return (n < 10 ? "0" : "") + n; }
-  function cdText(at, day){
+  function cdText(at, end){
     var ms = at - Date.now();
-    if (ms <= 0) return day && ms > -86400000 ? (t.cdToday || "") : "";
+    if (ms <= 0) return Date.now() < end ? (t.cdToday || "") : "";
     var x = Math.floor(ms / 1000), d = Math.floor(x / 86400), hms = pad2(Math.floor(x % 86400 / 3600)) + ":" + pad2(Math.floor(x % 3600 / 60)) + ":" + pad2(x % 60);
     return ((d ? t.cdFmt : t.cdFmt0) || "{t}").replace("{d}", d).replace("{t}", hms);
   }
   function cdTick(){
     Array.prototype.forEach.call(document.querySelectorAll(".cdown[data-at]"), function(el){
-      var tx = cdText(+el.getAttribute("data-at"), el.getAttribute("data-day") === "1"), b = el.querySelector("b");
+      var tx = cdText(+el.getAttribute("data-at"), +el.getAttribute("data-end") || 0), b = el.querySelector("b");
       el.hidden = !tx; if (b && b.textContent !== tx) b.textContent = tx;
     });
   }
@@ -596,7 +601,7 @@ input,select,textarea{border-color:var(--edge);background:var(--cream)}
     list.forEach(function(sl, i){
       var p = pal(sl.key);
       var a = document.createElement("a"); a.className = "slide" + (i === 0 ? " on" : ""); a.href = sl.href; a.style.cssText = "--c1:" + p[0] + ";--c2:" + p[1];
-      a.innerHTML = slideMedia(sl) + MOTION + (sl.live ? '<span class="lbl"><i></i>' + esc(t.live) + '</span>' : '') + (sl.at ? '<span class="cdown" data-at="' + sl.at + '" data-day="' + (sl.day ? 1 : 0) + '" hidden>' + CLOCK + '<b></b></span>' : '') + (sl.eyebrow ? '<span class="eyebrow">' + esc(sl.eyebrow).replace(/\[\[(.+?)\]\]/g, '<b class="ered">$1</b>') + '</span>' : '') + '<h2 dir="auto">' + esc(sl.title) + '</h2>' + (sl.sub ? '<p dir="auto">' + esc(sl.sub) + '</p>' : '') + '<span class="go">' + esc(sl.cta) + '</span>';
+      a.innerHTML = slideMedia(sl) + MOTION + (sl.live ? '<span class="lbl"><i></i>' + esc(t.live) + '</span>' : '') + (sl.at ? '<span class="cdown" data-at="' + sl.at + '" data-end="' + (sl.end || 0) + '" hidden>' + CLOCK + '<b></b></span>' : '') + (sl.eyebrow ? '<span class="eyebrow">' + esc(sl.eyebrow).replace(/\[\[(.+?)\]\]/g, '<b class="ered">$1</b>') + '</span>' : '') + '<h2 dir="auto">' + esc(sl.title) + '</h2>' + (sl.sub ? '<p dir="auto">' + esc(sl.sub) + '</p>' : '') + '<span class="go">' + esc(sl.cta) + '</span>';
       track.appendChild(a);
       var d = document.createElement("button"); d.type = "button"; d.className = i === 0 ? "on" : ""; d.setAttribute("aria-label", String(i + 1)); d.addEventListener("click", function(){ goSlide(i, true); }); dots.appendChild(d);
     });

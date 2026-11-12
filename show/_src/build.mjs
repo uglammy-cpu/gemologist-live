@@ -46,6 +46,18 @@ function catPageDoc(t, html, cat, page) {
   return out;
 }
 
+// Regola di Elena (12/11/2026) per tutti i caroselli con eventi: ordine cronologico e countdown funzionante.
+// Per questo ogni evento in HOME.sub (vetrina.html) deve avere «until» (AAAA-MM-GG) e, se c'è, «start» (AAAA-MM-GGTHH:MM, stesso giorno):
+// senza, la generazione delle pagine si ferma qui, prima di pubblicare un evento senza data.
+{
+  const HSUB = JSON.parse(fs.readFileSync(path.join(HERE, "tpl", "vetrina.html"), "utf8").match(/var HOME = (\{.*\});/)[1]).sub || {};
+  const bad = [];
+  for (const [k, s] of Object.entries(HSUB)) {
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(s.until || "") || isNaN(Date.parse(s.until))) bad.push(`${k}: manca «until» (AAAA-MM-GG)`);
+    if (s.start != null && !(new RegExp("^" + (s.until || "x") + "T\\d{2}:\\d{2}$").test(s.start))) bad.push(`${k}: «start» deve essere «${s.until || "AAAA-MM-GG"}THH:MM»`);
+  }
+  if (bad.length) throw new Error("Eventi del carosello senza date valide (HOME.sub in vetrina.html):\n- " + bad.join("\n- "));
+}
 const TARGETS = [
   { out: path.join(ROOT, "show"), notFound: path.join(ROOT, "404.html"), site: "https://live.gemsandjewelrytechlab.com", prefix: "/show" },
   { out: path.join(ROOT, "uniqaia"), notFound: path.join(ROOT, "uniqaia", "404.html"), site: "https://uniqaia.com", prefix: "" },
@@ -316,8 +328,8 @@ function prerenderVetrina(t, html) {
   for (const s of week) { if (!Object.hasOwn(HOME.slides, "s" + s.id)) continue; const j = jById[s.jeweler_id]; const isLive = s.status === "live"; const firstCat = (s.categories || [])[0]; const pc = (piecesByShow[s.id] || [])[0]; const img = coverSrc(t, P, s.id) || (pc && photoFile[pc.id] ? `${t.site}${P}/img/${photoFile[pc.id]}` : ""); slidesSh.push({ at0: new Date(s.scheduled_at).getTime(), p: palOf(j.slug), img, art: pc ? (ART[pc.art] || ART.ring) : catArt(firstCat), eyebrow: (firstCat && Object.hasOwn(HOME.cats, firstCat) && HOME.cats[firstCat] !== HOME.slides["s" + s.id] ? HOME.cats[firstCat] + " · " : "") + j.name, title: HOME.slides["s" + s.id], sub: "", cta: isLive ? tt.enter : tt.discover, href: isLive ? `${t.site}${P}/${j.slug}/?s=${s.id}` : `${t.site}${P}/${j.slug}/${s.slug}/`, live: isLive }); }
   // 12/11 (Elena): ordine cronologico, come in vetrina.html: dirette in onda, poi le slide con una data dalla più vicina
   // (serate degli eventi a mezzanotte ora italiana, dirette all'orario d'inizio), poi quelle senza data nell'ordine di sempre
-  const romeMidnight = (ymd) => { const p = String(ymd).split("-"), g = Date.UTC(+p[0], +p[1] - 1, +p[2]); const o = {}; new Intl.DateTimeFormat("en-US", { timeZone: "Europe/Rome", hourCycle: "h23", year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit" }).formatToParts(new Date(g)).forEach((x) => { o[x.type] = x.value; }); return g - (Date.UTC(+o.year, +o.month - 1, +o.day, +o.hour % 24, +o.minute) - g); };
-  for (const sl of slidesHl) { const s = (HOME.sub || {})[sl.key]; sl.at = sl.ev && s && s.until ? romeMidnight(s.until) : 0; }
+  const romeTime = (ymdhm) => { const q = String(ymdhm).split("T"), p = q[0].split("-"), hm = (q[1] || "00:00").split(":"), g = Date.UTC(+p[0], +p[1] - 1, +p[2], +hm[0], +hm[1]); const o = {}; new Intl.DateTimeFormat("en-US", { timeZone: "Europe/Rome", hourCycle: "h23", year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit" }).formatToParts(new Date(g)).forEach((x) => { o[x.type] = x.value; }); return g - (Date.UTC(+o.year, +o.month - 1, +o.day, +o.hour % 24, +o.minute) - g); };
+  for (const sl of slidesHl) { const s = (HOME.sub || {})[sl.key]; sl.at = sl.ev && s && s.until ? romeTime(s.start || s.until) : 0; }
   for (const sl of slidesSh) sl.at = sl.live ? 0 : sl.at0;
   const slides = [...slidesSh.filter((x) => x.live), ...[...slidesSh.filter((x) => !x.live), ...slidesHl.filter((x) => x.at)].sort((a, b) => a.at - b.at), ...slidesHl.filter((x) => !x.at)];
   const hero = slides.slice(0, 12).map(slideHtml).join("");

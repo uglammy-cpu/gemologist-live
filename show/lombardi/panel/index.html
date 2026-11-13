@@ -723,7 +723,7 @@ function lkAttachRemote(room, tiles, LK){
 // Nome, cognome e indirizzo della titolare stanno solo nelle Note legali (/note-legali/). Stile: .uqf in css.txt.
 function uqFoot(t){
   var e = function(x){ return String(x == null ? "" : x).replace(/[&<>"']/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c]; }); }, L = "https://uniqaia.com/";
-  return '<div class="uqf"><p class="uqf-id"><span class="uqf-brand">UNIQAIA</span><span>' + e(t.footVat) + '</span><a href="mailto:elena@uniqaia.com">elena@uniqaia.com</a></p>'
+  return '<div class="uqf"><p class="uqf-id"><span class="uqf-brand">UNIQAIA</span><span>' + e(t.footVat) + '</span><a href="mailto:seller@uniqaia.com">seller@uniqaia.com</a></p>'
     + '<nav class="uqf-links"><a href="' + L + 'privacy/">' + e(t.lgPrivacy) + '</a><a href="' + L + 'condizioni/">' + e(t.lgSeller) + '</a><a href="' + L + 'termini/">' + e(t.lgTerms) + '</a><a href="' + L + 'note-legali/">' + e(t.lgNotes) + '</a></nav>'
     + '<p class="uqf-note">' + e(t.lgCookies) + '</p></div>';
 }

@@ -303,22 +303,47 @@
   function romeDay(d){ try { return new Intl.DateTimeFormat("en-CA", { year:"numeric", month:"2-digit", day:"2-digit", timeZone:"Europe/Rome" }).format(d); } catch(e){ return d.toISOString().slice(0, 10); } }
   function renderNights(){
     var box = $("serate"); if (!box) return;
-    var oggi = romeDay(new Date()), fino = romeDay(new Date(Date.now() + 14 * 86400000));
-    var rows = (ST.allNights || []).filter(function(n){ var d = romeDay(new Date(n.starts_at)); return d >= oggi && d < fino; });
+    // 13/11 (Elena): tutte le serate in programma (prima solo i prossimi 14 giorni), divise per mese
+    var oggi = romeDay(new Date());
+    var rows = (ST.allNights || []).filter(function(n){ return romeDay(new Date(n.starts_at)) >= oggi; });
     if (!rows.length){ box.innerHTML = ""; return; }
     var L = { it:"it-IT", en:"en-GB", fr:"fr-FR", ar:"ar-AE-u-nu-latn", ru:"ru-RU" }[lang] || "it-IT";
     var tr = function(o, d){ o = o || {}; return o[lang] || (lang !== "it" && o.en) || d || ""; };
+    var mese0 = "";
     box.innerHTML = '<h3>' + esc(t.jNightsH) + '</h3><p class="jnlead">' + esc(t.jNightsLead) + '</p><div class="jnlist">' + rows.map(function(n){
-      var d0 = new Date(n.starts_at), wd = "", dn = ""; try { wd = new Intl.DateTimeFormat(L, { weekday:"short", timeZone:"Europe/Rome" }).format(d0); dn = new Intl.DateTimeFormat(L, { day:"numeric", month:"short", timeZone:"Europe/Rome" }).format(d0); } catch(e){}
+      var d0 = new Date(n.starts_at), wd = "", dn = "", mh = ""; try { wd = new Intl.DateTimeFormat(L, { weekday:"short", timeZone:"Europe/Rome" }).format(d0); dn = new Intl.DateTimeFormat(L, { day:"numeric", month:"short", timeZone:"Europe/Rome" }).format(d0); mh = new Intl.DateTimeFormat(L, { month:"long", year:"numeric", timeZone:"Europe/Rome" }).format(d0); } catch(e){}
+      var mrow = (mh && mh !== mese0) ? '<div class="jnm">' + esc(mh) + '</div>' : ""; mese0 = mh || mese0;
       var sub = tr(n.description_i18n, n.description), open = !!n.applications_open;
       var inner = '<span class="jnd"><small>' + esc(wd) + '</small><b>' + esc(dn) + '</b></span><span class="jnt"><b dir="auto">' + esc(tr(n.title_i18n, n.title)) + '</b>' + (sub ? '<small dir="auto">' + esc(sub) + '</small>' : '') + '</span><span class="jns' + (open ? ' on' : '') + '">' + esc(open ? t.nightOpen : t.nightClosed) + '</span>';
-      return open ? '<a class="jn" href="?lang=' + lang + '&night=' + encodeURIComponent(n.id) + '#acct">' + inner + '</a>' : '<div class="jn off">' + inner + '</div>';
+      return mrow + (open ? '<a class="jn' + (n.id === nightFromLink ? ' sel' : '') + '" href="?lang=' + lang + '&night=' + encodeURIComponent(n.id) + '#acct" data-night="' + esc(n.id) + '">' + inner + '</a>' : '<div class="jn off">' + inner + '</div>');
     }).join("") + '</div>';
   }
+  // 13/11 (Elena): toccando una serata con «Candidature aperte» la pagina non si ricarica più: la serata si sceglie,
+  // si vede sopra l'account o il modulo («Per quale serata») e si scende lì
+  function nightLabel(id){
+    var n = null; (ST.allNights || []).forEach(function(x){ if (x.id === id) n = x; }); if (!n) return "";
+    var i18n = n.title_i18n || {}, nome = i18n[lang] || (lang !== "it" && i18n.en) || n.title, q = "";
+    try { q = new Intl.DateTimeFormat(lang, { weekday: "long", day: "numeric", month: "long", timeZone: "Europe/Rome" }).format(new Date(n.starts_at)); } catch(e){}
+    return nome + (q ? " · " + q : "");
+  }
+  function pickHtml(){ var l = nightFromLink ? nightLabel(nightFromLink) : ""; return l ? '<p class="jnpick"><span>' + esc(t.fNight) + '</span><b dir="auto">' + esc(l) + '</b></p>' : ""; }
+  function pickNight(id){
+    nightFromLink = id;
+    var sel = $("jNight"); if (sel) sel.value = id;
+    if (ST.form) ST.form.night_id = id;
+    try { history.replaceState(null, "", "?lang=" + lang + "&night=" + encodeURIComponent(id) + "#acct"); } catch(e){}
+    renderNights(); renderAcct();
+    var b = $("acct"); if (b) b.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+  document.addEventListener("click", function(e){
+    var a = e.target && e.target.closest ? e.target.closest("a.jn[data-night]") : null;
+    if (!a || e.metaKey || e.ctrlKey || e.shiftKey) return;
+    e.preventDefault(); pickNight(a.getAttribute("data-night"));
+  });
   function renderAcct(){
     var box = $("acct"); if (!box) return;
     collect();
-    if (!SESS) { box.innerHTML = authCard(); bindAuth(); return; }
+    if (!SESS) { box.innerHTML = pickHtml() + authCard(); bindAuth(); return; }
     if (!ST.me) { box.innerHTML = '<div class="acard"><p class="hint">' + esc(j("loading")) + '</p></div>'; return; }
     var a = ST.me.application, sub = ST.me.subscription, h = userBar();
     if (sub && sub.status === "awaiting_payment") h += approvedCard(sub);
@@ -326,7 +351,7 @@
     else if (a && a.status === "new") h += receivedCard();
     else if (a && a.status === "rejected") h += statusCard(j("rejH"), j("rejText"));
     else if (a && a.status === "approved") h += statusCard(j("apprH"), j("apprWait"));
-    else h += formCard(a);
+    else h += pickHtml() + formCard(a);
     box.innerHTML = h; bindAcct();
   }
 
@@ -551,7 +576,7 @@
   // offerta di benvenuto: la riga sotto il prezzo c'è solo quando è accesa (o in anteprima con ?welcome=preview) e la ruota non è pubblica
   rpc("welcome_offer", {}).then(function(o){ var pv = /[?&]welcome=preview\b/.test(location.search); try { if (pv) sessionStorage.setItem("uqo-preview", "1"); pv = pv || sessionStorage.getItem("uqo-preview") === "1"; } catch(e){}
     if (o && !o.wheel_live && (o.active || pv)) { ST.wo = o; render(); } }, function(){});
-  rpc("list_nights", { p_from: null }).then(function(r){ ST.allNights = r || []; ST.nights = ST.allNights.filter(function(n){ return n.applications_open; }); renderNights(); if (SESS && ST.me) renderAcct(); }, function(){});
+  rpc("list_nights", { p_from: null }).then(function(r){ ST.allNights = r || []; ST.nights = ST.allNights.filter(function(n){ return n.applications_open; }); renderNights(); if ((SESS && ST.me) || (!SESS && nightFromLink)) renderAcct(); if (/#acct$/.test(location.hash)) { var b = $("acct"); if (b) b.scrollIntoView(); } }, function(){});
   if (/#serate$/.test(location.hash)) setTimeout(function(){ var b = $("serate"); if (b) b.scrollIntoView(); }, 400);
   if (SESS) loadMe();
   if (/#acct$/.test(location.hash)) setTimeout(function(){ var b = $("acct"); if (b) b.scrollIntoView(); }, 50);
@@ -612,6 +637,11 @@
 .jnt{display:flex;flex-direction:column;gap:2px;min-width:0}.jnt b{font-weight:600;font-size:15.5px;line-height:1.25}.jnt small{font-size:13px;color:var(--muted);line-height:1.35}
 .jns{font-size:12px;font-weight:500;color:var(--muted);white-space:nowrap}.jns.on{color:var(--red-text,#B42318);font-weight:600}
 .jn.off .jnt b{color:var(--muted)}
+.jnm{font-size:12px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);padding:16px 2px 6px;border-bottom:1px solid var(--line)}
+.jn.sel{background:#FFF5F5;box-shadow:inset 3px 0 0 var(--red,#E11D2E)}
+.jn .jns.on::after{content:" →"}[dir="rtl"] .jn .jns.on::after{content:" ←"}
+.jnpick{display:flex;flex-direction:column;gap:2px;margin:0 0 12px;padding:10px 14px;border:1px solid #F1D3D6;border-inline-start:3px solid var(--red,#E11D2E);background:#FFF8F8;border-radius:12px}
+.jnpick span{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em}.jnpick b{font-size:15px;font-weight:600}
 @media (max-width:420px){.jn{grid-template-columns:52px minmax(0,1fr)}.jns{grid-column:2}}
 @media (max-width:640px){.jform{grid-template-columns:1fr}.files{grid-template-columns:1fr}.userbar{text-align:start}}
 </style>

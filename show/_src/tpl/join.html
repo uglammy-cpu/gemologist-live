@@ -290,8 +290,7 @@
       '<p class="aidisc" style="font-size:12px;line-height:1.4;color:#8a8078;margin:4px 0 16px">' + esc(t.aiGemma || "") + '</p>' +
       '<h3>' + esc(t.jWhatH) + '</h3>' + li(t.jWhat) + '<h3>' + esc(t.jWhoH) + '</h3>' + li(t.jWho) +
       '<div class="price"><b>' + esc(eur(((ST.terms && ST.terms.price_cents) || 14900))) + '</b> ' + esc(t.jPrice) + '</div>' +
-      (ST.wo ? '<p class="woline">' + esc(woFill("woLine")) + '</p><p class="woterms">' + esc(woFill("woTerms") + woUntil()) + '</p>' : "") +
-      '<p class="hint" style="font-size:12px;line-height:1.4;color:#8a8078;margin:4px 0 0">' + esc(t.jVat || "") + '</p>' +
+      (ST.wo ? '<p class="woline">' + esc(woFill("woLine")) + '</p>' + (woUntil() ? '<p class="woterms">' + esc(woUntil().trim()) + '</p>' : "") : "") +
       (ST.fLeft != null ? '<p class="fdleft">' + esc(ST.fLeft > 0 ? j("fdLeft", { n: ST.fLeft }) : j("fdFull")) + '</p>' : "") +
       '<section class="jnights" id="serate"></section>' +
       '<section class="acct" id="acct" aria-live="polite"></section>';

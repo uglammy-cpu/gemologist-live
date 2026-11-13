@@ -789,13 +789,14 @@ input,select,textarea{border-color:var(--edge);background:var(--cream)}
   // offerta di benvenuto uguale per tutti (Elena, 7/11 e 9/11/2026: primo mese a 119 € invece di 149 €, ruota in demo).
   // La legge il database (welcome_offer): compare solo se è accesa e la ruota non è pubblica; anteprima con ?welcome=preview.
   // Il prezzo lo applica il server all'approvazione (_billing_open): qui si mostra soltanto. Testi: LEG-012.
+  // 13/11/2026 (Elena): tolti in tutte le lingue «se il tuo brand viene approvato», «Dal secondo mese…» (woRenews), le condizioni dell'offerta (woTerms) e «Fattura senza IVA…» (jVat). Restano su /condizioni/.
   function eurW(c){ var loc = lang === "ar" ? "ar-AE-u-nu-latn" : lang; try { return new Intl.NumberFormat(loc, { style: "currency", currency: "EUR", minimumFractionDigits: c % 100 ? 2 : 0, maximumFractionDigits: 2 }).format(c / 100); } catch(e){ return "€" + (c / 100); } }
   function woFill(k, o){ var v = { p: eurW(o.active ? o.first_cents : o.preview_cents), s: eurW(o.std_cents || 14900), n: o.lives || 4, m: o.max_min || 60 }; return String(t[k] || TT.en[k] || "").replace(/\{(\w+)\}/g, function(m, n){ return v[n] != null ? v[n] : m; }); }
   function woUntil(o){ if (!o.active || !o.until) return ""; var d = new Date(o.until), loc = lang === "ar" ? "ar-AE-u-nu-latn" : lang; try { d = d.toLocaleDateString(loc, { day: "numeric", month: "long", year: "numeric", timeZone: "Europe/Rome" }); } catch(e){ d = d.toISOString().slice(0, 10); } return " " + String(t.woUntil || TT.en.woUntil).replace("{d}", d); }
   function renderOffer(){
     var o = state.wo, a = $("wOffer"), c = $("ctaWo"), href = CFG.base + "/live/join?lang=" + lang;
-    if (a) a.innerHTML = o ? '<a class="woffer" href="' + href + '"><span class="wotag">' + esc(t.woTag || TT.en.woTag) + '</span><b>' + esc(woFill("woMain", o)).replace(esc(eurW(o.active ? o.first_cents : o.preview_cents)), function(m){ return '<em>' + m + '</em>'; }) + '</b><span class="woren">' + esc(woFill("woRenews", o)) + '</span><small>' + esc(woFill("woTerms", o) + woUntil(o)) + ' ' + esc(t.jVat || "") + '</small></a>' : "";
-    if (c) c.innerHTML = o ? '<div class="cwo"><b>' + esc(woFill("woLine", o)) + '</b><span class="woren">' + esc(woFill("woRenews", o)) + '</span><small>' + esc(woFill("woTerms", o) + woUntil(o)) + ' ' + esc(t.jVat || "") + '</small></div>' : "";
+    if (a) a.innerHTML = o ? '<a class="woffer" href="' + href + '"><span class="wotag">' + esc(t.woTag || TT.en.woTag) + '</span><b>' + esc(woFill("woMain", o)).replace(esc(eurW(o.active ? o.first_cents : o.preview_cents)), function(m){ return '<em>' + m + '</em>'; }) + '</b>' + (woUntil(o) ? '<small>' + esc(woUntil(o).trim()) + '</small>' : "") + '</a>' : "";
+    if (c) c.innerHTML = o ? '<div class="cwo"><b>' + esc(woFill("woLine", o)) + '</b>' + (woUntil(o) ? '<small>' + esc(woUntil(o).trim()) + '</small>' : "") + '</div>' : "";
   }
   function renderWelcome(){
     var w = $("welcome"), W = t.wel || TT.en.wel, n = WCATS.length, two = function(x){ return (x < 10 ? "0" : "") + x; };

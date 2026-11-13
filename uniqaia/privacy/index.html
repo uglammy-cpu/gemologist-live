@@ -20,7 +20,17 @@ table{border-collapse:collapse;width:100%;font-size:15px;margin:10px 0;display:b
 th,td{border:1px solid var(--line);padding:7px 9px;text-align:left;vertical-align:top}th{background:#f3ece0;font-weight:600}
 ul{padding-left:22px}li{margin:3px 0}
 section[hidden]{display:none}
-footer{border-top:1px solid var(--line);padding-top:16px;padding-bottom:40px;font:13px/1.6 Arial,Helvetica,sans-serif;color:var(--muted)}
+footer{border-top:1px solid var(--line);padding-top:18px;padding-bottom:40px;font:13px/1.6 Arial,Helvetica,sans-serif;color:var(--muted)}
+.uqf{display:flex;flex-direction:column;align-items:center;gap:9px;text-align:center}
+.uqf[hidden]{display:none}
+.uqf p,.uqf nav{margin:0;display:flex;flex-wrap:wrap;justify-content:center;align-items:baseline;gap:3px 16px}
+.uqf-id>*,.uqf-links a{white-space:nowrap}
+.uqf-brand{color:var(--ink);font-weight:600;font-size:12px;letter-spacing:.24em}
+.uqf a{color:inherit;text-decoration:none}
+.uqf a:hover,.uqf a:focus-visible{color:var(--ink);text-decoration:underline;text-underline-offset:3px}
+.uqf-links a{color:var(--ink);opacity:.82}
+.uqf-note{font-size:12px;opacity:.85}
+@media (max-width:520px){.uqf p{gap:3px 13px}.uqf nav.uqf-links{display:grid;grid-template-columns:repeat(2,auto);justify-content:center;justify-items:center;gap:4px 18px}.uqf-links a{white-space:normal}}
 </style></head>
 <body data-tit="Informativa privacy · Uniqaia" data-ten="Privacy notice · Uniqaia">
 <header><a class="brand" href="/">UNIQAIA</a><nav class="langs"><a id="lit" class="on" href="?lang=it">ITALIANO</a> <a id="len" href="?lang=en">ENGLISH</a></nav></header>
@@ -442,7 +452,7 @@ footer{border-top:1px solid var(--line);padding-top:16px;padding-bottom:40px;fon
 <p>If we change this notice, we publish the new version here, with its date. If the changes are significant, we tell sellers by email or in their panel.</p>
 </section>
 </main>
-<footer><p id="fit">Uniqaia è un servizio di Elena Goglio · Via Bortolo Belotti 6, 24010 Olmo al Brembo (BG), Italia · P.IVA 04700020169 · <a href="mailto:elena@uniqaia.com">elena@uniqaia.com</a><br><a href="/privacy/">Informativa privacy</a> · <a href="/condizioni/">Condizioni per i seller</a> · <a href="/termini/">Condizioni d'uso</a> · Il sito non usa cookie</p><p id="fen" hidden>Uniqaia is a service of Elena Goglio · Via Bortolo Belotti 6, 24010 Olmo al Brembo (BG), Italy · VAT 04700020169 · <a href="mailto:elena@uniqaia.com">elena@uniqaia.com</a><br><a href="/privacy/?lang=en">Privacy notice</a> · <a href="/condizioni/?lang=en">Seller terms</a> · <a href="/termini/?lang=en">Terms of use</a> · This site uses no cookies</p></footer>
+<footer><div id="fit" class="uqf"><p class="uqf-id"><span class="uqf-brand">UNIQAIA</span><span>P.IVA 04700020169</span><a href="mailto:elena@uniqaia.com">elena@uniqaia.com</a></p><nav class="uqf-links"><a href="/privacy/">Informativa privacy</a><a href="/condizioni/">Condizioni per i seller</a><a href="/termini/">Condizioni d'uso</a><a href="/note-legali/">Note legali</a></nav><p class="uqf-note">Il sito non usa cookie</p></div><div id="fen" class="uqf" hidden><p class="uqf-id"><span class="uqf-brand">UNIQAIA</span><span>VAT IT04700020169</span><a href="mailto:elena@uniqaia.com">elena@uniqaia.com</a></p><nav class="uqf-links"><a href="/privacy/?lang=en">Privacy notice</a><a href="/condizioni/?lang=en">Seller terms</a><a href="/termini/?lang=en">Terms of use</a><a href="/note-legali/?lang=en">Legal notice</a></nav><p class="uqf-note">This site uses no cookies</p></div></footer>
 <script>
 (function(){
   var q = new URLSearchParams(location.search).get('lang'), s = '';

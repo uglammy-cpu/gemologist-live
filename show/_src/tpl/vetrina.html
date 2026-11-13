@@ -471,7 +471,7 @@ input,select,textarea{border-color:var(--edge);background:var(--cream)}
     $("cta").innerHTML = '<div><b>' + esc(t.ctaTitle) + '</b><small>' + esc(t.ctaText) + '</small><small class="coffer">' + esc(t.ctaOfferH) + '</small><ul class="clist">' + t.ctaOffer.map(function(x){ return '<li>' + esc(x) + '</li>'; }).join("") + '</ul><div id="ctaWo"></div></div><a class="go" id="joinLink" href="' + CFG.base + '/live/join?lang=' + lang + '">' + esc(t.ctaBtn) + '</a>';
     var jl = $("joinLink"); if (jl) jl.href = CFG.base + "/live/join?lang=" + lang;   // dal 7/11 la sezione dei venditori non c'e' piu'
     renderOffer();
-    $("foot").innerHTML = esc(t.foot) + "<br>" + '<a href="https://uniqaia.com/privacy/">' + esc(t.lgPrivacy) + '</a> · <a href="https://uniqaia.com/condizioni/">' + esc(t.lgSeller) + '</a> · <a href="https://uniqaia.com/termini/">' + esc(t.lgTerms) + '</a> · ' + esc(t.lgCookies);   // 7/11, Elena: via «Gioiellerie e gem dealer entrano su invito, dopo verifica.»
+    $("foot").innerHTML = uqFoot(t);   // 7/11, Elena: via «Gioiellerie e gem dealer entrano su invito, dopo verifica.»
     $("emptyLive").innerHTML = '<b>' + esc(t.emptyLiveT) + '</b>' + esc(t.emptyLive);
     $("emptySoon").innerHTML = '<b>' + esc(t.emptySoonT) + '</b>' + esc(t.emptySoon);
   }

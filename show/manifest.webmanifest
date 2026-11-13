@@ -1,7 +1,7 @@
 {
  "name": "Uniqaia · Fine jewelry & gemstones live",
  "short_name": "Uniqaia",
- "description": "Dirette di gioiellerie e gem dealer selezionati. Gemmologa in diretta su richiesta.",
+ "description": "Dirette di gioiellerie e Commercianti di Pietre Preziose selezionati. Gemmologa in diretta su richiesta.",
  "start_url": "/show/?src=app",
  "scope": "/show/",
  "display": "standalone",

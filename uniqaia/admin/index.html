@@ -702,7 +702,7 @@ function uqFoot(t){
   function detail(a){
     var cats = (a.categories || []).join(", "), im = imgs[a.id];
     var dl = [["Ragione sociale", a.legal_name], ["Partita IVA", a.vat_number], ["Referente", a.contact_name], ["Telefono", a.phone], ["Paese e città", (a.country || "") + " · " + (a.city || "")],
-      ["Sito", a.site], ["Instagram", a.instagram ? "@" + a.instagram : ""], ["Tipo", a.kind === "gems" ? "Gem dealer" : "Gioielleria"], ["Categorie", cats], ["Chi sono", a.description], ["Cosa mostrerebbe", a.show_what],
+      ["Sito", a.site], ["Instagram", a.instagram ? "@" + a.instagram : ""], ["Tipo", a.kind === "gems" ? "Commerciante di Pietre Preziose" : "Gioielleria"], ["Categorie", cats], ["Chi sono", a.description], ["Cosa mostrerebbe", a.show_what],
       ["Lingua", a.lang], ["Premio", a.prize_name ? a.prize_name + " · " + (a.prize_mode === "demo" ? "demo, senza sconto" : (PRIZE[a.prize_status] || a.prize_status)) : "—"], ["Note", a.notes || a.info_request]]
       .map(function(r){ return '<dt>' + esc(r[0]) + '</dt><dd>' + esc(r[1] || "—") + '</dd>'; }).join("");
     var act = [];

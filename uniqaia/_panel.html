@@ -56,6 +56,15 @@ textarea{border-radius:12px;min-height:90px;resize:vertical}
 label{font-size:13px;color:var(--muted);display:flex;flex-direction:column;gap:4px}
 label input,label select,label textarea{width:100%}
 footer{padding:22px 0 30px;font-size:12px;color:var(--muted);text-align:center;line-height:1.7}
+.uqf{max-width:640px;margin:0 auto;padding-top:18px;border-top:1px solid var(--line);display:flex;flex-direction:column;align-items:center;gap:9px;font-size:12px;line-height:1.5;color:var(--muted);text-align:center}
+.uqf p,.uqf nav{margin:0;display:flex;flex-wrap:wrap;justify-content:center;align-items:baseline;gap:3px 16px}
+.uqf-id>*,.uqf-links a{white-space:nowrap}
+.uqf-brand{color:var(--ink);font-weight:600;font-size:11.5px;letter-spacing:.24em}
+.uqf a{color:inherit;text-decoration:none;transition:color .2s}
+.uqf a:hover,.uqf a:focus-visible{color:var(--ink);text-decoration:underline;text-underline-offset:3px}
+.uqf-links a{color:var(--ink);opacity:.82}
+.uqf-note{font-size:11px;opacity:.85}
+@media (max-width:520px){.uqf{gap:8px}.uqf p{gap:3px 13px}.uqf nav.uqf-links{display:grid;grid-template-columns:repeat(2,auto);justify-content:center;justify-items:center;gap:4px 18px}.uqf-links a{white-space:normal}}
 [hidden]{display:none!important}
 
 /* ---- pannello: chat e tiles ---- */
@@ -709,6 +718,14 @@ function lkAttachRemote(room, tiles, LK){
   room.on(LK.RoomEvent.TrackUnsubscribed, offTrack);
   room.on(LK.RoomEvent.ParticipantDisconnected, function(p){ Object.keys(tiles.tiles).forEach(function(id){ if (id.indexOf(p.identity + ":") === 0) tiles.remove(id); }); });
   room.on(LK.RoomEvent.Disconnected, function(){ tiles.clear(); });
+}
+// Piè di pagina di tutte le pagine (13/11/2026, Elena): UNIQAIA, partita IVA, email e link legali.
+// Nome, cognome e indirizzo della titolare stanno solo nelle Note legali (/note-legali/). Stile: .uqf in css.txt.
+function uqFoot(t){
+  var e = function(x){ return String(x == null ? "" : x).replace(/[&<>"']/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c]; }); }, L = "https://uniqaia.com/";
+  return '<div class="uqf"><p class="uqf-id"><span class="uqf-brand">UNIQAIA</span><span>' + e(t.footVat) + '</span><a href="mailto:elena@uniqaia.com">elena@uniqaia.com</a></p>'
+    + '<nav class="uqf-links"><a href="' + L + 'privacy/">' + e(t.lgPrivacy) + '</a><a href="' + L + 'condizioni/">' + e(t.lgSeller) + '</a><a href="' + L + 'termini/">' + e(t.lgTerms) + '</a><a href="' + L + 'note-legali/">' + e(t.lgNotes) + '</a></nav>'
+    + '<p class="uqf-note">' + e(t.lgCookies) + '</p></div>';
 }
 
 (function(){

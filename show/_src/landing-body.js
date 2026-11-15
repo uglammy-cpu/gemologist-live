@@ -35,8 +35,12 @@ function landingBody(d) {
   html += '<div class="lwhen"><div class="cal"><small>' + esc(mon) + '</small><b>' + esc(day) + '</b></div><div><time datetime="' + esc(when.toISOString()) + '">' + esc(full) + '</time><small>' + esc(t.localTime) + '</small></div></div>';
   html += '<div class="lcta">' +
     '<a class="btn dark" id="lJoin" href="' + esc(viewerUrl) + '">' + esc(live ? t.liveNow : (ended ? t.interest : t.join2)) + '</a>' +
-    (ended ? '' : '<a class="btn" download="' + esc(j.slug) + '-live.ics" href="' + icsUrl + '">' + esc(t.remind) + '</a>') +
-    '<a class="btn" href="https://wa.me/?text=' + waText + '" target="_blank" rel="noopener">' + esc(t.share2) + ' · WhatsApp</a></div>';
+    // 15/11 (brief di Elena): «Remind Me» salva la diretta e manda i promemoria via email; Share con tutti i canali.
+    // I due pulsanti li monta lo script comune (growth.js) nei segnaposto; senza script resta il file per il calendario.
+    (ended ? '' : '<span class="lgrow" data-lremind="' + esc(s.id) + '"></span>') +
+    '<span class="lgrow" data-lshare="' + esc(s.id) + '"></span>' +
+    (ended ? '' : '<a class="btn" download="' + esc(j.slug) + '-live.ics" href="' + icsUrl + '">' + esc(t.calAdd || t.remind) + '</a>') + '</div>' +
+    (ended ? '' : '<p class="hint lint" data-lcount="' + esc(s.id) + '"></p>');
   if (ended) html += '<p class="hint" style="margin-top:10px">' + esc(t.endedLead) + '</p>';
   var desc = tr(s.description_i18n, s.description); if (desc) html += '<p class="eyebrow" style="margin-top:24px">' + esc(t.descH) + '</p><p class="ldesc" dir="auto">' + esc(desc) + '</p>';
   // Le caratteristiche le dichiara il venditore, non la gemmologa: vanno

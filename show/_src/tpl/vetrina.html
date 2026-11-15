@@ -358,7 +358,7 @@ input,select,textarea{border-color:var(--edge);background:var(--cream)}
 <body class="vetrina">
 <header class="topv wrap"><div class="col">
   <div class="brand"><a class="logo" href="{{BASE}}/live" aria-label="{{NAME}}"><svg class="ulogo" xmlns="http://www.w3.org/2000/svg" viewBox="88 32 830 190" role="img" aria-label="Uniqaia"><g font-family="'Cormorant Garamond',Garamond,'Times New Roman',serif" font-weight="500" font-size="150" fill="currentColor" text-anchor="middle"><text x="151" y="160">U</text><text x="283" y="160">N</text><text x="386" y="160">I</text><text x="659" y="160">A</text><text x="756" y="160">I</text><text x="853" y="160">A</text></g><path fill="var(--logo-gold,#A47F3A)" fill-rule="evenodd" d="M 435 112.5 A 75 75 0 1 0 585 112.5 A 75 75 0 1 0 435 112.5 Z M 453 112.5 A 57 67 0 1 0 567 112.5 A 57 67 0 1 0 453 112.5 Z"/><path fill="var(--logo-gold,#A47F3A)" d="M 521.7 186.6 C 545 196 575 203 610 202 C 575 214 540 212 512 196 Z"/><path d="M 470.1 90.5 A 44 52 0 0 1 495 63.6" fill="none" stroke="var(--logo-gold,#A47F3A)" stroke-width="5" stroke-linecap="round"/><circle cx="510" cy="112.5" r="14" fill="var(--logo-gem,#D43F52)"/></svg></a><small id="tag"></small></div><template id="logoTpl"><svg class="ulogo" xmlns="http://www.w3.org/2000/svg" viewBox="88 32 830 190" role="img" aria-label="Uniqaia"><g font-family="'Cormorant Garamond',Garamond,'Times New Roman',serif" font-weight="500" font-size="150" fill="currentColor" text-anchor="middle"><text x="151" y="160">U</text><text x="283" y="160">N</text><text x="386" y="160">I</text><text x="659" y="160">A</text><text x="756" y="160">I</text><text x="853" y="160">A</text></g><path fill="var(--logo-gold,#A47F3A)" fill-rule="evenodd" d="M 435 112.5 A 75 75 0 1 0 585 112.5 A 75 75 0 1 0 435 112.5 Z M 453 112.5 A 57 67 0 1 0 567 112.5 A 57 67 0 1 0 453 112.5 Z"/><path fill="var(--logo-gold,#A47F3A)" d="M 521.7 186.6 C 545 196 575 203 610 202 C 575 214 540 212 512 196 Z"/><path d="M 470.1 90.5 A 44 52 0 0 1 495 63.6" fill="none" stroke="var(--logo-gold,#A47F3A)" stroke-width="5" stroke-linecap="round"/><circle cx="510" cy="112.5" r="14" fill="var(--logo-gem,#D43F52)"/></svg></template>
-  <div class="topright"><button class="about-btn" type="button" id="aboutBtn"></button><div class="langs" id="langs"><button type="button" class="cur" id="langCur" aria-haspopup="listbox">IT</button><div class="menu" id="langMenu" hidden><button type="button" data-lang="it">Italiano <small>IT</small></button><button type="button" data-lang="en">English <small>EN</small></button><button type="button" data-lang="fr">Français <small>FR</small></button><button type="button" data-lang="ar">العربية <small>AR</small></button><button type="button" data-lang="ru">Русский <small>RU</small></button></div></div></div>
+  <div class="topright"><a class="about-btn me-btn" id="meBtn" href="{{BASE}}/live/me"></a><button class="about-btn" type="button" id="aboutBtn"></button><div class="langs" id="langs"><button type="button" class="cur" id="langCur" aria-haspopup="listbox">IT</button><div class="menu" id="langMenu" hidden><button type="button" data-lang="it">Italiano <small>IT</small></button><button type="button" data-lang="en">English <small>EN</small></button><button type="button" data-lang="fr">Français <small>FR</small></button><button type="button" data-lang="ar">العربية <small>AR</small></button><button type="button" data-lang="ru">Русский <small>RU</small></button></div></div></div>
 </div></header>
 <main class="wrap"><div class="col">
   <div class="search" style="display:flex;align-items:center;gap:10px;background:var(--soft);border-radius:999px;padding:10px 16px;margin-top:14px;color:var(--muted);font-size:15px"><span id="searchIc" style="display:flex"></span><input id="q" type="search" style="flex:1;min-width:0;border:0;background:none;outline:none;color:var(--ink);min-height:0;padding:0"></div>
@@ -383,6 +383,7 @@ input,select,textarea{border-color:var(--edge);background:var(--cream)}
 <footer class="wrap" id="foot"></footer>
 <div class="install" id="install" hidden><span class="ic"><img src="/show/img/uniqaia-icon-192.png" alt="" width="42" height="42"></span><span class="tx"><b data-t="installT"></b><small id="installS"></small></span><button class="btn sm dark" type="button" id="installGo"></button><button class="no" type="button" id="installX" aria-label="Chiudi">×</button></div>
 <div class="welcome" id="welcome" hidden></div>
+<script>{{GROWTH}}</script>
 <script>
 {{LKJS}}
 (function(){
@@ -394,8 +395,10 @@ input,select,textarea{border-color:var(--edge);background:var(--cream)}
   var PAL = ["#3A2A17,#0F0A05","#122B45,#070D15","#2A2A30,#0A0A0D","#3A1F2C,#120810","#1C3328,#06100B","#2E2140,#0C0814","#22303A,#070B0E"];
   var lang = "";
   try { lang = localStorage.getItem("vetrina-lang") || ""; } catch(e){}
-  if (!TT[lang]) { var nav = (CFG.lang || navigator.language || "it").slice(0,2).toLowerCase(); lang = TT[nav] ? nav : "it"; }
+  if (!TT[lang]) { var nav = (CFG.lang || navigator.language || "en").slice(0,2).toLowerCase(); lang = TT[nav] ? nav : "en"; }   // 15/11 (Elena): inglese lingua principale
   var t = TT[lang];
+  // crescita dell'audience (15/11): accesso spettatori, Remind Me, Share, referral
+  UQG.init(sb, { lang: lang, base: CFG.base });
   var DEMO_SELLERS = ["rossi", "ferri", "lombardi", "marchetti", "pietrerare"];   // seller dimostrativi, fuori dalla vetrina dal 9/11/2026 (LEG-005, punto 16)
   var state = { jewelers:{}, shows:[], nights:[], week:[], covers:{}, photos:{}, viewers:{}, channels:{}, cats:[], cat:"", highlights:[], slide:0, timer:null };
   try { var c0 = new URLSearchParams(location.search).get("c") || ""; if (/^[a-z0-9-]{2,40}$/.test(c0)) state.cat = c0; } catch(e){}
@@ -452,7 +455,7 @@ input,select,textarea{border-color:var(--edge);background:var(--cream)}
     });
   }
   function ltr(x){ return x ? "⁦" + x + "⁩" : x; }
-  function showUrl(s, j){ return (s.status === "live" || !s.slug) ? CFG.base + "/live/" + j.slug + "?s=" + s.id + "&lang=" + lang : CFG.base + "/live/" + j.slug + "/" + s.slug + (lang === "it" ? "/" : "/" + lang + "/") + "?lang=" + lang; }
+  function showUrl(s, j){ return (s.status === "live" || !s.slug) ? CFG.base + "/live/" + j.slug + "?s=" + s.id + "&lang=" + lang : CFG.base + "/live/" + j.slug + "/" + s.slug + (lang === "en" ? "/" : "/" + lang + "/") + "?lang=" + lang; }
 
   function cover(s, j, extra){
     var p = pal(j.slug), cv = state.covers[s.id];
@@ -465,7 +468,7 @@ input,select,textarea{border-color:var(--edge);background:var(--cream)}
   function renderStatic(){
     document.documentElement.lang = lang; document.documentElement.dir = lang === "ar" ? "rtl" : "ltr"; $("langCur").textContent = lang.toUpperCase();
     Array.prototype.forEach.call(document.querySelectorAll("[data-t]"), function(el){ el.textContent = t[el.getAttribute("data-t")]; });
-    $("tag").innerHTML = tagHtml(); $("q").placeholder = t.search; $("aboutBtn").textContent = "i"; $("aboutBtn").title = t.about; $("aboutBtn").setAttribute("aria-label", t.about);
+    $("tag").innerHTML = tagHtml(); $("q").placeholder = t.search; $("meBtn").innerHTML = UQG.icons.user; $("meBtn").title = UQG.t("me"); $("meBtn").setAttribute("aria-label", UQG.t("me")); $("meBtn").href = CFG.base + "/live/me?lang=" + lang; UQG.setLang(lang); $("aboutBtn").textContent = "i"; $("aboutBtn").title = t.about; $("aboutBtn").setAttribute("aria-label", t.about);
     setTrust(); fitTrust();
     Array.prototype.forEach.call(document.querySelectorAll("#langMenu button"), function(b){ b.classList.toggle("on", b.getAttribute("data-lang") === lang); });
     $("cta").innerHTML = '<div><b>' + esc(t.ctaTitle) + '</b><small>' + esc(t.ctaText) + '</small><small class="coffer">' + esc(t.ctaOfferH) + '</small><ul class="clist">' + t.ctaOffer.map(function(x){ return '<li>' + esc(x) + '</li>'; }).join("") + '</ul><div id="ctaWo"></div></div><a class="go" id="joinLink" href="' + CFG.base + '/live/join?lang=' + lang + '">' + esc(t.ctaBtn) + '</a>';
@@ -498,9 +501,10 @@ input,select,textarea{border-color:var(--edge);background:var(--cream)}
       var j = state.jewelers[s.jeweler_id];
       var d = document.createElement("div"); d.className = "vcard";
       d.innerHTML = '<a class="vcard" href="' + showUrl(s, j) + '">' + cover(s, j, '<span class="lbl off"><i></i>' + esc(t.soon) + '</span><div class="when"><small>' + esc(fday(s.scheduled_at)) + '</small><b>' + esc(ftime(s.scheduled_at)) + '</b></div><div class="ctitle" dir="auto">' + catLabel(s) + esc(title(s)) + '</div>') + meta(j) + '</a><a class="btn sm" style="align-self:flex-start;color:var(--gold-edge);border-color:var(--gold-hi);font-size:13px;min-height:34px" download="' + esc(j.slug) + '-live.ics" href="' + icsUrl(s, j) + '" data-remind>' + esc(t.remind) + '</a>';
-      d.querySelector("[data-remind]").addEventListener("click", function(){ toast(t.remindToast + fday(s.scheduled_at) + " · " + ftime(s.scheduled_at)); });
+      var rb = d.querySelector("[data-remind]"); if (rb) rb.replaceWith(UQG.bell("show", s.id)); var mt = d.querySelector(".ctitle"); if (mt) mt.appendChild(UQG.count("show", s.id));
       g.appendChild(d);
     });
+    UQG.load("show", rows.map(function(s){ return s.id; }));
     $("emptySoon").hidden = true; $("soon").hidden = rows.length === 0;
     $("emptySoon").innerHTML = state.cat ? '<b>' + esc(tileName(state.cat)) + '</b>' + esc(t.noneCat) : '<b>' + esc(t.emptySoonT) + '</b>' + esc(t.emptySoon);
   }
@@ -703,9 +707,13 @@ input,select,textarea{border-color:var(--edge);background:var(--cream)}
         '<div class="agn">' + (quante
           ? '<b>' + quante + '</b><small>' + esc(quante === 1 ? t.nightOne : t.nightMany) + '</small>'
           : '') + '</div>';   // candidature aperte o chiuse: solo su «Trasmetti con noi» (8/11, Elena)
-      list.appendChild(el);
+      // 15/11 (brief di Elena): «Remind Me» su ogni serata, con il numero vero degli interessati
+      var at = el.querySelector(".agt"); if (at) at.appendChild(UQG.count("night", n.id));
+      var w = document.createElement("div"); w.className = "agw"; w.appendChild(el); w.appendChild(UQG.bell("night", n.id, { icon: true }));
+      list.appendChild(w);
     });
     box.appendChild(list);
+    UQG.load("night", rows.map(function(n){ return n.id; }));
     // per i seller una riga sola, che porta alle serate con le candidature su «Trasmetti con noi»
     if (!PAGECAT){ var ns = document.createElement("p"); ns.className = "nseller"; ns.innerHTML = '<a class="nsgo" href="' + CFG.base + '/live/join?lang=' + lang + '#serate">' + esc(t.ctaBtn) + '</a>'; box.appendChild(ns); }   // 9/11 (Elena): pulsante rosso «Apply to go Live»
   }
@@ -724,9 +732,13 @@ input,select,textarea{border-color:var(--edge);background:var(--cream)}
       a.innerHTML = '<div class="agd"><small>' + esc(live ? t.live : wd) + '</small><b>' + esc(dn) + '</b><span>' + esc(ftime(s.scheduled_at)) + '</span></div>' +
         '<div class="agi" style="--c1:' + p[0] + ';--c2:' + p[1] + '">' + (img ? '<img alt="" src="' + img + '">' : ((s.pieces && s.pieces[0] && CFG.art[s.pieces[0].art]) || CFG.art.ring)) + '</div>' +
         '<div class="agt"><small>' + esc(bits.filter(Boolean).join(" · ")) + '</small><b dir="auto">' + esc(title(s)) + '</b><span>' + esc(j.name) + (j.city ? ' · ' + esc(j.city) : '') + '</span></div>';
-      list.appendChild(a);
+      if (live) { list.appendChild(a); return; }
+      // 15/11: «Remind Me» sulle dirette in programma questa settimana
+      a.querySelector(".agt").appendChild(UQG.count("show", s.id));
+      var w = document.createElement("div"); w.className = "agw"; w.appendChild(a); w.appendChild(UQG.bell("show", s.id, { icon: true })); list.appendChild(w);
     });
     box.appendChild(list);
+    UQG.load("show", rows.filter(function(s){ return s.status !== "live"; }).map(function(s){ return s.id; }));
   }
   // ---- invito a installare l'app (icona sulla schermata Home)
   // 12/11/2026, Elena: invito nascosto dal sito, su iPhone e su Android, finché non decide come fare l'app (da riprendere il 15/12).

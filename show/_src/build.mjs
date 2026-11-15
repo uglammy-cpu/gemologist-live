@@ -66,6 +66,8 @@ const LOC = { it: "it-IT", en: "en-GB", fr: "fr-FR", ar: "ar-AE-u-nu-latn", ru: 
 
 const tpl = (n) => fs.readFileSync(path.join(HERE, "tpl", n), "utf8");
 const parts = { HEAD: tpl("head.txt"), CSS: tpl("css.txt"), LKJS: tpl("lkjs.txt"), ART: tpl("art.txt"), T: tpl("t.txt"),
+  // 15/11: crescita dell'audience (Remind Me, accesso spettatori, Share, referral), vedi growth.js
+  GROWTH: fs.readFileSync(path.join(HERE, "growth.js"), "utf8"),
   // The Jeweler's Wheel: pop-up di benvenuto della pagina /join (script autonomo, vedi wheel.js)
   WHEEL: fs.readFileSync(path.join(HERE, "wheel.js"), "utf8"),
   // Avatar di Elena che spiega l'ingresso nella pagina /join (vedi avatar.js); i testi stanno in avatar-copione.json,
@@ -148,6 +150,7 @@ function render(t, name, runtime) {
     join: { title: "Uniqaia · Trasmetti con noi · Go live with us", desc: "La piattaforma di live show per gioiellerie e Commercianti di Pietre Preziose. The live-show platform for jewellers and gem dealers.", url: cfg.SITE + P + "/join/" },
     viewer: { title: "Uniqaia · Live show", desc: "Gioielli e gemme dal vivo. Gemmologa in diretta su richiesta. Jewellery and gems live. Gemologist live on request.", url: "" },
     panel: { title: "Uniqaia · Pannello", desc: "Pannello riservato ai venditori.", url: "" },
+    me: { title: "Uniqaia · My account", desc: "Your saved lives, reminders and invitations on Uniqaia.", url: "" },
     profile: { title: "Uniqaia · Scheda del venditore", desc: "Gioielleria o Commerciante di Pietre Preziose selezionato su Uniqaia: specialità, dirette in programma, come acquistare.", url: "" },
   };
   let b = tpl(name + ".html");
@@ -161,6 +164,7 @@ function render(t, name, runtime) {
   b = b.split("var CFG = {").join('var Q = new URLSearchParams(location.search), SLUG = (location.pathname.match(/^' + esc(P) + '\\/([a-z0-9-]{2,40})(?:\\/|$)/) || [])[1] || "";\n  var CFG = {');
   // Indirizzi del sito: <prefix>/... al posto di /live/...
   const rep = [
+    ['"/live/" + R.slug + "?s="', '"' + P + '/" + R.slug + "/?s="'],   // Raid (viewer.html)
     ['"/live/" + j.slug + "/" + s.slug + (lang', '"' + P + '/" + j.slug + "/" + s.slug + (lang'],
     ['"/live/" + CFG.slug + "/" + s.slug + (lang', '"' + P + '/" + CFG.slug + "/" + s.slug + (lang'],
     ['"/live/" + CFG.slug + "/profile?lang="', '"' + P + '/" + CFG.slug + "/profile/?lang="'],
@@ -190,6 +194,8 @@ function render(t, name, runtime) {
     ["' · /live/' + esc(j.slug)", "' · " + P + "/' + esc(j.slug) + '/'"],
     ["/live/join?lang=", P + "/join/?lang="],
     ['{{BASE}}/live/join"', "{{BASE}}" + P + '/join/"'],
+    ['{{BASE}}/live/me"', "{{BASE}}" + P + '/me/"'],
+    ['"/live/me?lang="', '"' + P + '/me/?lang="'],
     ['{{BASE}}/live"', "{{BASE}}" + P + '/"'],
     ["{{BASE}}/live'", "{{BASE}}" + P + "/'"],
     ['/live">', P + '/">'],
@@ -207,7 +213,7 @@ function render(t, name, runtime) {
   b = b.replace("</title>", "</title>" + DEMO_META + PWA + ogTags);
   if (b.includes("</body>")) b = b.replace("</body>", SW + "</body>");
   if (DEMO_NOTE) b = b.replace("</footer>", "</footer>" + DEMO_NOTE);
-  const vars = { URL: cfg.SUPABASE_URL, KEY: cfg.SUPABASE_KEY, BASE: cfg.SITE, NAME: cfg.NAME, LANG: "it" };
+  const vars = { URL: cfg.SUPABASE_URL, KEY: cfg.SUPABASE_KEY, BASE: cfg.SITE, NAME: cfg.NAME, LANG: "en" };
   for (const [k, v] of Object.entries(vars)) b = b.split(`{{${k}}}`).join(v);
   const left = b.match(/\{\{[A-Z]+\}\}/g);
   if (left) throw new Error(name + ": segnaposto non risolti " + left.join(","));
@@ -238,32 +244,52 @@ function landingDoc(t, body, lang, extraHead, bodyAttrs, langRow) {
   }).catch(function(){});
 })();
 </script>
+<script>${parts.GROWTH}</script>
+<script>
+(function(){
+  // 15/11 (brief di Elena): «Remind Me», numero degli interessati e Share sulla pagina della diretta
+  var sb = window.supabase && window.supabase.createClient(${JSON.stringify(common.SUPABASE_URL)}, ${JSON.stringify(common.SUPABASE_KEY)}); if (!sb || !window.UQG) return;
+  UQG.init(sb, { lang: document.documentElement.lang || "en" });
+  window.UQMount = function(){
+    UQG.setLang(document.documentElement.lang || "en");
+    var r = document.querySelector("[data-lremind]"), sh = document.querySelector("[data-lshare]"), c = document.querySelector("[data-lcount]");
+    var id = r ? r.getAttribute("data-lremind") : (sh ? sh.getAttribute("data-lshare") : ""); if (!id) return;
+    if (r) r.replaceWith(UQG.bell("show", id));
+    if (c) { var n = UQG.count("show", id); n.className += " hint"; c.replaceWith(n); }
+    if (sh) { var h = document.querySelector("h1"); sh.replaceWith(UQG.shareBtn({ kind: "show", id: id, url: location.origin + location.pathname, title: ((h && h.textContent) || document.title) + " · Uniqaia" })); }
+    UQG.load("show", [id]); UQG.visit("show", id);
+  };
+  UQMount();
+})();
+</script>
 <script>if("serviceWorker" in navigator)addEventListener("load",function(){navigator.serviceWorker.register("${P}/sw.js").catch(function(){})});</script>
 </body></html>`;
 }
-const LANGS = ["it", "en", "fr", "ar", "ru"];
-function landingFor(t, s, lang = "it") {
+// 15/11/2026 (Elena): l'inglese è la lingua principale. Alla radice delle pagine delle dirette c'è l'inglese; le altre lingue in /<lingua>/.
+const DEF = "en";
+const LANGS = ["en", "it", "fr", "ar", "ru"];
+function landingFor(t, s, lang = DEF) {
   const j = jById[s.jeweler_id]; if (!j || !s.slug) return null;
-  if (!T[lang]) lang = "it";
+  if (!T[lang]) lang = DEF;
   const P = t.prefix;
   const photoUrls = {}; for (const p of piecesByShow[s.id] || []) if (photoFile[p.id]) photoUrls[p.id] = t.site + P + "/img/" + photoFile[p.id];
   const home = `${t.site}${P}/${j.slug}/${s.slug}/`;
-  const self = lang === "it" ? home : `${home}${lang}/`;
-  const alt = LANGS.map((l) => `<link rel="alternate" hreflang="${l}" href="${l === "it" ? home : home + l + "/"}">`).join("") + `<link rel="alternate" hreflang="x-default" href="${home}">`;
+  const self = lang === DEF ? home : `${home}${lang}/`;
+  const alt = LANGS.map((l) => `<link rel="alternate" hreflang="${l}" href="${l === DEF ? home : home + l + "/"}">`).join("") + `<link rel="alternate" hreflang="x-default" href="${home}">`;
   const declMap = {}; for (const x of DATA.declarations || []) declMap[x.piece_id] = x;
   const body = landingBody({ site: t.site, prefix: P, lang, show: s, jeweler: j, pieces: piecesByShow[s.id] || [], cats: DATA.categories, coverUrl: coverSrc(t, P, s.id), photoUrls, declarations: declMap, art: ART, t: T[lang], loc: LOC[lang] });
   const image = body.image || t.site + P + "/img/uniqaia-og.jpg";
   const ld = { "@context": "https://schema.org", "@type": "Event", name: body.title, description: body.desc, startDate: body.start, endDate: new Date(new Date(body.start).getTime() + 3600000).toISOString(), eventAttendanceMode: "https://schema.org/OnlineEventAttendanceMode", eventStatus: body.ended ? "https://schema.org/EventScheduled" : "https://schema.org/EventScheduled", location: { "@type": "VirtualLocation", url: body.viewerUrl }, organizer: { "@type": "Organization", name: j.name, url: t.site + P + "/" + j.slug + "/profile/" }, image: [image], inLanguage: lang, isAccessibleForFree: true, url: body.url };
   body.url = self;
   const extra = alt + '<meta name="description" content="' + H(body.desc) + '"><link rel="canonical" href="' + H(self) + '"><meta property="og:type" content="website"><meta property="og:site_name" content="' + common.NAME + '"><meta property="og:title" content="' + H(body.title) + '"><meta property="og:description" content="' + H(body.desc) + '"><meta property="og:url" content="' + H(body.url) + '"><meta property="og:image" content="' + H(image) + '"><meta name="twitter:card" content="summary_large_image"><script type="application/ld+json">' + JSON.stringify(ld).replace(/</g, "\\u003c") + '</script>';
-  const langRow = '<nav class="langrow" aria-label="Lingua">' + LANGS.map((l) => `<a${l === lang ? ' class="on" aria-current="true"' : ""} hreflang="${l}" href="${l === "it" ? home : home + l + "/"}">${l.toUpperCase()}</a>`).join("") + '</nav>';
+  const langRow = '<nav class="langrow" aria-label="Lingua">' + LANGS.map((l) => `<a${l === lang ? ' class="on" aria-current="true"' : ""} hreflang="${l}" href="${l === DEF ? home : home + l + "/"}">${l.toUpperCase()}</a>`).join("") + '</nav>';
   return landingDoc(t, body, lang, extra, ' data-show="' + s.id + '"', langRow);
 }
 function landingFallback(t) {
   // Pagina generica: legge venditore e diretta dall'indirizzo e costruisce la pagina nel browser (per le dirette create dopo l'ultima generazione)
   const P = t.prefix;
   const body = { title: common.NAME, html: '<p class="hint" style="padding:40px 0">…</p>' };
-  let doc = landingDoc(t, body, "it", "", "");
+  let doc = landingDoc(t, body, DEF, "", "");
   const js = `<script>
 ${LANDING_JS}
 (function(){
@@ -279,9 +305,9 @@ ${LANDING_JS}
         return (ids.length ? get("piece_photos?select=piece_id,data&piece_id=in.(" + ids.join(",") + ")") : Promise.resolve([])).then(function(ph){
           var photoUrls = {}; ph.forEach(function(x){ photoUrls[x.piece_id] = x.data; });
           var q = (new URLSearchParams(location.search).get("lang") || "").toLowerCase(), st = ""; try { st = localStorage.getItem("vetrina-lang") || ""; } catch(e){}
-          var lang = TT[q] ? q : (TT[st] ? st : (TT[s.lang] ? s.lang : "it"));
+          var lang = TT[q] ? q : (TT[st] ? st : (TT[s.lang] ? s.lang : "en"));
           var out = landingBody({ site: ${JSON.stringify(t.site)}, prefix: ${JSON.stringify(P)}, lang: lang, show: s, jeweler: j, pieces: pieces, cats: r[1], coverUrl: (r2[1][0] || {}).data || "", photoUrls: photoUrls, art: ART, t: TT[lang], loc: LOC[lang] });
-          document.getElementById("page").innerHTML = out.html; document.title = out.title + " · " + ${JSON.stringify(common.NAME)}; document.documentElement.lang = lang; document.documentElement.dir = lang === "ar" ? "rtl" : "ltr";
+          document.getElementById("page").innerHTML = out.html; document.title = out.title + " · " + ${JSON.stringify(common.NAME)}; document.documentElement.lang = lang; document.documentElement.dir = lang === "ar" ? "rtl" : "ltr"; if (window.UQMount) UQMount();
           Array.prototype.forEach.call(document.querySelectorAll("time[datetime]"), function(el){ try { el.textContent = new Intl.DateTimeFormat(navigator.language, { weekday:"long", day:"numeric", month:"long", hour:"2-digit", minute:"2-digit" }).format(new Date(el.getAttribute("datetime"))); } catch(e){} });
         });
       });
@@ -294,7 +320,7 @@ ${LANDING_JS}
 
 // ---------- prerender della vetrina (contenuto nell'HTML per i motori di ricerca; il JS poi lo rigenera e lo tiene aggiornato)
 function prerenderVetrina(t, html) {
-  const P = t.prefix, lang = "it", tt = T[lang];
+  const P = t.prefix, lang = DEF, tt = T[lang];
   // stesse 6 categorie e 6 slide della home (elenco in tpl/vetrina.html, «var HOME»)
   const HOME = JSON.parse(tpl("vetrina.html").match(/var HOME = (\{.*\});/)[1]);
   const catName = (slug) => { const c = DATA.categories.find((x) => x.slug === slug); return c ? (c.name_i18n[lang] || slug) : slug; };
@@ -366,7 +392,7 @@ for (const t of TARGETS) {
     scope: P + "/",
     display: "standalone",
     orientation: "portrait",
-    lang: "it",
+    lang: "en",
     background_color: "#FFFFFF",
     theme_color: "#15121C",
     categories: ["shopping", "lifestyle"],
@@ -410,6 +436,8 @@ self.addEventListener("fetch", function(e){
   write("wheel-admin/index.html", render(t, "wheel-admin", { tokenParam: "k" }));
   write("admin/index.html", render(t, "seller-admin", { tokenParam: "k" }));
   write("pay/index.html", render(t, "pay", {}));
+  // 15/11: pagina personale dello spettatore (My Saved Lives, promemoria, My Invitations); non indicizzata
+  write("me/index.html", noindex(render(t, "me", {}).replace("<!--LOGO-->", tpl("vetrina.html").match(/<a class="logo"[^>]*>([\s\S]*?)<\/a>/)[1])));
   const viewer = render(t, "viewer", { tokenParam: "t" });
   const panel = render(t, "panel", { tokenParam: "k" });
   const profile = render(t, "profile", {});
@@ -427,22 +455,23 @@ self.addEventListener("fetch", function(e){
     const j = jById[s.jeweler_id]; if (!j || !s.slug) continue;
     for (const lang of LANGS) {
       const demo = DEMO_SELLERS.includes(j.slug); let doc = landingFor(t, s, lang); if (!doc) continue; if (demo) doc = noindex(doc);
-      write(lang === "it" ? `${j.slug}/${s.slug}/index.html` : `${j.slug}/${s.slug}/${lang}/index.html`, doc);
-      if (!demo) urls.push(lang === "it" ? `${t.site}${P}/${j.slug}/${s.slug}/` : `${t.site}${P}/${j.slug}/${s.slug}/${lang}/`);
-      if (lang === "it") nLanding++;
+      write(lang === DEF ? `${j.slug}/${s.slug}/index.html` : `${j.slug}/${s.slug}/${lang}/index.html`, doc);
+      if (lang === DEF) write(`${j.slug}/${s.slug}/${DEF}/index.html`, doc);   // 15/11: il vecchio indirizzo /en/ resta valido (canonical alla radice)
+      if (!demo) urls.push(lang === DEF ? `${t.site}${P}/${j.slug}/${s.slug}/` : `${t.site}${P}/${j.slug}/${s.slug}/${lang}/`);
+      if (lang === DEF) nLanding++;
     }
   }
   write("sitemap.xml", `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls.map((u) => `  <url><loc>${H(u)}</loc></url>`).join("\n")}\n</urlset>\n`);
-  if (P === "") write("robots.txt", DEMO ? `User-agent: *\nAllow: /\nDisallow: /*/panel/\nDisallow: /wheel-admin/\nDisallow: /admin/\nDisallow: /pay/\nDisallow: /social/\n` : `User-agent: *\nAllow: /\nDisallow: /*/panel/\nDisallow: /wheel-admin/\nDisallow: /admin/\nDisallow: /pay/\nDisallow: /social/\nSitemap: ${t.site}/sitemap.xml\n`);
+  if (P === "") write("robots.txt", DEMO ? `User-agent: *\nAllow: /\nDisallow: /*/panel/\nDisallow: /wheel-admin/\nDisallow: /admin/\nDisallow: /pay/\nDisallow: /me/\nDisallow: /social/\n` : `User-agent: *\nAllow: /\nDisallow: /*/panel/\nDisallow: /wheel-admin/\nDisallow: /admin/\nDisallow: /pay/\nDisallow: /me/\nDisallow: /social/\nSitemap: ${t.site}/sitemap.xml\n`);
   // Immagini (logo, icona, anteprima, copertine, foto) condivise tra le due versioni
   if (P === "") { fs.cpSync(IMG, path.join(t.out, "img"), { recursive: true }); }
   // 404.html: instrada <prefix>/<slug>, /panel, /profile e <prefix>/<slug>/<diretta> verso le pagine giuste
-  const notFound = `<!doctype html><html lang="it"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Pagina non trovata</title>
+  const notFound = `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Pagina non trovata</title>
 <style>body{margin:0;font-family:system-ui,sans-serif;background:#FBF8F2;color:#2B2520;display:grid;place-items:center;min-height:100vh}p{text-align:center;padding:24px;line-height:1.6}a{color:inherit}</style></head>
 <body><script>
 (function(){
   var m = location.pathname.match(/^${esc(P)}\\/([a-z0-9-]{2,40})(?:\\/([a-z0-9-]{2,60}))?\\/?$/);
-  if (!m || m[1] === "join" || m[1] === "img" || m[1] === "pay" || m[1] === "admin" || m[1] === "wheel-admin") return;
+  if (!m || m[1] === "join" || m[1] === "img" || m[1] === "pay" || m[1] === "admin" || m[1] === "wheel-admin" || m[1] === "me") return;
   var f = !m[2] ? "${P}/_viewer.html" : (m[2] === "panel" ? "${P}/_panel.html" : (m[2] === "profile" ? "${P}/_profile.html" : "${P}/_landing.html"));
   fetch(f, { cache: "no-store" }).then(function(r){ return r.text(); }).then(function(h){ document.open(); document.write(h); document.close(); });
 })();

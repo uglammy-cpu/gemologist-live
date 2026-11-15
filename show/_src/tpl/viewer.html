@@ -153,6 +153,7 @@ body.dark:has(#gate.on),.phone:has(#gate.on){background:var(--paper)}
 @media (min-width:760px){.phone:has(#gate.on){box-shadow:0 24px 60px rgba(60,30,20,.14),0 0 0 1px var(--line)}}
 body.dark:has(#gate.on) .credit{color:var(--muted)}
 body.dark:has(#gate.on) .toast{background:var(--ink);color:var(--paper)}
+.waitr{display:flex;flex-direction:column;align-items:center;gap:6px;margin-top:14px}.waitr .uqg-int{color:#EDD596}
 </style></head>
 <body class="dark">
 <div class="stagev">
@@ -165,7 +166,7 @@ body.dark:has(#gate.on) .toast{background:var(--ink);color:var(--paper)}
       <a class="x" id="back" href="{{BASE}}/live" aria-label="Chiudi">×</a>
     </div>
     <div class="pchip" id="pchip" hidden><i></i><span id="pchipTxt" dir="auto"></span></div>
-    <div class="waitv" id="wait" hidden><div><b id="waitT"></b><span id="waitS"></span></div></div>
+    <div class="waitv" id="wait" hidden><div><b id="waitT"></b><span id="waitS"></span><span class="waitr" id="waitR"></span></div></div>
     <form class="gate" id="gate"><div class="glogo"><svg class="ulogo" xmlns="http://www.w3.org/2000/svg" viewBox="88 32 830 190" role="img" aria-label="Uniqaia"><g font-family="'Cormorant Garamond',Garamond,'Times New Roman',serif" font-weight="500" font-size="150" fill="currentColor" text-anchor="middle"><text x="151" y="160">U</text><text x="283" y="160">N</text><text x="386" y="160">I</text><text x="659" y="160">A</text><text x="756" y="160">I</text><text x="853" y="160">A</text></g><path fill="var(--logo-gold,#A47F3A)" fill-rule="evenodd" d="M 435 112.5 A 75 75 0 1 0 585 112.5 A 75 75 0 1 0 435 112.5 Z M 453 112.5 A 57 67 0 1 0 567 112.5 A 57 67 0 1 0 453 112.5 Z"/><path fill="var(--logo-gold,#A47F3A)" d="M 521.7 186.6 C 545 196 575 203 610 202 C 575 214 540 212 512 196 Z"/><path d="M 470.1 90.5 A 44 52 0 0 1 495 63.6" fill="none" stroke="var(--logo-gold,#A47F3A)" stroke-width="5" stroke-linecap="round"/><circle cx="510" cy="112.5" r="14" fill="var(--logo-gem,#D43F52)"/></svg></div><b id="gateT"></b><p id="gateL"></p><input id="gateName" type="text" maxlength="60" autocomplete="name"><input id="gateMail" type="email" maxlength="254" autocomplete="email" inputmode="email" required><label class="cons"><input id="gateCons" type="checkbox"><span id="gateConsT"></span></label><button type="submit" id="gateGo"></button><p class="fine" id="gateP"></p></form>
     <button class="audio-btn" type="button" id="audioBtn" hidden></button>
     <div class="idlev" id="idle" hidden aria-live="polite"><div><b id="idleT"></b><p id="idleS" dir="auto"></p><button type="button" id="idleGo"></button></div></div>
@@ -187,12 +188,14 @@ body.dark:has(#gate.on) .toast{background:var(--ink);color:var(--paper)}
 </div>
 <p class="credit" id="credit"></p>
 <div class="modal" id="modal" hidden></div>
+<script>{{GROWTH}}</script>
 <script>
 {{LKJS}}
 (function(){
   var CFG = {"url":"{{URL}}","key":"{{KEY}}","slug":"{{SLUG}}","token":"{{TOKEN}}","lang":"{{LANG}}","tokenUrl":"{{TOKENURL}}","base":"{{BASE}}","showId":"{{SHOWID}}","art":{{ART}}};
   var TT = {{T}};
   var sb = window.supabase.createClient(CFG.url, CFG.key);
+  UQG.init(sb, { lang: "en", base: CFG.base });   // 15/11: accesso spettatori, Remind Me, Share
   var $ = function(id){ return document.getElementById(id); };
   var LOC = { it:"it-IT", en:"en-GB", fr:"fr-FR", ar:"ar-AE-u-nu-latn", ru:"ru-RU" };
   var state = { jeweler:null, show:null, pieces:[], photos:{}, invite:null, name:"", contact:"", lang:"it", t:TT.it, likes:0, channel:null, lastTap:0, queued:0 };
@@ -215,7 +218,10 @@ body.dark:has(#gate.on) .toast{background:var(--ink);color:var(--paper)}
     $("art").innerHTML = (p && state.photos[p.id]) ? '<img src="' + state.photos[p.id] + '" alt="" style="width:100%;height:100%;object-fit:cover;display:block">' : (p ? (CFG.art[p.art] || CFG.art.none) : CFG.art.none);
     var cap = p ? tr(p.caption_i18n, p.caption) : ""; $("pchip").hidden = !cap; $("pchipTxt").textContent = cap;
     var w = $("wait");
-    if (s.status === "scheduled"){ w.hidden = false; $("waitT").textContent = t.waitSoon; $("waitS").textContent = fmtDate(s.scheduled_at); }
+    UQG.setLang(state.lang);
+    if (s.status === "scheduled"){ w.hidden = false; $("waitT").textContent = t.waitSoon; $("waitS").textContent = fmtDate(s.scheduled_at);
+      // 15/11 (brief di Elena): «Remind me» e numero vero degli interessati prima dell'inizio
+      if (!$("waitR").firstChild){ $("waitR").appendChild(UQG.bell("show", s.id)); $("waitR").appendChild(UQG.count("show", s.id)); UQG.load("show", [s.id]); } }
     else if (s.status === "ended"){ w.hidden = false; $("waitT").textContent = t.waitEnded; $("waitS").textContent = t.waitEndedSub; }
     else { w.hidden = true; }
     $("likes").textContent = fmtK(s.likes, LOC[state.lang]); state.likes = s.likes || 0;
@@ -673,9 +679,8 @@ body.dark:has(#gate.on) .toast{background:var(--ink);color:var(--paper)}
   });
   $("share").addEventListener("click", function(){
     var link = (state.show && state.show.slug) ? CFG.base + "/live/" + CFG.slug + "/" + state.show.slug : CFG.base + "/live/" + CFG.slug;
-    var done = function(){ toast(state.t.copied); };
-    if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(link).then(done, function(){ openModal('<p class="eyebrow">' + esc(state.t.invite) + '</p><input type="text" readonly value="' + esc(link) + '">'); });
-    else openModal('<p class="eyebrow">' + esc(state.t.invite) + '</p><input type="text" readonly value="' + esc(link) + '">');
+    // 15/11: menu di condivisione del telefono o WhatsApp, Facebook, Telegram, Reddit, email, copia link; si conta solo il canale scelto
+    UQG.share({ kind: "show", id: state.show && state.show.id, url: link, title: (state.jeweler ? state.jeweler.name + " · " : "") + (state.show ? showTitle() : "") + " · Uniqaia" });
   });
 
   // ---- cuori ----
@@ -698,6 +703,7 @@ body.dark:has(#gate.on) .toast{background:var(--ink);color:var(--paper)}
         var prev = state.show; state.show = p.new;
         if (p.new.likes > state.likes && Date.now() - state.lastTap > 1500) burstHearts($("hearts"), Math.min(p.new.likes - state.likes, 5));
         if (p.new.status !== prev.status || p.new.current_piece_id !== prev.current_piece_id || p.new.title !== prev.title) render();
+        if (p.new.raid_id && p.new.raid_id !== prev.raid_id) raidOffer(p.new.raid_id);
         else { state.likes = Math.max(state.likes, p.new.likes || 0); $("likes").textContent = fmtK(state.likes, LOC[state.lang]); }
       })
       .on("postgres_changes", { event:"*", schema:"public", table:"pieces", filter:"show_id=eq." + state.show.id }, function(){ sb.from("pieces").select("*").eq("show_id", state.show.id).order("position").then(function(r){ state.pieces = r.data || []; render(); }); })
@@ -728,7 +734,7 @@ body.dark:has(#gate.on) .toast{background:var(--ink);color:var(--paper)}
         var q = (new URLSearchParams(location.search).get("lang") || "").toLowerCase(), st = "";
         try { st = localStorage.getItem("vetrina-lang") || ""; } catch(e){}
         var nav = (navigator.language || "").slice(0, 2).toLowerCase();
-        state.lang = TT[q] ? q : (TT[st] ? st : (TT[nav] ? nav : (TT[state.show.lang] ? state.show.lang : "it"))); state.t = TT[state.lang];
+        state.lang = TT[q] ? q : (TT[st] ? st : (TT[nav] ? nav : (TT[state.show.lang] ? state.show.lang : "en"))); state.t = TT[state.lang];
         if (TT[q]) { try { localStorage.setItem("vetrina-lang", q); } catch(e){} }
         document.documentElement.lang = state.lang; document.documentElement.dir = state.lang === "ar" ? "rtl" : "ltr";
         return Promise.all([
@@ -742,11 +748,52 @@ body.dark:has(#gate.on) .toast{background:var(--ink);color:var(--paper)}
         var pids = state.pieces.map(function(p){ return p.id; });
         if (pids.length) sb.from("piece_photos").select("piece_id,data").in("piece_id", pids).then(function(ph){ (ph.data || []).forEach(function(x){ state.photos[x.piece_id] = x.data; }); render(); });
         render();
+        UQG.visit("show", state.show.id);
+        raidArrived();
+        if (state.show.raid_id) raidOffer(state.show.raid_id);
         if (res[2].data && res[2].data.data) setPoster(res[2].data.data);
         (res[1].data || []).slice(-8).forEach(addMsg);
         subscribe();
       });
     });
+  }
+  // ---- Raid (15/11, brief di Elena): l'invito a passare alla diretta di un altro seller. Si passa solo con «Join Next Live».
+  var RT = {
+    en: { q:"The live is ending. Continue discovering jewelry with {s}?", go:"Join Next Live", stay:"Stay Here", gone:"That live has just ended." },
+    it: { q:"La diretta sta finendo. Vuoi continuare a scoprire gioielli con {s}?", go:"Vai alla prossima diretta", stay:"Resto qui", gone:"Quella diretta è appena finita." },
+    fr: { q:"Le live se termine. Continuer à découvrir des bijoux avec {s} ?", go:"Rejoindre le live suivant", stay:"Rester ici", gone:"Ce live vient de se terminer." },
+    ru: { q:"Эфир заканчивается. Продолжить знакомство с украшениями вместе с {s}?", go:"Перейти в следующий эфир", stay:"Остаться", gone:"Этот эфир только что закончился." },
+    ar: { q:"البث على وشك الانتهاء. هل تريد متابعة اكتشاف المجوهرات مع {s}؟", go:"انضم إلى البث التالي", stay:"ابقَ هنا", gone:"انتهى ذلك البث للتو." }
+  };
+  var raidSeen = {};
+  function raidOffer(rid){
+    if (raidSeen[rid]) return; raidSeen[rid] = 1;
+    var rt = RT[state.lang] || RT.en;
+    sb.rpc("raid_info", { p_raid: rid }).then(function(r){
+      var info = r.data; if (!info || !info.active || info.to_show === state.show.id) return;
+      openModal('<p class="eyebrow">' + esc(state.jeweler.name) + '</p><h3 dir="auto" style="margin:4px 0 16px">' + esc(rt.q.replace("{s}", info.seller)) + '</h3>'
+        + '<button class="btn dark" type="button" id="raidGo" style="width:100%;margin-bottom:8px">' + esc(rt.go) + '</button><button class="btn" type="button" id="raidStay" style="width:100%">' + esc(rt.stay) + '</button>');
+      $("raidStay").addEventListener("click", function(){ sb.rpc("raid_event", { p_raid: rid, p_event: "stay" }); closeModal(); });
+      $("raidGo").addEventListener("click", function(){
+        var b = this; b.disabled = true;
+        // la destinazione deve essere ancora in onda: mai verso una diretta terminata
+        sb.rpc("raid_info", { p_raid: rid }).then(function(r2){
+          var R = r2.data || {}; R.slug = R.seller_slug;
+          if (!R.active){ closeModal(); toast(rt.gone); return; }
+          sb.rpc("raid_event", { p_raid: rid, p_event: "accept" }).then(function(){
+            location.href = CFG.base + "/live/" + R.slug + "?s=" + R.to_show + "&raid=" + rid + "&lang=" + state.lang;
+          });
+        }, function(){ b.disabled = false; toast(rt.gone); });
+      });
+    });
+  }
+  // arrivo da un Raid: si conta una volta sola per questo arrivo, anche se la pagina si ricarica
+  function raidArrived(){
+    var q = new URLSearchParams(location.search), rid = (q.get("raid") || "").toLowerCase();
+    if (!/^[0-9a-f-]{36}$/.test(rid)) return;
+    var k = "uq-raid-" + rid, seen = false; try { seen = !!sessionStorage.getItem(k); sessionStorage.setItem(k, "1"); } catch(e){}
+    if (!seen) sb.rpc("raid_event", { p_raid: rid, p_event: "arrive" });
+    q.delete("raid"); try { history.replaceState(null, "", location.pathname + "?" + q.toString()); } catch(e){}
   }
   boot();
   applySubs();

@@ -957,7 +957,7 @@
     // la figura si sceglie al primo mount (poi resta quella): opzione, ?figura= per le prove, data-figura sul contenitore
     if (!built) { var f0 = (opts && opts.figura) || QS.get("figura") || slot.getAttribute("data-figura"); if (f0) pick(f0); }
     build();
-    var nl = TXT[l] ? l : (TXT[lang] ? lang : "it"), changed = nl !== lang || !T;
+    var nl = TXT[l] ? l : (TXT[lang] ? lang : "en"), changed = nl !== lang || !T;
     lang = nl; T = TXT[lang];
     if (!T) return;
     if (el.root.parentNode !== slot) slot.appendChild(el.root);
@@ -988,5 +988,5 @@
     state: function () { return { step: P.i, playing: P.playing, voice: P.voice, webgl: !!eng, lang: lang, figura: FIG, started: P.started, entered: A.entered, seme: SEED0 }; }
   };
   var slot0 = document.getElementById("uqaSlot");
-  if (slot0) mount(slot0, document.documentElement.lang || "it");
+  if (slot0) mount(slot0, document.documentElement.lang || "en");
 })();

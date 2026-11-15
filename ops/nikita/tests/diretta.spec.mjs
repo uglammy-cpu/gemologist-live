@@ -8,7 +8,8 @@ test("[e2e.diretta.pagina] La pagina di una diretta esiste in 5 lingue con i lin
   const d = dirette.find((x) => true);
   if (!d) nonTestato("nessuna diretta in programma");
   const st = await prepara(page);
-  for (const [lang, dir] of [["", "ltr"], ["en/", "ltr"], ["fr/", "ltr"], ["ru/", "ltr"], ["ar/", "rtl"]]) {
+  // dal 15/11/2026 l'inglese è alla radice e l'italiano in /it/; /en/ resta valido
+  for (const [lang, dir] of [["", "ltr"], ["it/", "ltr"], ["en/", "ltr"], ["fr/", "ltr"], ["ru/", "ltr"], ["ar/", "rtl"]]) {
     const r = await page.goto(`/${d.seller}/${d.slug}/${lang}`, { waitUntil: "domcontentloaded" });
     expect(r.status(), `pagina ${lang || "it/"}`).toBe(200);
     await expect(page).toHaveTitle(/Uniqaia/);
@@ -20,8 +21,11 @@ test("[e2e.diretta.pagina] La pagina di una diretta esiste in 5 lingue con i lin
   expect((await request.get(await partecipa.getAttribute("href"))).status()).toBe(200);
   const cal = await page.locator('a[href^="data:text/calendar"]').first().getAttribute("href");
   expect(decodeURIComponent(cal || ""), "«Ricordamelo» deve creare un evento di calendario valido").toMatch(/BEGIN:VEVENT[\s\S]*DTSTART:\d{8}T\d{6}Z[\s\S]*END:VEVENT/);
-  const wa = await page.locator('a[href^="https://wa.me/"]').first().getAttribute("href");
+  // dal 15/11/2026 «Share» apre i canali (al computer) o il menu del telefono: WhatsApp è uno dei canali
+  await page.locator(".lcta .uqg-bell", { hasText: "Share" }).click();
+  const wa = await page.locator('.uqg-ch[href^="https://wa.me/"]').first().getAttribute("href");
   expect(decodeURIComponent(wa || ""), "la condivisione WhatsApp deve contenere l'indirizzo della diretta").toContain(`/${d.seller}/${d.slug}/`);
+  await expect(page.locator(".lcta .uqg-bell", { hasText: "Remind me" }), "pulsante «Remind me»").toBeVisible();
   nessunErrore(st);
 });
 

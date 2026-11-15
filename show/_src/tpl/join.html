@@ -24,7 +24,7 @@
   var PFX = location.pathname.replace(/\/join\/?.*$/, "");
   var lang = CFG.lang;
   if (!TT[lang]) { try { lang = localStorage.getItem("vetrina-lang") || ""; } catch(e){} }
-  if (!TT[lang]) { var nav = (navigator.language || "it").slice(0,2).toLowerCase(); lang = TT[nav] ? nav : "it"; }
+  if (!TT[lang]) { var nav = (navigator.language || "en").slice(0,2).toLowerCase(); lang = TT[nav] ? nav : "en"; }   // 15/11: inglese lingua principale
   var t = TT[lang];
 
   // ---------------------------------------------------------------- testi dell'area account (russo e arabo da rivedere con un madrelingua)

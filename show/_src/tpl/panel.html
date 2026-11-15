@@ -109,6 +109,13 @@ label input,label select,label textarea{width:100%}
       <h2 id="title"></h2>
       <p class="muted" style="font-size:14px" id="when"></p>
       <div class="actions"><button class="btn dark" type="button" id="toggle"></button><button class="btn sm" type="button" id="edit">Modifica</button><button class="btn sm" type="button" id="newShow">Nuova diretta</button></div>
+      <!-- 15/11 (brief di Elena): Raid, cioè invitare gli spettatori alla diretta in corso di un altro seller -->
+      <div id="raidBox" hidden style="margin-top:14px;border-top:1px solid var(--line);padding-top:12px;text-align:start">
+        <p class="hint" style="margin:0 0 8px"><b>Stai per chiudere?</b> Puoi invitare chi ti guarda a passare alla diretta in corso di un altro seller. Passa solo chi lo sceglie.</p>
+        <div class="actions"><button class="btn sm" type="button" id="raidOpen">Manda gli spettatori a un'altra diretta</button></div>
+        <div id="raidList"></div><p class="hint" id="raidMsg" style="margin:8px 0 0"></p>
+        <label class="hint" style="display:flex;flex-direction:row;gap:8px;align-items:center;margin-top:8px"><input type="checkbox" id="raidAccept" checked style="width:auto;min-height:0"> Accetto spettatori che arrivano da altre dirette</label>
+      </div>
       <div class="seg" id="visSeg"><button type="button" data-vis="private">Privata su invito</button><button type="button" data-vis="public">In vetrina</button></div>
       <p class="hint" id="visHint"></p>
       <div class="share"><span>Link per i clienti</span><input id="shareUrl" readonly><button class="btn sm" type="button" id="copyShare">Copia</button></div>
@@ -281,8 +288,24 @@ label input,label select,label textarea{width:100%}
     $("visHint").textContent = s.visibility === "public" ? "Compare nella vetrina pubblica: chiunque può entrare." : "Entra solo chi ha il link o un invito personale.";
     $("stats").hidden = false; $("likesN").textContent = s.likes || 0;
     $("jinfo").textContent = state.jeweler.name + " · " + (state.jeweler.city || "città non indicata") + " · " + (KINDS[state.jeweler.kind] || "Gioielleria") + ((state.jeweler.categories || []).length ? " · " + state.jeweler.categories.map(catName).join(", ") : "");
-    renderHeader(); renderPieces(); socSync(); recSync();
+    renderHeader(); renderPieces(); socSync(); recSync(); raidSync();
     document.title = "Pannello · " + s.title;
+  }
+  // ---- Raid (15/11): lista delle dirette in onda che accettano spettatori, invito, annullamento, numeri
+  var raidTimer = null;
+  function raidSync(){
+    var s = state.show, live = s && s.status === "live";
+    $("raidBox").hidden = !live; $("raidAccept").checked = !s || s.accept_raids !== false;
+    if (!live){ $("raidList").innerHTML = ""; clearInterval(raidTimer); raidTimer = null; return; }
+    if (s.raid_id) raidStats();
+  }
+  function raidStats(){
+    sb.rpc("raid_stats", { p_show: state.show.id, p_token: CFG.token }).then(function(r){
+      var x = (r.data || [])[0]; if (!x || x.status !== "active"){ if (!state.show.raid_id) $("raidMsg").textContent = ""; return; }
+      $("raidMsg").innerHTML = "Invito mandato a " + (x.invited || 0) + " spettatori: " + x.accepted + " hanno scelto di passare, " + x.arrived + " sono arrivati, " + x.stayed + " restano qui. <button class=\"btn sm\" type=\"button\" id=\"raidCancel\">Annulla l'invito</button>";
+      $("raidCancel").addEventListener("click", function(){ sb.rpc("cancel_raid", { p_show: state.show.id, p_token: CFG.token }).then(function(r2){ if (!err(r2)){ state.show.raid_id = null; clearInterval(raidTimer); raidTimer = null; $("raidMsg").textContent = "Invito annullato."; } }); });
+    });
+    if (!raidTimer) raidTimer = setInterval(raidStats, 10000);
   }
   function renderPieces(){
     var box = $("pieces"); box.innerHTML = "";
@@ -932,6 +955,23 @@ label input,label select,label textarea{width:100%}
   });
   $("showSel").addEventListener("change", function(){ var u = new URL(location.href); u.searchParams.set("show", this.value); location.href = u.toString(); });
   $("copyShare").addEventListener("click", function(){ copy(viewerUrl(), this); });
+  $("raidOpen").addEventListener("click", function(){
+    var box = $("raidList"); box.innerHTML = '<p class="hint">…</p>';
+    sb.rpc("raid_targets", { p_show: state.show.id, p_token: CFG.token }).then(function(r){
+      if (err(r)) { box.innerHTML = ""; return; }
+      var rows = r.data || [];
+      if (!rows.length){ box.innerHTML = '<p class="hint">In questo momento non ci sono altre dirette in onda che accettano spettatori.</p>'; return; }
+      box.innerHTML = rows.map(function(x){ return '<div style="display:flex;gap:8px;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--line)"><span><b>' + esc(x.seller) + '</b><br><small class="hint">' + esc(x.title) + ((x.categories || []).length ? " · " + x.categories.map(catName).join(", ") : "") + '</small></span><button class="btn sm dark" type="button" data-to="' + esc(x.show_id) + '">Invia</button></div>'; }).join("");
+      Array.prototype.forEach.call(box.querySelectorAll("[data-to]"), function(b){ b.addEventListener("click", function(){
+        b.disabled = true;
+        sb.rpc("start_raid", { p_show: state.show.id, p_token: CFG.token, p_to: b.getAttribute("data-to"), p_invited: +($("viewersN").textContent || 0) || 0 }).then(function(r2){
+          if (err(r2)) { b.disabled = false; return; }
+          state.show.raid_id = r2.data; box.innerHTML = ""; toast("Invito mandato: i tuoi spettatori lo vedono adesso."); raidStats();
+        });
+      }); });
+    });
+  });
+  $("raidAccept").addEventListener("change", function(){ var c = this; sb.rpc("set_accept_raids", { p_show: state.show.id, p_token: CFG.token, p_on: c.checked }).then(function(r){ if (err(r)) c.checked = !c.checked; else state.show.accept_raids = c.checked; }); });
   $("copyProfile").addEventListener("click", function(){ copy($("profileUrl").value, this); });
   $("copyLanding").addEventListener("click", function(){ copy($("landingUrl").value, this); });
   // Foto dei pezzi: ridotte nel browser (max 900 px, JPEG) e salvate nel database

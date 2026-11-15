@@ -470,6 +470,11 @@ body.dark .demo{color:rgba(247,235,203,.55)}body.dark .demo b{color:var(--gold-h
 .slide .cdown svg{flex:none;display:block}
 .slide .cdown b{font-weight:600;unicode-bidi:plaintext}
 @media (min-width:720px){.slide .cdown{top:18px;inset-inline-start:18px;font-size:13px}}
+/* 15/11 · Remind Me sulle righe del palinsesto e della settimana (crescita dell'audience) */
+.agw{position:relative}.agw>.ag{padding-inline-end:52px}.agw>.uqg-bell{position:absolute;inset-inline-end:0;top:50%;transform:translateY(-50%)}
+.agw>.ag.night{grid-template-columns:52px minmax(0,1fr) auto}
+.me-btn{display:inline-grid;place-items:center;padding:0}.me-btn svg{width:17px;height:17px}
+.lcta .uqg-bell{flex:1 1 auto;min-height:46px;font-size:15px;border-color:var(--ink)}.lcta .uqg-bell.on{border-color:var(--gold-ink)}
 
 .cam{position:relative;background:var(--video);border-radius:12px;aspect-ratio:4/3;overflow:hidden;display:grid;place-items:center;color:#9AA0A8;font-size:13px;text-align:center;padding:12px}
 .cam .videos{display:block}
@@ -580,7 +585,16 @@ label input,label select,label textarea{width:100%}
       <select class="sel" id="showSel"></select>
       <h2 id="title"></h2>
       <p class="muted" style="font-size:14px" id="when"></p>
+      <p class="hint" id="interestN" hidden style="margin:-4px 0 10px"></p>
       <div class="actions"><button class="btn dark" type="button" id="toggle"></button><button class="btn sm" type="button" id="edit">Modifica</button><button class="btn sm" type="button" id="newShow">Nuova diretta</button></div>
+      <!-- 15/11 (brief di Elena): Raid, cioè invitare gli spettatori alla diretta in corso di un altro seller -->
+      <style>#raidBox .hint,#interestN{text-align:start}</style>
+      <div id="raidBox" hidden style="margin-top:14px;border-top:1px solid var(--line);padding-top:12px;text-align:start">
+        <p class="hint" style="margin:0 0 8px"><b>Stai per chiudere?</b> Puoi invitare chi ti guarda a passare alla diretta in corso di un altro seller. Passa solo chi lo sceglie.</p>
+        <div class="actions"><button class="btn sm" type="button" id="raidOpen">Manda gli spettatori a un'altra diretta</button></div>
+        <div id="raidList"></div><p class="hint" id="raidMsg" style="margin:8px 0 0"></p>
+        <label class="hint" style="display:flex;flex-direction:row;gap:8px;align-items:center;margin-top:8px"><input type="checkbox" id="raidAccept" checked style="width:auto;min-height:0"> Accetto spettatori che arrivano da altre dirette</label>
+      </div>
       <div class="seg" id="visSeg"><button type="button" data-vis="private">Privata su invito</button><button type="button" data-vis="public">In vetrina</button></div>
       <p class="hint" id="visHint"></p>
       <div class="share"><span>Link per i clienti</span><input id="shareUrl" readonly><button class="btn sm" type="button" id="copyShare">Copia</button></div>
@@ -841,8 +855,40 @@ function uqFoot(t){
     $("visHint").textContent = s.visibility === "public" ? "Compare nella vetrina pubblica: chiunque può entrare." : "Entra solo chi ha il link o un invito personale.";
     $("stats").hidden = false; $("likesN").textContent = s.likes || 0;
     $("jinfo").textContent = state.jeweler.name + " · " + (state.jeweler.city || "città non indicata") + " · " + (KINDS[state.jeweler.kind] || "Gioielleria") + ((state.jeweler.categories || []).length ? " · " + state.jeweler.categories.map(catName).join(", ") : "");
-    renderHeader(); renderPieces(); socSync(); recSync();
+    renderHeader(); renderPieces(); socSync(); recSync(); raidSync(); interestSync();
     document.title = "Pannello · " + s.title;
+  }
+  // ---- Remind Me (15/11): quante persone hanno salvato la diretta. Solo il numero, mai chi (LEG-015, condizioni dei seller 14.4)
+  function interestSync(){
+    var s = state.show, el = $("interestN");
+    if (!s || s.status === "ended" || s.visibility !== "public") { el.hidden = true; return; }
+    sb.rpc("interested", { p_kind: "show", p_ids: [s.id] }).then(function(r){
+      var n = r && !r.error && r.data && r.data[0] ? +r.data[0].n || 0 : 0;
+      el.hidden = n < 1; el.textContent = (n === 1 ? "1 persona è interessata" : n + " persone sono interessate") + " · l'hanno salvata con «Remind me» (vedi solo il numero, non chi)";
+    });
+  }
+  // numero vero degli spettatori collegati a un'altra diretta: si legge la presenza del suo canale senza farsi contare
+  function peekViewers(id, cb){
+    var done = false, ch = sb.channel("show-" + id, { config: { presence: { key: "p" + Math.random().toString(36).slice(2, 10) } } });
+    function end(n){ if (done) return; done = true; cb(n); setTimeout(function(){ try { sb.removeChannel(ch); } catch(e){} }, 50); }
+    ch.on("presence", { event: "sync" }, function(){ var n = 0; Object.keys(ch.presenceState()).forEach(function(k){ if (k.charAt(0) === "v") n++; }); end(n); }).subscribe();
+    setTimeout(function(){ end(null); }, 4000);
+  }
+  // ---- Raid (15/11): lista delle dirette in onda che accettano spettatori, invito, annullamento, numeri
+  var raidTimer = null;
+  function raidSync(){
+    var s = state.show, live = s && s.status === "live";
+    $("raidBox").hidden = !live; $("raidAccept").checked = !s || s.accept_raids !== false;
+    if (!live){ $("raidList").innerHTML = ""; clearInterval(raidTimer); raidTimer = null; return; }
+    if (s.raid_id) raidStats();
+  }
+  function raidStats(){
+    sb.rpc("raid_stats", { p_show: state.show.id, p_token: CFG.token }).then(function(r){
+      var x = (r.data || [])[0]; if (!x || x.status !== "active"){ if (!state.show.raid_id) $("raidMsg").textContent = ""; return; }
+      $("raidMsg").innerHTML = "Invito mandato a " + (x.invited || 0) + " spettatori: " + x.accepted + " hanno scelto di passare, " + x.arrived + " sono arrivati, " + x.stayed + " restano qui. <button class=\"btn sm\" type=\"button\" id=\"raidCancel\">Annulla l'invito</button>";
+      $("raidCancel").addEventListener("click", function(){ sb.rpc("cancel_raid", { p_show: state.show.id, p_token: CFG.token }).then(function(r2){ if (!err(r2)){ state.show.raid_id = null; clearInterval(raidTimer); raidTimer = null; $("raidMsg").textContent = "Invito annullato."; } }); });
+    });
+    if (!raidTimer) raidTimer = setInterval(raidStats, 10000);
   }
   function renderPieces(){
     var box = $("pieces"); box.innerHTML = "";
@@ -1492,6 +1538,25 @@ function uqFoot(t){
   });
   $("showSel").addEventListener("change", function(){ var u = new URL(location.href); u.searchParams.set("show", this.value); location.href = u.toString(); });
   $("copyShare").addEventListener("click", function(){ copy(viewerUrl(), this); });
+  $("raidOpen").addEventListener("click", function(){
+    var box = $("raidList"); box.innerHTML = '<p class="hint">…</p>';
+    sb.rpc("raid_targets", { p_show: state.show.id, p_token: CFG.token }).then(function(r){
+      if (err(r)) { box.innerHTML = ""; return; }
+      var rows = r.data || [];
+      if (!rows.length){ box.innerHTML = '<p class="hint">In questo momento non ci sono altre dirette in onda che accettano spettatori.</p>'; return; }
+      // in ordine di inizio, con il numero vero degli spettatori collegati (LEG-015, condizioni dei seller 7.7)
+      box.innerHTML = '<p class="hint" style="margin:8px 0 0">In ordine di inizio.</p>' + rows.map(function(x){ return '<div style="display:flex;gap:8px;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--line)"><span><b>' + esc(x.seller) + '</b><br><small class="hint">' + esc(x.title) + ((x.categories || []).length ? " · " + x.categories.map(catName).join(", ") : "") + '</small><br><small class="hint" data-vn="' + esc(x.show_id) + '">Spettatori collegati: …</small></span><button class="btn sm dark" type="button" data-to="' + esc(x.show_id) + '">Invia</button></div>'; }).join("");
+      rows.forEach(function(x){ peekViewers(x.show_id, function(n){ var e = box.querySelector('[data-vn="' + x.show_id + '"]'); if (e) e.textContent = n == null ? "Spettatori collegati: non disponibile" : (n === 1 ? "1 spettatore collegato" : n + " spettatori collegati"); }); });
+      Array.prototype.forEach.call(box.querySelectorAll("[data-to]"), function(b){ b.addEventListener("click", function(){
+        b.disabled = true;
+        sb.rpc("start_raid", { p_show: state.show.id, p_token: CFG.token, p_to: b.getAttribute("data-to"), p_invited: +($("viewersN").textContent || 0) || 0 }).then(function(r2){
+          if (err(r2)) { b.disabled = false; return; }
+          state.show.raid_id = r2.data; box.innerHTML = ""; toast("Invito mandato: i tuoi spettatori lo vedono adesso."); raidStats();
+        });
+      }); });
+    });
+  });
+  $("raidAccept").addEventListener("change", function(){ var c = this; sb.rpc("set_accept_raids", { p_show: state.show.id, p_token: CFG.token, p_on: c.checked }).then(function(r){ if (err(r)) c.checked = !c.checked; else state.show.accept_raids = c.checked; }); });
   $("copyProfile").addEventListener("click", function(){ copy($("profileUrl").value, this); });
   $("copyLanding").addEventListener("click", function(){ copy($("landingUrl").value, this); });
   // Foto dei pezzi: ridotte nel browser (max 900 px, JPEG) e salvate nel database

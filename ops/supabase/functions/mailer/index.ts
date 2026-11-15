@@ -8,6 +8,7 @@
 // (LEG-015, sezione D): perché arriva l'email e i link per spegnere i promemoria di quella diretta o tutti.
 // Li accodano public.growth_reminders() (ogni 5 minuti) e i trigger delle dirette e delle serate salvate.
 // Contengono solo titolo, seller, giorno e ora nel fuso della persona, link per entrare: niente pubblicità né altre dirette (LEG-015, E.7).
+// Versione 8 (15/11/2026, richiesta di Elena): pulsante italiano «VAI ALLA LIVE»; nei promemoria niente nome, indirizzo e partita IVA della titolare.
 import { createClient } from "npm:@supabase/supabase-js@2";
 
 const sb = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!, { auth: { persistSession: false } });
@@ -28,7 +29,7 @@ const FOOT: Record<L, string> = {
 const foot = (lang: string) => FOOT[lang as L] ?? FOOT.en;
 const footHtml = (lang: string) => esc(foot(lang)).replace(/(https:\/\/[^\s<]+)/g, '<a href="$1" style="color:#8a8078">$1</a>');
 
-// Promemoria: al posto della frase sulla candidatura, la riga del Legal (LEG-015, sezione D). Il resto di FOOT resta.
+// Promemoria agli spettatori: solo «Uniqaia», la riga del Legal (LEG-015, sezione D) e i link. Niente nome, indirizzo e partita IVA della titolare (Elena, 15/11): restano nell'informativa privacy.
 // Francese, russo e arabo da far rivedere a Traduzioni.
 const REMFOOT: Record<L, { pre: string; one: string; all: string; priv: string; url: string }> = {
   it: { pre: "Ricevi questa email perché hai salvato questa diretta su Uniqaia e hai chiesto un promemoria.", one: "Spegni i promemoria di questa diretta", all: "Spegni tutti i promemoria", priv: "Informativa privacy", url: "https://uniqaia.com/privacy/" },
@@ -38,11 +39,10 @@ const REMFOOT: Record<L, { pre: string; one: string; all: string; priv: string; 
   ar: { pre: "تتلقى هذه الرسالة لأنك حفظت هذا البث على Uniqaia وطلبت تذكيرًا.", one: "إيقاف تذكيرات هذا البث", all: "إيقاف كل التذكيرات", priv: "إشعار الخصوصية", url: "https://uniqaia.com/privacy/?lang=en" },
 };
 const isRem = (tpl: string) => tpl === "reminder" || tpl === "reminder_change";
-const owner = (lang: string) => foot(lang).split(" · ").slice(0, 3).join(" · ");   // titolare, indirizzo, partita IVA
-const remFoot = (lang: string, d: D) => { const f = REMFOOT[lang as L] ?? REMFOOT.en; return `${owner(lang)} · ${f.pre} ${f.one}: ${d.off} · ${f.all}: ${d.off_all} · ${f.priv}: ${f.url}`; };
+const remFoot = (lang: string, d: D) => { const f = REMFOOT[lang as L] ?? REMFOOT.en; return `Uniqaia · ${f.pre} ${f.one}: ${d.off} · ${f.all}: ${d.off_all} · ${f.priv}: ${f.url}`; };
 const remFootHtml = (lang: string, d: D) => {
   const f = REMFOOT[lang as L] ?? REMFOOT.en, a = (u: string, t: string) => `<a href="${esc(u)}" style="color:#8a8078">${esc(t)}</a>`;
-  return `${esc(owner(lang))} · ${esc(f.pre)} ${a(d.off, f.one)} · ${a(d.off_all, f.all)} · ${a(f.url, f.priv)}`;
+  return `Uniqaia · ${esc(f.pre)} ${a(d.off, f.one)} · ${a(d.off_all, f.all)} · ${a(f.url, f.priv)}`;
 };
 const footFor = (tpl: string, lang: string, d: D) => isRem(tpl) ? remFoot(lang, d) : foot(lang);
 const footHtmlFor = (tpl: string, lang: string, d: D) => isRem(tpl) ? remFootHtml(lang, d) : footHtml(lang);
@@ -119,7 +119,7 @@ const TPL: Record<string, Partial<Record<L, T>>> = {
     it: {
       s: (d) => d.slot === "15m" ? `Fra 15 minuti: ${d.title}` : `Domani su Uniqaia: ${d.title}`,
       b: (d) => `Ciao,\n\n${night(d) ? "la serata che hai salvato" : "la diretta che hai salvato"} ${d.slot === "15m" ? "comincia fra 15 minuti" : "è domani"}: ${d.title}${d.seller ? " con " + d.seller : ""}, ${W(d, "it")}.\n\nUniqaia`,
-      c: (d) => ({ label: night(d) ? "VAI ALLA SERATA" : "ENTRA NELLA DIRETTA", url: d.url }),
+      c: (d) => ({ label: "VAI ALLA LIVE", url: d.url }),
     },
     fr: {
       s: (d) => d.slot === "15m" ? `Dans 15 minutes : ${d.title}` : `Demain sur Uniqaia : ${d.title}`,
@@ -151,7 +151,7 @@ const TPL: Record<string, Partial<Record<L, T>>> = {
       b: (d) => d.change === "moved"
         ? `Ciao,\n\n${night(d) ? "la serata che hai salvato" : "la diretta che hai salvato"}, ${d.title}${d.seller ? " con " + d.seller : ""}, è stata spostata.\n\nNuovo orario: ${W(d, "it")}\nOrario precedente: ${WO(d, "it")}\n\nI promemoria seguono il nuovo orario.\n\nUniqaia`
         : `Ciao,\n\n${night(d) ? "la serata che hai salvato" : "la diretta che hai salvato"}, ${d.title}${d.seller ? " con " + d.seller : ""}, prevista per ${WO(d, "it")}, è stata annullata. L'abbiamo tolta da Le mie dirette.\n\nUniqaia`,
-      c: (d) => d.change === "moved" ? { label: night(d) ? "VAI ALLA SERATA" : "VAI ALLA DIRETTA", url: d.url } : null,
+      c: (d) => d.change === "moved" ? { label: "VAI ALLA LIVE", url: d.url } : null,
     },
     fr: {
       s: (d) => d.change === "moved" ? `Nouvel horaire : ${d.title}` : `Annulé${night(d) ? "e" : ""} : ${d.title}`,

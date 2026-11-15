@@ -3,7 +3,7 @@
 // In qualunque altro caso le email restano nella coda con stato 'held': si leggono nel pannello, non partono.
 // 4 novembre 2026: conferma di candidatura con i tempi di risposta, email di approvazione con il link di pagamento
 // (solo con Stripe in produzione: altrimenti resta 'blocked'), email di attivazione con il link del pannello.
-// Versione 7 (preparata il 15/11/2026, NON pubblicata: si pubblica solo con l'OK di Elena): promemoria delle dirette salvate
+// Versione 7 (pubblicata il 15/11/2026 con l'OK di Elena delle 13:18): promemoria delle dirette salvate
 // con «Remind me» (reminder) e avvisi di spostamento o annullamento (reminder_change), con il piè di pagina del Legal
 // (LEG-015, sezione D): perché arriva l'email e i link per spegnere i promemoria di quella diretta o tutti.
 // Li accodano public.growth_reminders() (ogni 5 minuti) e i trigger delle dirette e delle serate salvate.

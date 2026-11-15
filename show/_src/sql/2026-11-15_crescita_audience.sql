@@ -157,7 +157,7 @@ begin
   if v_uid is null then raise exception 'login required' using errcode = '28000'; end if;
   select * into v_u from auth.users where id = v_uid;
   insert into viewer_profiles (user_id, ref_code, lang, tz, privacy_version, terms_version)
-    values (v_uid, _ref_code(), _lang_ok(p_lang), coalesce(_tz_ok(p_tz), 'Europe/Rome'), '1.1', '1.1')
+    values (v_uid, _ref_code(), _lang_ok(p_lang), coalesce(_tz_ok(p_tz), 'Europe/Rome'), '1.1-2026-11-15', '1.1-2026-11-15')
     on conflict (user_id) do nothing returning * into v_p;
   if v_p.user_id is not null then v_new := true;
   else

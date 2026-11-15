@@ -545,7 +545,7 @@
     if (!F.privacy || !F.terms || !F.clauses) return say(j("errConsents"));
     var p = { name: F.name, legal_name: F.legal_name, vat_number: F.vat_number, contact_name: F.contact_name, phone: F.phone || "", country: F.country || "IT", city: F.city,
       site: F.site || "", instagram: F.instagram || "", kind: F.kind || "shop", categories: ST.cats, description: F.description, show_what: F.show_what || "", night_id: F.night_id || null,
-      privacy: true, terms: true, privacy_version: "1.0-2026-11-09", terms_version: "1.0-2026-11-09+1341", lang: lang, draft: ST.files.draft };
+      privacy: true, terms: true, privacy_version: "1.1-2026-11-15", terms_version: "1.1-2026-11-15", lang: lang, draft: ST.files.draft };
     if (ST.files.logo) p.logo_path = ST.files.logo;
     if (ST.files.photo1 && ST.files.photo2) p.photo_paths = [ST.files.photo1, ST.files.photo2];
     if (ST.invite && !a) p.token = ST.invite;

@@ -12,6 +12,17 @@ type T = { s: (d: D) => string; b: (d: D) => string; c?: (d: D) => { label: stri
 
 const eur = (cents: string) => { const n = Number(cents) / 100; return "€" + (Number.isInteger(n) ? String(n) : n.toFixed(2)); };
 
+// Piè di pagina con i dati del titolare, in tutte le email (D.Lgs. 70/2003, artt. 7 e 8; Legal, 9/11/2026)
+const FOOT: Record<L, string> = {
+  it: "Uniqaia · Elena Goglio, Via Bortolo Belotti 6, 24010 Olmo al Brembo (BG), Italia · P.IVA 04700020169 · Ricevi questa email per la tua candidatura o il tuo account su uniqaia.com. Informativa privacy: https://uniqaia.com/privacy/",
+  en: "Uniqaia · Elena Goglio, Via Bortolo Belotti 6, 24010 Olmo al Brembo (BG), Italy · VAT IT04700020169 · You are receiving this email about your application or account on uniqaia.com. Privacy notice: https://uniqaia.com/privacy/?lang=en",
+  fr: "Uniqaia · Elena Goglio, Via Bortolo Belotti 6, 24010 Olmo al Brembo (BG), Italie · TVA IT04700020169 · Vous recevez cet e-mail au sujet de votre candidature ou de votre compte sur uniqaia.com. Politique de confidentialité : https://uniqaia.com/privacy/?lang=en",
+  ru: "Uniqaia · Элена Гольо, Via Bortolo Belotti 6, 24010 Olmo al Brembo (BG), Италия · НДС IT04700020169 · Вы получили это письмо в связи с вашей заявкой или аккаунтом на uniqaia.com. Политика конфиденциальности: https://uniqaia.com/privacy/?lang=en",
+  ar: "Uniqaia · إيلينا غولْيو، Via Bortolo Belotti 6, 24010 Olmo al Brembo (BG)، إيطاليا · رقم ضريبة القيمة المضافة IT04700020169 · تتلقى هذه الرسالة بخصوص طلبك أو حسابك على uniqaia.com. إشعار الخصوصية: https://uniqaia.com/privacy/?lang=en",
+};
+const foot = (lang: string) => FOOT[lang as L] ?? FOOT.en;
+const footHtml = (lang: string) => esc(foot(lang)).replace(/(https:\/\/[^\s<]+)/g, '<a href="$1" style="color:#8a8078">$1</a>');
+
 // Testi di sistema. Russo e arabo non ancora rivisti da madrelingua.
 const TPL: Record<string, Partial<Record<L, T>>> = {
   received: {
@@ -39,7 +50,7 @@ const TPL: Record<string, Partial<Record<L, T>>> = {
   approved_payment: {
     en: {
       s: () => `Welcome to Uniqaia — Your Brand Has Been Approved`,
-      b: (d) => `Dear ${d.contact},\n\nCongratulations! Your brand has been approved to join Uniqaia.\n\n${d.offer === "true" ? "Your exclusive welcome offer is ready.\n\n" : ""}First month: ${eur(d.first_cents)}\nFollowing months: ${eur(d.std_cents)}/month\n\nYour subscription includes ${d.lives} live shows per month, each lasting up to ${d.max_min} minutes.\n\nKind regards,\nElena Goglio · Uniqaia`,
+      b: (d) => `Dear ${d.contact},\n\nCongratulations! Your brand has been approved to join Uniqaia.\n\nFirst month: ${eur(d.first_cents)}\nFollowing months: ${eur(d.std_cents)}/month\n\nYour subscription includes ${d.lives} live shows per month, each lasting up to ${d.max_min} minutes.\n\nKind regards,\nElena Goglio · Uniqaia`,
       c: (d) => (d.pay ? { label: "ACTIVATE YOUR SUBSCRIPTION", url: d.pay } : null),
     },
   },
@@ -83,7 +94,7 @@ const html = (text: string, lang: string, cta: { label: string; url: string } | 
   const [head, ...rest] = esc(text).split("\n\nKind regards,");
   const body = (s: string) => s.replace(/(https:\/\/[^\s<]+)/g, '<a href="$1" style="color:#86683B">$1</a>').replace(/\n/g, "<br>");
   const main = cta && rest.length ? body(head) + button(cta) + body("Kind regards," + rest.join("\n\nKind regards,")) : body(esc(text)) + (cta ? button(cta) : "");
-  return `<!doctype html><html lang="${lang}" dir="${lang === "ar" ? "rtl" : "ltr"}"><body style="margin:0;background:#FBF8F2;font-family:Georgia,serif;color:#2B2520"><div style="max-width:560px;margin:0 auto;padding:32px 24px;font-size:16px;line-height:1.6">${main}<p style="margin-top:32px;font-size:12px;color:#8a8078">Uniqaia · uniqaia.com</p></div></body></html>`;
+  return `<!doctype html><html lang="${lang}" dir="${lang === "ar" ? "rtl" : "ltr"}"><body style="margin:0;background:#FBF8F2;font-family:Georgia,serif;color:#2B2520"><div style="max-width:560px;margin:0 auto;padding:32px 24px;font-size:16px;line-height:1.6">${main}<p style="margin-top:32px;font-size:12px;color:#8a8078">${footHtml(lang)}</p></div></body></html>`;
 };
 
 async function cfg(keys: string[]) {
@@ -116,7 +127,7 @@ Deno.serve(async (req) => {
     if (d.slug && d.key) d.panel = `${base}/${d.slug}/panel/?k=${d.key}`;
     if (d.pay_token) d.pay = `${base}/pay/?t=${d.pay_token}`;
     const subject = t.s(d), cta = t.c ? t.c(d) : null;
-    const text = t.b(d) + (cta ? `\n\n${cta.label}:\n${cta.url}` : "");
+    const text = t.b(d) + (cta ? `\n\n${cta.label}:\n${cta.url}` : "") + "\n\n--\n" + foot(r.lang);
     if (!live) { await sb.from("outbox").update({ status: "held", subject }).eq("id", r.id); held++; continue; }
     try {
       const res = await fetch("https://api.resend.com/emails", {

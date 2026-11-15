@@ -553,7 +553,7 @@ begin
   return r;
 end $$;
 
--- legal.pulizia() di ogni notte (cron «legal-pulizia», 3:29): testo identico a quello in produzione il 15/11 alle 13:10, più la riga «crescita».
+-- legal.pulizia() di ogni notte (cron «legal-pulizia», 3:29): testo identico a quello letto in produzione il 15/11 verso le 12:45, più la riga «crescita».
 -- Prima di applicare: rileggerla in produzione; se è cambiata, unire le due versioni.
 create or replace function legal.pulizia() returns jsonb language plpgsql security definer set search_path to 'public', 'auth' as $function$
 declare r jsonb := '{}'::jsonb; n int;

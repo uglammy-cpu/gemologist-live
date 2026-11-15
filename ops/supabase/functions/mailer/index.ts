@@ -9,6 +9,7 @@
 // Li accodano public.growth_reminders() (ogni 5 minuti) e i trigger delle dirette e delle serate salvate.
 // Contengono solo titolo, seller, giorno e ora nel fuso della persona, link per entrare: niente pubblicità né altre dirette (LEG-015, E.7).
 // Versione 8 (15/11/2026, richiesta di Elena): pulsante italiano «VAI ALLA LIVE»; nei promemoria niente nome, indirizzo e partita IVA della titolare.
+// Versione 9 (15/11/2026, richiesta di Elena): niente nome, indirizzo e partita IVA nemmeno nel piè di pagina delle altre email.
 import { createClient } from "npm:@supabase/supabase-js@2";
 
 const sb = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!, { auth: { persistSession: false } });
@@ -18,13 +19,14 @@ type T = { s: (d: D) => string; b: (d: D) => string; c?: (d: D) => { label: stri
 
 const eur = (cents: string) => { const n = Number(cents) / 100; return "€" + (Number.isInteger(n) ? String(n) : n.toFixed(2)); };
 
-// Piè di pagina con i dati del titolare, in tutte le email (D.Lgs. 70/2003, artt. 7 e 8; Legal, 9/11/2026)
+// Piè di pagina di tutte le email: «Uniqaia», perché arriva l'email e l'informativa privacy (Legal, 9/11/2026).
+// Dal 15/11/2026, su richiesta di Elena, niente nome, indirizzo e partita IVA della titolare: restano nell'informativa privacy e nelle note legali del sito.
 const FOOT: Record<L, string> = {
-  it: "Uniqaia · Elena Goglio, Via Bortolo Belotti 6, 24010 Olmo al Brembo (BG), Italia · P.IVA 04700020169 · Ricevi questa email per la tua candidatura o il tuo account su uniqaia.com. Informativa privacy: https://uniqaia.com/privacy/",
-  en: "Uniqaia · Elena Goglio, Via Bortolo Belotti 6, 24010 Olmo al Brembo (BG), Italy · VAT IT04700020169 · You are receiving this email about your application or account on uniqaia.com. Privacy notice: https://uniqaia.com/privacy/?lang=en",
-  fr: "Uniqaia · Elena Goglio, Via Bortolo Belotti 6, 24010 Olmo al Brembo (BG), Italie · TVA IT04700020169 · Vous recevez cet e-mail au sujet de votre candidature ou de votre compte sur uniqaia.com. Politique de confidentialité : https://uniqaia.com/privacy/?lang=en",
-  ru: "Uniqaia · Элена Гольо, Via Bortolo Belotti 6, 24010 Olmo al Brembo (BG), Италия · НДС IT04700020169 · Вы получили это письмо в связи с вашей заявкой или аккаунтом на uniqaia.com. Политика конфиденциальности: https://uniqaia.com/privacy/?lang=en",
-  ar: "Uniqaia · إيلينا غولْيو، Via Bortolo Belotti 6, 24010 Olmo al Brembo (BG)، إيطاليا · رقم ضريبة القيمة المضافة IT04700020169 · تتلقى هذه الرسالة بخصوص طلبك أو حسابك على uniqaia.com. إشعار الخصوصية: https://uniqaia.com/privacy/?lang=en",
+  it: "Uniqaia · Ricevi questa email per la tua candidatura o il tuo account su uniqaia.com. Informativa privacy: https://uniqaia.com/privacy/",
+  en: "Uniqaia · You are receiving this email about your application or account on uniqaia.com. Privacy notice: https://uniqaia.com/privacy/?lang=en",
+  fr: "Uniqaia · Vous recevez cet e-mail au sujet de votre candidature ou de votre compte sur uniqaia.com. Politique de confidentialité : https://uniqaia.com/privacy/?lang=en",
+  ru: "Uniqaia · Вы получили это письмо в связи с вашей заявкой или аккаунтом на uniqaia.com. Политика конфиденциальности: https://uniqaia.com/privacy/?lang=en",
+  ar: "Uniqaia · تتلقى هذه الرسالة بخصوص طلبك أو حسابك على uniqaia.com. إشعار الخصوصية: https://uniqaia.com/privacy/?lang=en",
 };
 const foot = (lang: string) => FOOT[lang as L] ?? FOOT.en;
 const footHtml = (lang: string) => esc(foot(lang)).replace(/(https:\/\/[^\s<]+)/g, '<a href="$1" style="color:#8a8078">$1</a>');

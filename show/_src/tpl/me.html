@@ -12,6 +12,9 @@
 .inv .btn{flex:0 0 auto}.big{font-family:var(--display);font-size:40px;line-height:1;display:block;margin:6px 0 2px}
 .note{background:var(--soft);border-radius:14px;padding:12px 14px;font-size:14px;margin:0 0 16px}.danger{color:#B42318;border-color:#E9B8B2}
 .me .acts{display:flex;gap:10px;flex-wrap:wrap}
+.sl .rr{display:flex;flex-wrap:wrap;gap:4px 14px;margin-top:6px}.sl .rr label{display:flex;flex-direction:row;align-items:center;gap:6px;font-size:13px;color:var(--muted);cursor:pointer;min-height:32px}
+.sl .rr input{width:17px!important;height:17px;min-height:0!important;margin:0;padding:0;accent-color:#1C1406}
+.me .me-lbl{display:block;font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--gold-edge);margin:0 0 6px}
 </style></head>
 <body class="vetrina">
 <header class="topv wrap"><div class="col"><div class="brand"><a class="logo" href="{{BASE}}/live" aria-label="{{NAME}}"><!--LOGO--></a></div></div></header>
@@ -24,37 +27,13 @@
   var CFG = {"url":"{{URL}}","key":"{{KEY}}","base":"{{BASE}}","lang":"{{LANG}}"};
   var ROOT = "{{BASE}}/live";   // radice del sito, con la barra finale
   var TT = {{T}};
+  // Testi del Legal (LEG-015, sezione D): My Invitations senza premi, conferma della cancellazione. Francese, russo e arabo da rivedere a Traduzioni.
   var ME = {
-    en: { title:"My account", out:"Sign in with your email to find the lives you saved and your invitation link.", signin:"Sign in", saved:"My Saved Lives",
-      empty:"Nothing saved yet. Tap “Remind me” on a live or an evening and you'll find it here.", browse:"See the schedule", remove:"Remove", open:"Open",
-      evening:"Evening", liveNow:"Live now", ended:"Ended", rem:"Email me a reminder 24 hours and 15 minutes before each saved live", remOffDone:"Reminders are off. You can turn them back on here.",
-      inv:"My Invitations", invLead:"Invite friends who love jewelry: share your personal link.", copy:"Copy", copied:"Link copied", friends1:"friend joined with your link", friendsN:"friends joined with your link",
-      privacyNote:"We only show the number, never who joined.", rewardsOff:"There are no rewards at the moment.", signout:"Sign out", del:"Delete account", delAsk:"Delete your account and everything you saved? Tap again to confirm.",
-      delDone:"Your account has been deleted.", delSeller:"This email is also used for a seller account: write to seller@uniqaia.com to delete it.", err:"Something went wrong. Please try again." },
-    it: { title:"Il mio account", out:"Entra con la tua email per ritrovare le dirette che hai salvato e il tuo link per invitare.", signin:"Entra", saved:"Le mie dirette",
-      empty:"Non hai ancora salvato niente. Tocca «Ricordamelo» su una diretta o una serata e la ritrovi qui.", browse:"Guarda il palinsesto", remove:"Togli", open:"Apri",
-      evening:"Serata", liveNow:"In diretta ora", ended:"Terminata", rem:"Mandami un promemoria via email 24 ore e 15 minuti prima di ogni diretta salvata", remOffDone:"Promemoria spenti. Puoi riaccenderli qui.",
-      inv:"I miei inviti", invLead:"Invita gli amici che amano i gioielli: condividi il tuo link personale.", copy:"Copia", copied:"Link copiato", friends1:"amico si è iscritto con il tuo link", friendsN:"amici si sono iscritti con il tuo link",
-      privacyNote:"Mostriamo solo il numero, mai chi si è iscritto.", rewardsOff:"Al momento non ci sono premi.", signout:"Esci", del:"Cancella l'account", delAsk:"Cancellare l'account e tutto ciò che hai salvato? Tocca di nuovo per confermare.",
-      delDone:"Il tuo account è stato cancellato.", delSeller:"Questa email è anche quella di un account seller: scrivi a seller@uniqaia.com per cancellarlo.", err:"Qualcosa non ha funzionato. Riprova." },
-    fr: { title:"Mon compte", out:"Connectez-vous avec votre e-mail pour retrouver les lives enregistrés et votre lien d'invitation.", signin:"Se connecter", saved:"Mes lives",
-      empty:"Rien d'enregistré pour l'instant. Touchez « Me le rappeler » sur un live ou une soirée et vous le retrouverez ici.", browse:"Voir le programme", remove:"Retirer", open:"Ouvrir",
-      evening:"Soirée", liveNow:"En direct", ended:"Terminé", rem:"M'envoyer un rappel par e-mail 24 heures et 15 minutes avant chaque live enregistré", remOffDone:"Rappels désactivés. Vous pouvez les réactiver ici.",
-      inv:"Mes invitations", invLead:"Invitez vos amis passionnés de bijoux : partagez votre lien personnel.", copy:"Copier", copied:"Lien copié", friends1:"ami inscrit avec votre lien", friendsN:"amis inscrits avec votre lien",
-      privacyNote:"Nous affichons uniquement le nombre, jamais qui s'est inscrit.", rewardsOff:"Aucune récompense pour le moment.", signout:"Se déconnecter", del:"Supprimer le compte", delAsk:"Supprimer votre compte et tout ce que vous avez enregistré ? Touchez à nouveau pour confirmer.",
-      delDone:"Votre compte a été supprimé.", delSeller:"Cet e-mail est aussi celui d'un compte vendeur : écrivez à seller@uniqaia.com pour le supprimer.", err:"Une erreur s'est produite. Réessayez." },
-    ru: { title:"Мой аккаунт", out:"Войдите по e-mail, чтобы увидеть сохранённые эфиры и вашу ссылку для приглашений.", signin:"Войти", saved:"Мои эфиры",
-      empty:"Пока ничего не сохранено. Нажмите «Напомнить» у эфира или вечера — он появится здесь.", browse:"Смотреть программу", remove:"Удалить", open:"Открыть",
-      evening:"Вечер", liveNow:"В эфире", ended:"Завершён", rem:"Присылать напоминание на e-mail за 24 часа и за 15 минут до каждого сохранённого эфира", remOffDone:"Напоминания выключены. Их можно снова включить здесь.",
-      inv:"Мои приглашения", invLead:"Пригласите друзей, которые любят украшения: поделитесь своей ссылкой.", copy:"Копировать", copied:"Ссылка скопирована", friends1:"друг зарегистрировался по вашей ссылке", friendsN:"друзей зарегистрировались по вашей ссылке",
-      privacyNote:"Мы показываем только число, но не имена.", rewardsOff:"Сейчас наград нет.", signout:"Выйти", del:"Удалить аккаунт", delAsk:"Удалить аккаунт и всё сохранённое? Нажмите ещё раз для подтверждения.",
-      delDone:"Ваш аккаунт удалён.", delSeller:"Этот e-mail используется и для аккаунта продавца: напишите на seller@uniqaia.com, чтобы удалить его.", err:"Что-то пошло не так. Попробуйте ещё раз." },
-    ar: { title:"حسابي", out:"سجّل الدخول ببريدك الإلكتروني لتجد البثوث التي حفظتها ورابط الدعوة الخاص بك.", signin:"تسجيل الدخول", saved:"بثوثي",
-      empty:"لم تحفظ شيئًا بعد. اضغط «ذكّرني» على بث أو أمسية وستجدها هنا.", browse:"شاهد البرنامج", remove:"إزالة", open:"فتح",
-      evening:"أمسية", liveNow:"مباشر الآن", ended:"انتهى", rem:"أرسل لي تذكيرًا بالبريد قبل كل بث محفوظ بـ24 ساعة وبـ15 دقيقة", remOffDone:"التذكيرات متوقفة. يمكنك إعادة تفعيلها هنا.",
-      inv:"دعواتي", invLead:"ادعُ أصدقاءك محبي المجوهرات: شارك رابطك الشخصي.", copy:"نسخ", copied:"تم نسخ الرابط", friends1:"صديق انضم عبر رابطك", friendsN:"أصدقاء انضموا عبر رابطك",
-      privacyNote:"نعرض العدد فقط، ولا نعرض أبدًا من انضم.", rewardsOff:"لا توجد مكافآت حاليًا.", signout:"تسجيل الخروج", del:"حذف الحساب", delAsk:"حذف حسابك وكل ما حفظته؟ اضغط مرة أخرى للتأكيد.",
-      delDone:"تم حذف حسابك.", delSeller:"هذا البريد مستخدم أيضًا لحساب بائع: راسل seller@uniqaia.com لحذفه.", err:"حدث خطأ. أعد المحاولة." }
+    en: {"title": "My account", "out": "Sign in with your email to find the lives you saved and your invitation link.", "signin": "Sign in", "saved": "My Saved Lives", "empty": "Nothing saved yet. Tap “Remind me” on a live or an evening and you'll find it here.", "browse": "See the schedule", "remove": "Remove", "open": "Open", "evening": "Evening", "liveNow": "Live now", "ended": "Ended", "rem": "Email reminders for my saved lives", "remOffDone": "Reminders are off. You can turn them back on here.", "remOffOne": "Reminders turned off for this live.", "inv": "My Invitations", "invT": "Invite a friend", "yourLink": "Your link", "copy": "Copy link", "copied": "Link copied", "joined": "Friends who joined: {n}", "yourCode": "Your code: {c}", "privacyNote": "We only show the number, never who joined.", "invMsg": "Join me on Uniqaia, live shows of jewellery and gems: {link} (code {code})", "signout": "Sign out", "del": "Delete my account", "delAsk": "We'll delete your account, your saved shows, your reminders and your invitation link. Requests you've already sent to sellers stay with them and, with us, for the 12 months set out in the privacy notice. Do you want to continue?", "delYes": "Delete", "delNo": "Cancel", "delDone": "Your account has been deleted.", "delSeller": "This email is also used for a seller account: write to seller@uniqaia.com to delete it.", "err": "Something went wrong. Please try again."},
+    it: {"title": "Il mio account", "out": "Entra con la tua email per ritrovare le dirette che hai salvato e il tuo link per invitare.", "signin": "Entra", "saved": "Le mie dirette", "empty": "Non hai ancora salvato niente. Tocca «Ricordamelo» su una diretta o una serata e la ritrovi qui.", "browse": "Guarda il palinsesto", "remove": "Togli", "open": "Apri", "evening": "Serata", "liveNow": "In diretta ora", "ended": "Terminata", "rem": "Promemoria via email per le mie dirette salvate", "remOffDone": "Promemoria spenti. Puoi riaccenderli qui.", "remOffOne": "Promemoria spenti per questa diretta.", "inv": "I miei inviti", "invT": "Invita un amico", "yourLink": "Il tuo link", "copy": "Copia link", "copied": "Link copiato", "joined": "Amici che si sono iscritti: {n}", "yourCode": "Il tuo codice: {c}", "privacyNote": "Mostriamo solo il numero, mai chi si è iscritto.", "invMsg": "Ti invito su Uniqaia, le dirette di gioielli e gemme: {link} (codice {code})", "signout": "Esci", "del": "Elimina il mio account", "delAsk": "Cancelliamo il tuo account, le dirette salvate, i promemoria e il tuo link di invito. Le richieste che hai già mandato ai seller restano a loro e, da noi, per i 12 mesi previsti dall'informativa. Vuoi continuare?", "delYes": "Elimina", "delNo": "Annulla", "delDone": "Il tuo account è stato cancellato.", "delSeller": "Questa email è anche quella di un account seller: scrivi a seller@uniqaia.com per cancellarlo.", "err": "Qualcosa non ha funzionato. Riprova."},
+    fr: {"title": "Mon compte", "out": "Connectez-vous avec votre e-mail pour retrouver les lives enregistrés et votre lien d'invitation.", "signin": "Se connecter", "saved": "Mes lives", "empty": "Rien d'enregistré pour l'instant. Touchez « Me le rappeler » sur un live ou une soirée et vous le retrouverez ici.", "browse": "Voir le programme", "remove": "Retirer", "open": "Ouvrir", "evening": "Soirée", "liveNow": "En direct", "ended": "Terminé", "rem": "Rappels par e-mail pour mes lives enregistrés", "remOffDone": "Rappels désactivés. Vous pouvez les réactiver ici.", "remOffOne": "Rappels désactivés pour ce live.", "inv": "Mes invitations", "invT": "Inviter un ami", "yourLink": "Votre lien", "copy": "Copier le lien", "copied": "Lien copié", "joined": "Amis inscrits : {n}", "yourCode": "Votre code : {c}", "privacyNote": "Nous affichons uniquement le nombre, jamais qui s'est inscrit.", "invMsg": "Rejoins-moi sur Uniqaia, les lives de bijoux et de pierres précieuses : {link} (code {code})", "signout": "Se déconnecter", "del": "Supprimer mon compte", "delAsk": "Nous supprimerons votre compte, vos lives enregistrés, vos rappels et votre lien d'invitation. Les demandes déjà envoyées aux vendeurs restent chez eux et, chez nous, pendant les 12 mois prévus par la politique de confidentialité. Voulez-vous continuer ?", "delYes": "Supprimer", "delNo": "Annuler", "delDone": "Votre compte a été supprimé.", "delSeller": "Cet e-mail est aussi celui d'un compte vendeur : écrivez à seller@uniqaia.com pour le supprimer.", "err": "Une erreur s'est produite. Réessayez."},
+    ru: {"title": "Мой аккаунт", "out": "Войдите по e-mail, чтобы увидеть сохранённые эфиры и вашу ссылку для приглашений.", "signin": "Войти", "saved": "Мои эфиры", "empty": "Пока ничего не сохранено. Нажмите «Напомнить» у эфира или вечера — он появится здесь.", "browse": "Смотреть программу", "remove": "Удалить", "open": "Открыть", "evening": "Вечер", "liveNow": "В эфире", "ended": "Завершён", "rem": "Напоминания на e-mail о сохранённых эфирах", "remOffDone": "Напоминания выключены. Их можно снова включить здесь.", "remOffOne": "Напоминания для этого эфира выключены.", "inv": "Мои приглашения", "invT": "Пригласить друга", "yourLink": "Ваша ссылка", "copy": "Копировать ссылку", "copied": "Ссылка скопирована", "joined": "Зарегистрировались друзья: {n}", "yourCode": "Ваш код: {c}", "privacyNote": "Мы показываем только число, но не имена.", "invMsg": "Присоединяйся к Uniqaia — прямые эфиры с украшениями и камнями: {link} (код {code})", "signout": "Выйти", "del": "Удалить мой аккаунт", "delAsk": "Мы удалим ваш аккаунт, сохранённые эфиры, напоминания и вашу ссылку для приглашений. Запросы, которые вы уже отправили продавцам, остаются у них, а у нас — на 12 месяцев, как указано в политике конфиденциальности. Продолжить?", "delYes": "Удалить", "delNo": "Отмена", "delDone": "Ваш аккаунт удалён.", "delSeller": "Этот e-mail используется и для аккаунта продавца: напишите на seller@uniqaia.com, чтобы удалить его.", "err": "Что-то пошло не так. Попробуйте ещё раз."},
+    ar: {"title": "حسابي", "out": "سجّل الدخول ببريدك الإلكتروني لتجد البثوث التي حفظتها ورابط الدعوة الخاص بك.", "signin": "تسجيل الدخول", "saved": "بثوثي", "empty": "لم تحفظ شيئًا بعد. اضغط «ذكّرني» على بث أو أمسية وستجدها هنا.", "browse": "شاهد البرنامج", "remove": "إزالة", "open": "فتح", "evening": "أمسية", "liveNow": "مباشر الآن", "ended": "انتهى", "rem": "تذكيرات بالبريد الإلكتروني لبثوثي المحفوظة", "remOffDone": "التذكيرات متوقفة. يمكنك إعادة تفعيلها هنا.", "remOffOne": "تم إيقاف التذكيرات لهذا البث.", "inv": "دعواتي", "invT": "ادعُ صديقًا", "yourLink": "رابطك", "copy": "نسخ الرابط", "copied": "تم نسخ الرابط", "joined": "أصدقاء انضموا: {n}", "yourCode": "رمزك: {c}", "privacyNote": "نعرض العدد فقط، ولا نعرض أبدًا من انضم.", "invMsg": "انضم إليّ على Uniqaia، بثوث مباشرة للمجوهرات والأحجار الكريمة: {link} (الرمز {code})", "signout": "تسجيل الخروج", "del": "حذف حسابي", "delAsk": "سنحذف حسابك والبثوث المحفوظة والتذكيرات ورابط دعوتك. الطلبات التي أرسلتها بالفعل إلى البائعين تبقى لديهم، ولدينا لمدة 12 شهرًا كما يرد في إشعار الخصوصية. هل تريد المتابعة؟", "delYes": "حذف", "delNo": "إلغاء", "delDone": "تم حذف حسابك.", "delSeller": "هذا البريد مستخدم أيضًا لحساب بائع: راسل seller@uniqaia.com لحذفه.", "err": "حدث خطأ. أعد المحاولة."}
   };
   var CATPAGES = { "nuovi-talenti":"independent-designers", "fatto-a-mano":"the-gem-room", "gioielli-indiani":"collection", "perle":"pearls-corals", "gemme-di-colore":"specials", "made-in-italy":"the-classics" };
   var LOC = { it:"it-IT", en:"en-GB", fr:"fr-FR", ar:"ar-AE-u-nu-latn", ru:"ru-RU" };
@@ -67,9 +46,11 @@
   $("foot").innerHTML = uqFoot(t);
   var sb = window.supabase.createClient(CFG.url, CFG.key);
   var offMsg = "";
-  var off = (Q.get("off") || "").replace(/[^a-f0-9]/g, "").slice(0, 64);
-  var start = off.length === 64 ? sb.rpc("reminders_off", { p_token: off }).then(function(r){ if (r.data) offMsg = m.remOffDone; }) : Promise.resolve();
-  if (off) { Q.delete("off"); try { history.replaceState(null, "", location.pathname + (Q.toString() ? "?" + Q.toString() : "")); } catch(e){} }
+  // link in fondo ai promemoria: con k e id spegne solo quella diretta, senza spegne tutto. Funziona con un tocco, senza entrare (LEG-015, E.7)
+  var off = (Q.get("off") || "").replace(/[^a-f0-9]/g, "").slice(0, 64), offK = Q.get("k"), offId = (Q.get("id") || "").replace(/[^a-f0-9-]/g, "").slice(0, 36);
+  var one = (offK === "show" || offK === "night") && offId.length === 36;
+  var start = off.length === 64 ? sb.rpc("reminders_off", one ? { p_token: off, p_kind: offK, p_id: offId } : { p_token: off }).then(function(r){ if (r.data) offMsg = one ? m.remOffOne : m.remOffDone; }) : Promise.resolve();
+  if (off) { ["off", "k", "id"].forEach(function(k){ Q.delete(k); }); try { history.replaceState(null, "", location.pathname + (Q.toString() ? "?" + Q.toString() : "")); } catch(e){} }
   start.then(function(){ return UQG.init(sb, { lang: lang, base: CFG.base }); }).then(render);
   UQG.onAuth(render);
 
@@ -93,26 +74,37 @@
         var st = x.status === "live" ? m.liveNow : (x.status === "ended" ? m.ended : fmt(x.at, { hour:"2-digit", minute:"2-digit" }));
         var sub = x.kind === "night" ? m.evening : (x.seller || "") + " · " + st;   // le serate durano tutto il giorno: niente orario
         return '<div class="sl"><div class="d"><small>' + esc(fmt(x.at, { weekday:"short" })) + '</small><b>' + esc(fmt(x.at, { day:"numeric" })) + '</b></div>'
-          + '<div class="t"><a href="' + esc(link(x)) + '"><b dir="auto">' + esc(tr(x.title_i18n, x.title)) + '</b><small>' + esc(fmt(x.at, { month:"long" })) + ' · ' + esc(sub) + '</small></a></div>'
-          + '<button class="rm" type="button" data-k="' + esc(x.kind) + '" data-id="' + esc(x.id) + '">' + esc(m.remove) + '</button></div>';
+          + '<div class="t"><a href="' + esc(link(x)) + '"><b dir="auto">' + esc(tr(x.title_i18n, x.title)) + '</b><small>' + esc(fmt(x.at, { month:"long" })) + ' · ' + esc(sub) + '</small></a>'
+          + (x.status === "ended" ? "" : '<div class="rr"><label><input type="checkbox" data-r="24" data-k="' + esc(x.kind) + '" data-id="' + esc(x.id) + '"' + (x.rem24 !== false ? " checked" : "") + '>' + esc(UQG.t("rem24")) + '</label>'
+            + '<label><input type="checkbox" data-r="15" data-k="' + esc(x.kind) + '" data-id="' + esc(x.id) + '"' + (x.rem15 !== false ? " checked" : "") + '>' + esc(UQG.t("rem15")) + '</label></div>')
+          + '</div><button class="rm" type="button" data-k="' + esc(x.kind) + '" data-id="' + esc(x.id) + '">' + esc(m.remove) + '</button></div>';
       }).join("");
       var n = +p.invited || 0;
       page.innerHTML = '<h1>' + esc(m.title) + '</h1><p class="who">' + esc(p.email || "") + '</p>' + (offMsg ? '<p class="note">' + esc(offMsg) + '</p>' : '')
         + '<section><h2>' + esc(m.saved) + '</h2>' + (rows || '<p class="lead">' + esc(m.empty) + '</p><p><a class="btn" href="' + ROOT + '?lang=' + lang + '">' + esc(m.browse) + '</a></p>')
         + '<p style="margin-top:16px"><label class="tog"><input type="checkbox" id="rem"' + (p.reminders ? " checked" : "") + '><span>' + esc(m.rem) + '</span></label></p></section>'
-        + '<section><h2>' + esc(m.inv) + '</h2><p class="lead">' + esc(m.invLead) + '</p><div class="inv"><input readonly id="invUrl" value="' + esc(inv) + '"><button class="btn" type="button" id="cp">' + esc(m.copy) + '</button><span id="shr"></span></div>'
-        + '<p><span class="big">' + n + '</span><span class="lead">' + esc(n === 1 ? m.friends1 : m.friendsN) + '</span></p><p class="lead" style="font-size:13px">' + esc(m.privacyNote) + ' ' + esc(p.rewards_active ? "" : m.rewardsOff) + '</p></section>'
-        + '<section class="acts"><button class="btn" type="button" id="out">' + esc(m.signout) + '</button><button class="btn danger" type="button" id="del">' + esc(m.del) + '</button></section><p class="lead" id="msg" role="status"></p>';
+        // My Invitations: solo il numero, nessun premio né classifica (LEG-015, sezione D)
+        + '<section><h2>' + esc(m.inv) + '</h2><p class="lead">' + esc(m.invT) + '</p><span class="me-lbl">' + esc(m.yourLink) + '</span><div class="inv"><input readonly id="invUrl" aria-label="' + esc(m.yourLink) + '" value="' + esc(inv) + '"><button class="btn" type="button" id="cp">' + esc(m.copy) + '</button><span id="shr"></span></div>'
+        + '<p class="lead" style="font-size:13px;margin-top:8px">' + esc(m.yourCode.replace("{c}", p.ref_code || "")) + '</p>'
+        + '<p class="lead" style="margin:14px 0 2px;color:var(--ink)">' + esc(m.joined.replace("{n}", n)) + '</p><p class="lead" style="font-size:13px">' + esc(m.privacyNote) + '</p></section>'
+        + '<section class="acts"><button class="btn" type="button" id="out">' + esc(m.signout) + '</button><button class="btn danger" type="button" id="del">' + esc(m.del) + '</button></section>'
+        + '<div class="note" id="delBox" hidden><p style="margin:0 0 12px">' + esc(m.delAsk) + '</p><div class="acts"><button class="btn danger" type="button" id="delYes">' + esc(m.delYes) + '</button><button class="btn" type="button" id="delNo">' + esc(m.delNo) + '</button></div></div>'
+        + '<p class="lead" id="msg" role="status"></p>';
       Array.prototype.forEach.call(page.querySelectorAll(".rm"), function(b){ b.addEventListener("click", function(){ b.disabled = true; UQG.rpc("save_life", { p_kind: b.getAttribute("data-k"), p_id: b.getAttribute("data-id"), p_on: false }).then(render, function(){ b.disabled = false; $("msg").textContent = m.err; }); }); });
+      Array.prototype.forEach.call(page.querySelectorAll("[data-r]"), function(c){ c.addEventListener("change", function(){
+        var row = c.closest(".rr"), a = row.querySelector('[data-r="24"]'), b = row.querySelector('[data-r="15"]');
+        UQG.rpc("set_life_reminders", { p_kind: c.getAttribute("data-k"), p_id: c.getAttribute("data-id"), p_rem24: a.checked, p_rem15: b.checked }).catch(function(){ c.checked = !c.checked; $("msg").textContent = m.err; });
+      }); });
       $("rem").addEventListener("change", function(){ var c = this; UQG.rpc("set_reminders", { p_on: c.checked }).then(function(){ offMsg = ""; }, function(){ c.checked = !c.checked; $("msg").textContent = m.err; }); });
       $("cp").addEventListener("click", function(){ var i = $("invUrl"); i.select(); var done = function(){ UQG.toast(m.copied); }; if (navigator.clipboard) navigator.clipboard.writeText(i.value).then(done, done); else { try { document.execCommand("copy"); } catch(e){} done(); } });
-      $("shr").replaceWith(UQG.shareBtn({ kind: "home", id: null, url: inv, title: "Uniqaia · Fine Jewelry & Gemstones · Social Live Shopping" }, "btn"));
+      $("shr").replaceWith(UQG.shareBtn({ kind: "home", id: null, url: inv, title: "Uniqaia", text: m.invMsg.replace("{code}", p.ref_code || "") }, "btn"));
       $("out").addEventListener("click", function(){ UQG.signOut().then(render); });
-      var ask = false;
-      $("del").addEventListener("click", function(){
-        if (!ask) { ask = true; $("msg").textContent = m.delAsk; return; }
+      $("del").addEventListener("click", function(){ $("delBox").hidden = false; $("delYes").focus(); });
+      $("delNo").addEventListener("click", function(){ $("delBox").hidden = true; $("del").focus(); });
+      $("delYes").addEventListener("click", function(){
+        this.disabled = true;
         UQG.rpc("delete_my_account").then(function(){ return UQG.signOut(); }).then(function(){ page.innerHTML = '<h1>' + esc(m.title) + '</h1><p class="note">' + esc(m.delDone) + '</p>'; },
-          function(e){ $("msg").textContent = /seller/.test(String(e && e.message)) ? m.delSeller : m.err; });
+          function(e){ $("delYes").disabled = false; $("msg").textContent = /seller/.test(String(e && e.message)) ? m.delSeller : m.err; });
       });
     }, function(){ page.innerHTML = '<h1>' + esc(m.title) + '</h1><p class="lead">' + esc(m.err) + '</p>'; });
   }

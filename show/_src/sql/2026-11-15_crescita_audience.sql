@@ -1,6 +1,7 @@
 -- 15/11/2026 · Crescita dell'audience (brief di Elena del 15/11, claude/sviluppo/crescita-audience/brief.md)
 -- Remind Me con promemoria via email, Share con le misure, Raid fra dirette, referral (premi spenti).
--- Si applica SOLO dopo l'OK di Elena e la risposta del Legal (LEG-015). Si può rieseguire: non cancella dati.
+-- Si applica SOLO dopo l'OK di Elena, con i testi del Legal pubblicati lo stesso giorno (LEG-015, risposta del 15/11 alle 12:45). Si può rieseguire: non cancella dati.
+-- Scelte di Elena del 15/11: referral senza memoria nel browser; «N people are interested»; tempi di conservazione del Legal; caselle dei promemoria già spuntate.
 -- Regole: tutte le tabelle nuove hanno la RLS accesa e nessuna policy. Dal sito si passa solo dalle funzioni qui sotto.
 -- Ai seller arrivano solo numeri, mai email, nomi o salvataggi dei singoli spettatori (LEG-013, LEG-015).
 
@@ -10,7 +11,7 @@ create table if not exists public.viewer_profiles (
   ref_code    text not null unique,
   lang        text not null default 'en' check (lang in ('en','it','fr','ru','ar')),
   tz          text not null default 'Europe/Rome',
-  reminders   boolean not null default true,
+  reminders   boolean not null default true,            -- interruttore di tutti i promemoria
   unsub_token text not null unique default (replace(gen_random_uuid()::text, '-', '') || replace(gen_random_uuid()::text, '-', '')),
   created_at  timestamptz not null default now()
 );
@@ -24,6 +25,11 @@ create table if not exists public.saved_lives (
   created_at timestamptz not null default now(),
   primary key (user_id, kind, target_id)
 );
+alter table public.saved_lives add column if not exists rem24 boolean not null default true;   -- email 24 ore prima (casella già spuntata, scelta di Elena)
+alter table public.saved_lives add column if not exists rem15 boolean not null default true;   -- email 15 minuti prima
+-- versioni dell'informativa e delle condizioni d'uso accettate creando l'account (LEG-015, E.13)
+alter table public.viewer_profiles add column if not exists privacy_version text;
+alter table public.viewer_profiles add column if not exists terms_version text;
 create index if not exists saved_lives_target on public.saved_lives (kind, target_id);
 alter table public.saved_lives enable row level security;
 
@@ -32,13 +38,19 @@ create table if not exists public.reminder_log (
   user_id    uuid not null references auth.users(id) on delete cascade,
   kind       text not null,
   target_id  uuid not null,
-  slot       text not null check (slot in ('24h','15m')),
+  slot       text not null check (slot in ('24h','15m','moved','cancelled')),
   target_at  timestamptz not null,
   outbox_id  bigint,
   created_at timestamptz not null default now(),
   primary key (user_id, kind, target_id, slot, target_at)
 );
 alter table public.reminder_log enable row level security;
+-- totali che restano dopo i 12 mesi delle misure (LEG-015, sezione F)
+create table if not exists public.growth_totals (
+  month date not null, metric text not null, kind text not null default '', channel text not null default '', n integer not null default 0,
+  primary key (month, metric, kind, channel)
+);
+alter table public.growth_totals enable row level security;
 
 -- ============================================================ condivisioni (solo numeri, nessun identificativo)
 create table if not exists public.share_events (
@@ -140,32 +152,37 @@ create or replace function public._ensure_profile(p_uid uuid) returns void langu
 create or replace function public.viewer_init(p_lang text default 'en', p_tz text default null, p_ref text default null, p_ref_at timestamptz default null,
                                               p_sh_kind text default null, p_sh_id uuid default null, p_sh_ch text default null)
 returns jsonb language plpgsql security definer set search_path = public as $$
-declare v_uid uuid := auth.uid(); v_p viewer_profiles; v_new boolean := false; v_ref uuid; v_u auth.users;
+declare v_uid uuid := auth.uid(); v_p viewer_profiles; v_new boolean := false; v_ref uuid; v_u auth.users; v_code text;
 begin
   if v_uid is null then raise exception 'login required' using errcode = '28000'; end if;
   select * into v_u from auth.users where id = v_uid;
-  insert into viewer_profiles (user_id, ref_code, lang, tz) values (v_uid, _ref_code(), _lang_ok(p_lang), coalesce(_tz_ok(p_tz), 'Europe/Rome'))
+  insert into viewer_profiles (user_id, ref_code, lang, tz, privacy_version, terms_version)
+    values (v_uid, _ref_code(), _lang_ok(p_lang), coalesce(_tz_ok(p_tz), 'Europe/Rome'), '1.1', '1.1')
     on conflict (user_id) do nothing returning * into v_p;
   if v_p.user_id is not null then v_new := true;
   else
     update viewer_profiles set lang = _lang_ok(p_lang), tz = coalesce(_tz_ok(p_tz), tz) where user_id = v_uid returning * into v_p;
   end if;
-  -- account nuovo: creato da meno di un giorno (chi aveva già un account, per esempio un seller, non conta come registrazione nuova)
-  if v_new and v_u.email_confirmed_at is not null and v_u.created_at > now() - interval '1 day' then
-    if p_ref is not null and p_ref_at is not null and p_ref_at > now() - interval '30 days' and p_ref_at < now() + interval '10 minutes' then
-      select user_id into v_ref from viewer_profiles where ref_code = upper(btrim(p_ref)) and user_id <> v_uid;
+  -- account nuovo: creato da meno di un giorno con il codice o il link via email, senza password (così l'email è verificata davvero
+  -- anche con «Confirm email» spento per i seller); chi aveva già un account, per esempio un seller, non conta come registrazione nuova.
+  -- Referral senza memoria nel browser (scelta di Elena del 15/11): il codice arriva dal link alla registrazione (p_ref o dati dell'account).
+  v_code := upper(btrim(coalesce(nullif(p_ref, ''), v_u.raw_user_meta_data ->> 'ref', '')));
+  if v_new and v_u.email_confirmed_at is not null and v_u.created_at > now() - interval '1 day' and coalesce(v_u.encrypted_password, '') = '' then
+    if v_code ~ '^[A-Z0-9]{8}$' and coalesce(p_ref_at, now()) > now() - interval '30 days' and coalesce(p_ref_at, now()) < now() + interval '10 minutes' then
+      select user_id into v_ref from viewer_profiles where ref_code = v_code and user_id <> v_uid;
       if v_ref is not null then
-        insert into referral_attributions (user_id, referrer, code, captured_at) values (v_uid, v_ref, upper(btrim(p_ref)), p_ref_at) on conflict (user_id) do nothing;
+        insert into referral_attributions (user_id, referrer, code, captured_at) values (v_uid, v_ref, v_code, coalesce(p_ref_at, now())) on conflict (user_id) do nothing;
       end if;
     end if;
     if _share_ch_ok(p_sh_ch) and p_sh_kind in ('show','night','seller','home') then
-      insert into share_signups (kind, target_id, channel) values (p_sh_kind, p_sh_id, p_sh_ch);
+      -- solo il giorno, così il numero non si può collegare all'ora di nascita dell'account (LEG-015, E.4)
+      insert into share_signups (created_at, kind, target_id, channel) values (date_trunc('day', now()), p_sh_kind, p_sh_id, p_sh_ch);
     end if;
   end if;
   return jsonb_build_object('ref_code', v_p.ref_code, 'reminders', v_p.reminders, 'lang', v_p.lang, 'new', v_new);
 end $$;
 
--- Pagina personale: profilo, numero di inviti validi, stato dei premi (spenti)
+-- Pagina personale: profilo e numero di inviti validi (solo il numero, mai chi; LEG-015, 4.11)
 create or replace function public.my_profile() returns jsonb language plpgsql security definer set search_path = public as $$
 declare v_uid uuid := auth.uid(); v_p viewer_profiles;
 begin
@@ -175,8 +192,7 @@ begin
   return jsonb_build_object(
     'email', (select email from auth.users where id = v_uid),
     'ref_code', v_p.ref_code, 'reminders', v_p.reminders, 'lang', v_p.lang, 'tz', v_p.tz,
-    'invited', (select count(*) from referral_attributions where referrer = v_uid and status = 'valid'),
-    'rewards_active', exists (select 1 from referral_rewards where active));
+    'invited', (select count(*) from referral_attributions where referrer = v_uid and status = 'valid'));
 end $$;
 
 create or replace function public.set_reminders(p_on boolean) returns boolean language plpgsql security definer set search_path = public as $$
@@ -188,11 +204,20 @@ begin
 end $$;
 
 -- Dal link in fondo alle email dei promemoria: spegne i promemoria senza accesso
-create or replace function public.reminders_off(p_token text) returns boolean language plpgsql security definer set search_path = public as $$
+-- p_kind e p_id: spegne solo i promemoria di quella diretta o serata; senza: tutti (LEG-015, sezione D)
+drop function if exists public.reminders_off(text);
+create or replace function public.reminders_off(p_token text, p_kind text default null, p_id uuid default null) returns boolean language plpgsql security definer set search_path = public as $$
+declare v_uid uuid;
 begin
   if p_token is null or length(p_token) <> 64 then return false; end if;
-  update viewer_profiles set reminders = false where unsub_token = p_token;
-  return found;
+  select user_id into v_uid from viewer_profiles where unsub_token = p_token;
+  if v_uid is null then return false; end if;
+  if p_kind is not null and p_id is not null then
+    update saved_lives set rem24 = false, rem15 = false where user_id = v_uid and kind = p_kind and target_id = p_id;
+  else
+    update viewer_profiles set reminders = false where user_id = v_uid;
+  end if;
+  return true;
 end $$;
 
 -- Cancella l'account dello spettatore e tutto ciò che ha salvato (a cascata)
@@ -207,7 +232,8 @@ begin
 end $$;
 
 -- ============================================================ Remind Me
-create or replace function public.save_life(p_kind text, p_id uuid, p_on boolean default true) returns jsonb language plpgsql security definer set search_path = public as $$
+drop function if exists public.save_life(text, uuid, boolean);
+create or replace function public.save_life(p_kind text, p_id uuid, p_on boolean default true, p_rem24 boolean default true, p_rem15 boolean default true) returns jsonb language plpgsql security definer set search_path = public as $$
 declare v_uid uuid := auth.uid();
 begin
   if v_uid is null then raise exception 'login required' using errcode = '28000'; end if;
@@ -215,17 +241,24 @@ begin
   if coalesce(p_on, true) then
     if not _life_ok(p_kind, p_id) then raise exception 'not available' using errcode = 'P0002'; end if;
     perform _ensure_profile(v_uid);
-    insert into saved_lives (user_id, kind, target_id) values (v_uid, p_kind, p_id) on conflict do nothing;
+    insert into saved_lives (user_id, kind, target_id, rem24, rem15) values (v_uid, p_kind, p_id, coalesce(p_rem24, true), coalesce(p_rem15, true)) on conflict do nothing;
   else
     delete from saved_lives where user_id = v_uid and kind = p_kind and target_id = p_id;
   end if;
-  return jsonb_build_object('saved', coalesce(p_on, true), 'n', (select count(*) from saved_lives where kind = p_kind and target_id = p_id));
+  return jsonb_build_object('saved', coalesce(p_on, true), 'n', (select n from interested(p_kind, array[p_id])));
+end $$;
+
+create or replace function public.set_life_reminders(p_kind text, p_id uuid, p_rem24 boolean, p_rem15 boolean) returns boolean language plpgsql security definer set search_path = public as $$
+begin
+  if auth.uid() is null then raise exception 'login required' using errcode = '28000'; end if;
+  update saved_lives set rem24 = coalesce(p_rem24, rem24), rem15 = coalesce(p_rem15, rem15) where user_id = auth.uid() and kind = p_kind and target_id = p_id;
+  return found;
 end $$;
 
 -- Numeri veri degli interessati (anche per chi non ha l'account) e, per chi è entrato, quali ha salvato
 create or replace function public.interested(p_kind text, p_ids uuid[]) returns table (target_id uuid, n integer, mine boolean)
 language sql stable security definer set search_path = public as $$
-  select x.id, (select count(*)::int from saved_lives s where s.kind = p_kind and s.target_id = x.id),
+  select x.id, (select count(*)::int from saved_lives s join auth.users u on u.id = s.user_id and u.email_confirmed_at is not null where s.kind = p_kind and s.target_id = x.id),
          coalesce(auth.uid() is not null and exists (select 1 from saved_lives s where s.kind = p_kind and s.target_id = x.id and s.user_id = auth.uid()), false)
     from unnest(p_ids[1:200]) as x(id) $$;
 
@@ -233,11 +266,11 @@ language sql stable security definer set search_path = public as $$
 create or replace function public.my_saved() returns jsonb language sql stable security definer set search_path = public as $$
   select coalesce(jsonb_agg(x order by x->>'at'), '[]'::jsonb) from (
     select jsonb_build_object('kind', 'show', 'id', s.id, 'title', s.title, 'title_i18n', s.title_i18n, 'at', s.scheduled_at, 'status', s.status,
-                              'seller', j.name, 'seller_slug', j.slug, 'slug', s.slug, 'category', (s.categories)[1]) x
+                              'seller', j.name, 'seller_slug', j.slug, 'slug', s.slug, 'category', (s.categories)[1], 'rem24', sl.rem24, 'rem15', sl.rem15) x
       from saved_lives sl join shows s on s.id = sl.target_id join jewelers j on j.id = s.jeweler_id
      where sl.user_id = auth.uid() and sl.kind = 'show' and s.visibility = 'public' and (s.status <> 'ended' or s.ended_at > now() - interval '7 days')
     union all
-    select jsonb_build_object('kind', 'night', 'id', n.id, 'title', n.title, 'title_i18n', n.title_i18n, 'at', n.starts_at, 'status', 'scheduled', 'category', n.category)
+    select jsonb_build_object('kind', 'night', 'id', n.id, 'title', n.title, 'title_i18n', n.title_i18n, 'at', n.starts_at, 'status', 'scheduled', 'category', n.category, 'rem24', sl.rem24, 'rem15', sl.rem15)
       from saved_lives sl join nights n on n.id = sl.target_id
      where sl.user_id = auth.uid() and sl.kind = 'night' and n.is_public and n.starts_at > now() - interval '1 day'
   ) q $$;
@@ -274,7 +307,7 @@ begin
     select s.id, s.title, s.title_i18n, j.name, j.slug, s.categories, s.started_at
       from shows s join jewelers j on j.id = s.jeweler_id
      where s.status = 'live' and s.visibility = 'public' and s.accept_raids and s.id <> p_show and s.jeweler_id <> v_j
-     order by s.started_at desc nulls last limit 20;
+     order by s.started_at asc nulls last limit 20;   -- in ordine di inizio (LEG-015, condizioni dei seller 7.7)
 end $$;
 
 create or replace function public.start_raid(p_show uuid, p_token text, p_to uuid, p_invited integer default null) returns uuid
@@ -366,14 +399,16 @@ begin
         from saved_lives sl join nights n on n.id = sl.target_id
        where sl.kind = 'night' and n.is_public
     )
-    select t.*, p.lang, p.tz, p.unsub_token, u.email,
+    select t.*, p.lang, p.tz, p.unsub_token, u.email, sl2.rem24, sl2.rem15,
            case when now() >= t.at - interval '24 hours' and now() < t.at - interval '23 hours' then '24h'
                 when now() >= t.at - interval '15 minutes' and now() < t.at - interval '4 minutes' then '15m' end slot
       from t join viewer_profiles p on p.user_id = t.user_id and p.reminders
+             join saved_lives sl2 on sl2.user_id = t.user_id and sl2.kind = t.kind and sl2.target_id = t.target_id
              join auth.users u on u.id = t.user_id and u.email_confirmed_at is not null and coalesce(u.email, '') <> ''
      where t.at > now() and t.at < now() + interval '25 hours'
   loop
     continue when r.slot is null;
+    continue when (r.slot = '24h' and not r.rem24) or (r.slot = '15m' and not r.rem15);
     insert into reminder_log (user_id, kind, target_id, slot, target_at) values (r.user_id, r.kind, r.target_id, r.slot, r.at) on conflict do nothing;
     continue when not found;
     v_title := coalesce(nullif(r.title_i18n ->> r.lang, ''), nullif(r.title_i18n ->> 'en', ''), r.title, '');
@@ -382,7 +417,9 @@ begin
                   else v_base || '/?lang=' || r.lang end;
     insert into outbox (template, lang, to_email, data)
       values ('reminder', r.lang, lower(r.email), jsonb_build_object('slot', r.slot, 'kind', r.kind, 'title', v_title, 'seller', coalesce(r.seller, ''),
-              'at', to_char(r.at at time zone 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS"Z"'), 'tz', r.tz, 'url', v_url, 'off', v_base || '/me/?off=' || r.unsub_token || '&lang=' || r.lang))
+              'at', to_char(r.at at time zone 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS"Z"'), 'tz', r.tz, 'url', v_url,
+              'off', v_base || '/me/?off=' || r.unsub_token || '&k=' || r.kind || '&id=' || r.target_id || '&lang=' || r.lang,
+              'off_all', v_base || '/me/?off=' || r.unsub_token || '&lang=' || r.lang))
       returning id into v_id;
     update reminder_log set outbox_id = v_id where user_id = r.user_id and kind = r.kind and target_id = r.target_id and slot = r.slot and target_at = r.at;
     v_n := v_n + 1;
@@ -391,13 +428,188 @@ begin
   return v_n;
 end $$;
 
+-- ============================================================ avvisi di spostamento e annullamento
+-- A chi ha salvato una diretta o una serata e tiene almeno un promemoria acceso: un'email se cambia l'orario (almeno 5 minuti)
+-- o se viene annullata, tolta dal calendario o resa privata (LEG-015, 4.10 ed E.7). Un solo avviso per ogni cambio (reminder_log).
+create or replace function public._life_notice(p_kind text, p_id uuid, p_what text, p_at timestamptz, p_old_at timestamptz,
+                                               p_title text, p_title_i18n jsonb, p_seller text, p_js text, p_cat text)
+returns integer language plpgsql security definer set search_path = public as $$
+declare r record; v_n integer := 0; v_id bigint; v_base text := rtrim(coalesce(_cfg('SITE_BASE'), 'https://uniqaia.com'), '/'); v_url text; v_title text;
+        v_key timestamptz := case when p_what = 'moved' then p_at else p_old_at end;
+begin
+  if p_old_at is null or p_old_at < now() then return 0; end if;   -- solo per dirette ancora da fare
+  for r in
+    select sl.user_id, p.lang, p.tz, p.unsub_token, u.email
+      from saved_lives sl join viewer_profiles p on p.user_id = sl.user_id and p.reminders
+           join auth.users u on u.id = sl.user_id and u.email_confirmed_at is not null and coalesce(u.email, '') <> ''
+     where sl.kind = p_kind and sl.target_id = p_id and (sl.rem24 or sl.rem15)
+  loop
+    insert into reminder_log (user_id, kind, target_id, slot, target_at) values (r.user_id, p_kind, p_id, p_what, v_key) on conflict do nothing;
+    continue when not found;
+    v_title := coalesce(nullif(p_title_i18n ->> r.lang, ''), nullif(p_title_i18n ->> 'en', ''), p_title, '');
+    v_url := case when p_kind = 'show' and p_what = 'moved' then v_base || '/' || p_js || '/?s=' || p_id || '&lang=' || r.lang
+                  when p_kind = 'show' and p_js is not null then v_base || '/' || p_js || '/?lang=' || r.lang
+                  when _cat_page(p_cat) is not null then v_base || '/c/' || _cat_page(p_cat) || '/?lang=' || r.lang
+                  else v_base || '/?lang=' || r.lang end;
+    insert into outbox (template, lang, to_email, data)
+      values ('reminder_change', r.lang, lower(r.email), jsonb_build_object('change', p_what, 'kind', p_kind, 'title', v_title, 'seller', coalesce(p_seller, ''),
+              'at', to_char(p_at at time zone 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS"Z"'), 'old_at', to_char(p_old_at at time zone 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS"Z"'),
+              'tz', r.tz, 'url', v_url,
+              'off', v_base || '/me/?off=' || r.unsub_token || '&k=' || p_kind || '&id=' || p_id || '&lang=' || r.lang,
+              'off_all', v_base || '/me/?off=' || r.unsub_token || '&lang=' || r.lang))
+      returning id into v_id;
+    update reminder_log set outbox_id = v_id where user_id = r.user_id and kind = p_kind and target_id = p_id and slot = p_what and target_at = v_key;
+    v_n := v_n + 1;
+  end loop;
+  if v_n > 0 then perform _poke_mailer(); end if;
+  return v_n;
+end $$;
+
+-- Gli avvisi non devono mai bloccare il lavoro del seller o di Elena: in caso di errore resta solo un avviso nel log del database.
+create or replace function public._shows_saved_trg() returns trigger language plpgsql security definer set search_path = public as $$
+declare v_seller text; v_js text;
+begin
+  begin
+    if tg_op = 'DELETE' then
+      if old.status = 'scheduled' and old.visibility = 'public' then
+        select name, slug into v_seller, v_js from jewelers where id = old.jeweler_id;
+        perform _life_notice('show', old.id, 'cancelled', old.scheduled_at, old.scheduled_at, old.title, old.title_i18n, v_seller, v_js, null);
+      end if;
+      delete from saved_lives where kind = 'show' and target_id = old.id;
+    elsif old.status = 'scheduled' and new.status = 'scheduled' and old.visibility = 'public' then
+      select name, slug into v_seller, v_js from jewelers where id = new.jeweler_id;
+      if new.visibility <> 'public' then
+        perform _life_notice('show', new.id, 'cancelled', old.scheduled_at, old.scheduled_at, new.title, new.title_i18n, v_seller, v_js, null);
+        delete from saved_lives where kind = 'show' and target_id = new.id;
+      elsif abs(extract(epoch from new.scheduled_at - old.scheduled_at)) >= 300 then
+        perform _life_notice('show', new.id, 'moved', new.scheduled_at, old.scheduled_at, new.title, new.title_i18n, v_seller, v_js, null);
+      end if;
+    end if;
+  exception when others then
+    raise warning 'avviso dirette salvate non mandato: %', sqlerrm;
+  end;
+  return coalesce(new, old);
+end $$;
+
+create or replace function public._nights_saved_trg() returns trigger language plpgsql security definer set search_path = public as $$
+begin
+  begin
+    if tg_op = 'DELETE' then
+      if old.is_public then
+        perform _life_notice('night', old.id, 'cancelled', old.starts_at, old.starts_at, old.title, old.title_i18n, null, null, old.category);
+      end if;
+      delete from saved_lives where kind = 'night' and target_id = old.id;
+    elsif old.is_public then
+      if not new.is_public then
+        perform _life_notice('night', new.id, 'cancelled', old.starts_at, old.starts_at, new.title, new.title_i18n, null, null, new.category);
+        delete from saved_lives where kind = 'night' and target_id = new.id;
+      elsif abs(extract(epoch from new.starts_at - old.starts_at)) >= 300 then
+        perform _life_notice('night', new.id, 'moved', new.starts_at, old.starts_at, new.title, new.title_i18n, null, null, new.category);
+      end if;
+    end if;
+  exception when others then
+    raise warning 'avviso serate salvate non mandato: %', sqlerrm;
+  end;
+  return coalesce(new, old);
+end $$;
+
+drop trigger if exists shows_saved_notice on public.shows;
+create trigger shows_saved_notice after update of scheduled_at, visibility or delete on public.shows for each row execute function public._shows_saved_trg();
+drop trigger if exists nights_saved_notice on public.nights;
+create trigger nights_saved_notice after update of starts_at, is_public or delete on public.nights for each row execute function public._nights_saved_trg();
+
+-- ============================================================ pulizia (LEG-015, sezione F)
+-- Gli account senza accessi da 24 mesi li cancella già legal.pulizia() (riga «auth_users»): con loro se ne vanno profilo, salvataggi e inviti.
+create or replace function public.growth_cleanup() returns jsonb language plpgsql security definer set search_path = public as $$
+declare r jsonb := '{}'::jsonb; n integer; v_cut timestamptz := now() - interval '12 months';
+begin
+  -- dirette salvate: 30 giorni dopo la diretta o la serata, o subito se non esiste più
+  delete from saved_lives sl
+   where (sl.kind = 'show' and not exists (select 1 from shows s where s.id = sl.target_id and coalesce(s.ended_at, s.scheduled_at) > now() - interval '30 days'))
+      or (sl.kind = 'night' and not exists (select 1 from nights x where x.id = sl.target_id and x.starts_at > now() - interval '30 days'));
+  get diagnostics n = row_count; r := r || jsonb_build_object('saved_lives', n);
+  -- registro dei promemoria mandati: 30 giorni dopo la diretta
+  delete from reminder_log where target_at < now() - interval '30 days';
+  get diagnostics n = row_count; r := r || jsonb_build_object('reminder_log', n);
+  -- misure: 12 mesi, poi restano solo i totali del mese, senza la diretta
+  with d as (delete from share_events where created_at < v_cut returning created_at, kind, channel)
+  insert into growth_totals (month, metric, kind, channel, n) select date_trunc('month', created_at)::date, 'share', kind, channel, count(*) from d group by 1, 3, 4
+    on conflict (month, metric, kind, channel) do update set n = growth_totals.n + excluded.n;
+  with d as (delete from share_visits where created_at < v_cut returning created_at, kind, channel)
+  insert into growth_totals (month, metric, kind, channel, n) select date_trunc('month', created_at)::date, 'visit', kind, channel, count(*) from d group by 1, 3, 4
+    on conflict (month, metric, kind, channel) do update set n = growth_totals.n + excluded.n;
+  with d as (delete from share_signups where created_at < v_cut returning created_at, kind, channel)
+  insert into growth_totals (month, metric, kind, channel, n) select date_trunc('month', created_at)::date, 'signup', kind, channel, count(*) from d group by 1, 3, 4
+    on conflict (month, metric, kind, channel) do update set n = growth_totals.n + excluded.n;
+  with d as (delete from raid_events e where e.created_at < v_cut or e.raid_id in (select id from raids where created_at < v_cut) returning created_at, event)
+  insert into growth_totals (month, metric, kind, channel, n) select date_trunc('month', created_at)::date, 'raid_' || event, '', '', count(*) from d group by 1, 2
+    on conflict (month, metric, kind, channel) do update set n = growth_totals.n + excluded.n;
+  with d as (delete from raids where created_at < v_cut returning created_at, coalesce(invited, 0) invited)
+  insert into growth_totals (month, metric, kind, channel, n)
+    select date_trunc('month', created_at)::date, m.metric, '', '', case when m.metric = 'raid' then count(*) else sum(invited) end
+      from d cross join (values ('raid'), ('raid_invited')) m(metric) group by 1, 2
+    on conflict (month, metric, kind, channel) do update set n = growth_totals.n + excluded.n;
+  r := r || jsonb_build_object('misure_prima_di', to_char(v_cut, 'YYYY-MM-DD'));
+  return r;
+end $$;
+
+-- legal.pulizia() di ogni notte (cron «legal-pulizia», 3:29): testo identico a quello in produzione il 15/11 alle 13:10, più la riga «crescita».
+-- Prima di applicare: rileggerla in produzione; se è cambiata, unire le due versioni.
+create or replace function legal.pulizia() returns jsonb language plpgsql security definer set search_path to 'public', 'auth' as $function$
+declare r jsonb := '{}'::jsonb; n int;
+begin
+  -- ingresso nelle dirette (e consenso al calendario): 12 mesi dall'ultima diretta della stessa email
+  delete from public.viewer_signups v
+   where lower(v.email) in (select lower(email) from public.viewer_signups group by lower(email) having max(created_at) < now() - interval '12 months');
+  get diagnostics n = row_count; r := r || jsonb_build_object('viewer_signups', n);
+  -- richieste ai seller e link di pagamento collegati: 12 mesi
+  delete from public.payment_links where sent_at < now() - interval '12 months';
+  get diagnostics n = row_count; r := r || jsonb_build_object('payment_links', n);
+  delete from public.requests where created_at < now() - interval '12 months';
+  get diagnostics n = row_count; r := r || jsonb_build_object('requests', n);
+  -- chat: 30 giorni dalla fine della diretta
+  delete from public.messages m using public.shows s
+   where s.id = m.show_id and coalesce(s.ended_at, m.created_at) < now() - interval '30 days';
+  get diagnostics n = row_count; r := r || jsonb_build_object('messages', n);
+  -- inviti agli appuntamenti privati: 60 giorni dall'invito
+  delete from public.invites where created_at < now() - interval '60 days';
+  get diagnostics n = row_count; r := r || jsonb_build_object('invites', n);
+  -- «Segui»: 24 mesi dall'iscrizione
+  delete from public.follows where created_at < now() - interval '24 months';
+  get diagnostics n = row_count; r := r || jsonb_build_object('follows', n);
+  -- candidature non approvate: 12 mesi dall'esito
+  delete from public.applications where status = 'rejected' and coalesce(decided_at, updated_at, created_at) < now() - interval '12 months';
+  get diagnostics n = row_count; r := r || jsonb_build_object('applications', n);
+  -- coda delle email (contiene i testi): 90 giorni
+  delete from public.outbox where created_at < now() - interval '90 days' and status not in ('queued', 'sending');
+  get diagnostics n = row_count; r := r || jsonb_build_object('outbox', n);
+  -- ruota: dati tecnici non collegati a nessun seller, 90 giorni
+  delete from public.wheel_events where created_at < now() - interval '90 days';
+  get diagnostics n = row_count; r := r || jsonb_build_object('wheel_events', n);
+  delete from public.wheel_spins w
+   where w.created_at < now() - interval '90 days' and w.application_id is null and w.user_id is null and w.jeweler_id is null
+     and not exists (select 1 from public.subscriptions s where s.spin_id = w.id);
+  get diagnostics n = row_count; r := r || jsonb_build_object('wheel_spins', n);
+  -- account senza candidatura né abbonamento: 24 mesi senza accessi
+  delete from auth.users u
+   where coalesce(u.last_sign_in_at, u.created_at) < now() - interval '24 months'
+     and not exists (select 1 from public.applications a where a.user_id = u.id)
+     and not exists (select 1 from public.subscriptions s where s.user_id = u.id);
+  get diagnostics n = row_count; r := r || jsonb_build_object('auth_users', n);
+  -- crescita dell'audience: dirette salvate, promemoria e misure (LEG-015, sezione F)
+  r := r || jsonb_build_object('crescita', public.growth_cleanup());
+  return r;
+end $function$;
+
 -- ============================================================ permessi
-revoke all on function public._ref_code(), public._ensure_profile(uuid), public.growth_reminders(), public.referral_void(uuid, text) from public, anon, authenticated;
+revoke all on function public._ref_code(), public._ensure_profile(uuid), public.growth_reminders(), public.referral_void(uuid, text),
+  public._life_notice(text, uuid, text, timestamptz, timestamptz, text, jsonb, text, text, text), public._shows_saved_trg(), public._nights_saved_trg(),
+  public.growth_cleanup() from public, anon, authenticated;
 revoke all on function public.viewer_init(text, text, text, timestamptz, text, uuid, text), public.my_profile(), public.set_reminders(boolean),
-  public.delete_my_account(), public.save_life(text, uuid, boolean), public.my_saved() from public, anon;
+  public.delete_my_account(), public.save_life(text, uuid, boolean, boolean, boolean), public.set_life_reminders(text, uuid, boolean, boolean), public.my_saved() from public, anon;
 grant execute on function public.viewer_init(text, text, text, timestamptz, text, uuid, text), public.my_profile(), public.set_reminders(boolean),
-  public.delete_my_account(), public.save_life(text, uuid, boolean), public.my_saved() to authenticated;
-grant execute on function public.interested(text, uuid[]), public.reminders_off(text), public.record_share(text, uuid, text), public.record_visit(text, uuid, text),
+  public.delete_my_account(), public.save_life(text, uuid, boolean, boolean, boolean), public.set_life_reminders(text, uuid, boolean, boolean), public.my_saved() to authenticated;
+grant execute on function public.interested(text, uuid[]), public.reminders_off(text, text, uuid), public.record_share(text, uuid, text), public.record_visit(text, uuid, text),
   public.raid_targets(uuid, text), public.start_raid(uuid, text, uuid, integer), public.cancel_raid(uuid, text), public.set_accept_raids(uuid, text, boolean),
   public.raid_info(uuid), public.raid_event(uuid, text), public.raid_stats(uuid, text) to anon, authenticated;
 -- «Iscriviti alla live» (follow_night) non è mai stata approvata: la sostituisce «Remind Me» (P1 #47 di Nikita)

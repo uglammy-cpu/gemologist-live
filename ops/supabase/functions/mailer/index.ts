@@ -3,6 +3,11 @@
 // In qualunque altro caso le email restano nella coda con stato 'held': si leggono nel pannello, non partono.
 // 4 novembre 2026: conferma di candidatura con i tempi di risposta, email di approvazione con il link di pagamento
 // (solo con Stripe in produzione: altrimenti resta 'blocked'), email di attivazione con il link del pannello.
+// Versione 7 (preparata il 15/11/2026, NON pubblicata: si pubblica solo con l'OK di Elena): promemoria delle dirette salvate
+// con «Remind me» (reminder) e avvisi di spostamento o annullamento (reminder_change), con il piè di pagina del Legal
+// (LEG-015, sezione D): perché arriva l'email e i link per spegnere i promemoria di quella diretta o tutti.
+// Li accodano public.growth_reminders() (ogni 5 minuti) e i trigger delle dirette e delle serate salvate.
+// Contengono solo titolo, seller, giorno e ora nel fuso della persona, link per entrare: niente pubblicità né altre dirette (LEG-015, E.7).
 import { createClient } from "npm:@supabase/supabase-js@2";
 
 const sb = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!, { auth: { persistSession: false } });
@@ -22,6 +27,34 @@ const FOOT: Record<L, string> = {
 };
 const foot = (lang: string) => FOOT[lang as L] ?? FOOT.en;
 const footHtml = (lang: string) => esc(foot(lang)).replace(/(https:\/\/[^\s<]+)/g, '<a href="$1" style="color:#8a8078">$1</a>');
+
+// Promemoria: al posto della frase sulla candidatura, la riga del Legal (LEG-015, sezione D). Il resto di FOOT resta.
+// Francese, russo e arabo da far rivedere a Traduzioni.
+const REMFOOT: Record<L, { pre: string; one: string; all: string; priv: string; url: string }> = {
+  it: { pre: "Ricevi questa email perché hai salvato questa diretta su Uniqaia e hai chiesto un promemoria.", one: "Spegni i promemoria di questa diretta", all: "Spegni tutti i promemoria", priv: "Informativa privacy", url: "https://uniqaia.com/privacy/" },
+  en: { pre: "You're receiving this email because you saved this live show on Uniqaia and asked for a reminder.", one: "Turn off reminders for this show", all: "Turn off all reminders", priv: "Privacy notice", url: "https://uniqaia.com/privacy/?lang=en" },
+  fr: { pre: "Vous recevez cet e-mail parce que vous avez enregistré ce live sur Uniqaia et demandé un rappel.", one: "Désactiver les rappels de ce live", all: "Désactiver tous les rappels", priv: "Politique de confidentialité", url: "https://uniqaia.com/privacy/?lang=en" },
+  ru: { pre: "Вы получили это письмо, потому что сохранили этот эфир на Uniqaia и попросили напоминание.", one: "Выключить напоминания об этом эфире", all: "Выключить все напоминания", priv: "Политика конфиденциальности", url: "https://uniqaia.com/privacy/?lang=en" },
+  ar: { pre: "تتلقى هذه الرسالة لأنك حفظت هذا البث على Uniqaia وطلبت تذكيرًا.", one: "إيقاف تذكيرات هذا البث", all: "إيقاف كل التذكيرات", priv: "إشعار الخصوصية", url: "https://uniqaia.com/privacy/?lang=en" },
+};
+const isRem = (tpl: string) => tpl === "reminder" || tpl === "reminder_change";
+const owner = (lang: string) => foot(lang).split(" · ").slice(0, 3).join(" · ");   // titolare, indirizzo, partita IVA
+const remFoot = (lang: string, d: D) => { const f = REMFOOT[lang as L] ?? REMFOOT.en; return `${owner(lang)} · ${f.pre} ${f.one}: ${d.off} · ${f.all}: ${d.off_all} · ${f.priv}: ${f.url}`; };
+const remFootHtml = (lang: string, d: D) => {
+  const f = REMFOOT[lang as L] ?? REMFOOT.en, a = (u: string, t: string) => `<a href="${esc(u)}" style="color:#8a8078">${esc(t)}</a>`;
+  return `${esc(owner(lang))} · ${esc(f.pre)} ${a(d.off, f.one)} · ${a(d.off_all, f.all)} · ${a(f.url, f.priv)}`;
+};
+const footFor = (tpl: string, lang: string, d: D) => isRem(tpl) ? remFoot(lang, d) : foot(lang);
+const footHtmlFor = (tpl: string, lang: string, d: D) => isRem(tpl) ? remFootHtml(lang, d) : footHtml(lang);
+
+// giorno e ora nel fuso della persona (quello del browser quando ha creato l'account)
+const LOC: Record<L, string> = { it: "it-IT", en: "en-GB", fr: "fr-FR", ru: "ru-RU", ar: "ar-AE-u-nu-latn" };
+const whenTxt = (iso: string, tz: string, lang: string) => {
+  try { return new Intl.DateTimeFormat(LOC[lang as L] ?? "en-GB", { weekday: "long", day: "numeric", month: "long", hour: "2-digit", minute: "2-digit", timeZone: tz || "Europe/Rome", timeZoneName: "short" }).format(new Date(iso)); }
+  catch (_e) { return iso; }
+};
+const W = (d: D, lang: string) => whenTxt(d.at, d.tz, lang), WO = (d: D, lang: string) => whenTxt(d.old_at, d.tz, lang);
+const night = (d: D) => d.kind === "night";
 
 // Testi di sistema. Russo e arabo non ancora rivisti da madrelingua.
 const TPL: Record<string, Partial<Record<L, T>>> = {
@@ -76,6 +109,72 @@ const TPL: Record<string, Partial<Record<L, T>>> = {
   admin_new: {
     it: { s: (d) => `${d.completed === "true" ? "Candidatura completata" : "Nuova candidatura"}: ${d.brand} (${d.country})`, b: (d) => `${d.completed === "true" ? "Il seller che avevi inserito ha completato e confermato la candidatura" : "È arrivata una candidatura spontanea"}: ${d.brand}, ${d.city} (${d.country}).\n\nLa trovi nel pannello, sezione Candidature, con i dati e le immagini.` },
   },
+  // promemoria di una diretta o di una serata salvata: 24 ore prima (slot 24h) o 15 minuti prima (slot 15m)
+  reminder: {
+    en: {
+      s: (d) => d.slot === "15m" ? `Starting in 15 minutes: ${d.title}` : `Tomorrow on Uniqaia: ${d.title}`,
+      b: (d) => `Hello,\n\n${night(d) ? "the evening you saved" : "the live show you saved"} ${d.slot === "15m" ? "starts in 15 minutes" : "starts tomorrow"}: ${d.title}${d.seller ? " with " + d.seller : ""}, ${W(d, "en")}.\n\nKind regards,\nUniqaia`,
+      c: (d) => ({ label: night(d) ? "SEE THE EVENING" : "JOIN THE LIVE", url: d.url }),
+    },
+    it: {
+      s: (d) => d.slot === "15m" ? `Fra 15 minuti: ${d.title}` : `Domani su Uniqaia: ${d.title}`,
+      b: (d) => `Ciao,\n\n${night(d) ? "la serata che hai salvato" : "la diretta che hai salvato"} ${d.slot === "15m" ? "comincia fra 15 minuti" : "è domani"}: ${d.title}${d.seller ? " con " + d.seller : ""}, ${W(d, "it")}.\n\nUniqaia`,
+      c: (d) => ({ label: night(d) ? "VAI ALLA SERATA" : "ENTRA NELLA DIRETTA", url: d.url }),
+    },
+    fr: {
+      s: (d) => d.slot === "15m" ? `Dans 15 minutes : ${d.title}` : `Demain sur Uniqaia : ${d.title}`,
+      b: (d) => `Bonjour,\n\n${night(d) ? "la soirée que vous avez enregistrée" : "le live que vous avez enregistré"} ${d.slot === "15m" ? "commence dans 15 minutes" : "a lieu demain"} : ${d.title}${d.seller ? " avec " + d.seller : ""}, ${W(d, "fr")}.\n\nUniqaia`,
+      c: (d) => ({ label: night(d) ? "VOIR LA SOIRÉE" : "REJOINDRE LE LIVE", url: d.url }),
+    },
+    ru: {
+      s: (d) => d.slot === "15m" ? `Через 15 минут: ${d.title}` : `Завтра на Uniqaia: ${d.title}`,
+      b: (d) => `Здравствуйте!\n\n${night(d) ? "Сохранённый вами вечер" : "Сохранённый вами эфир"} ${d.slot === "15m" ? "начнётся через 15 минут" : "состоится завтра"}: ${d.title}${d.seller ? ", " + d.seller : ""}, ${W(d, "ru")}.\n\nUniqaia`,
+      c: (d) => ({ label: night(d) ? "ОТКРЫТЬ ВЕЧЕР" : "ПЕРЕЙТИ В ЭФИР", url: d.url }),
+    },
+    ar: {
+      s: (d) => d.slot === "15m" ? `بعد 15 دقيقة: ${d.title}` : `غدًا على Uniqaia: ${d.title}`,
+      b: (d) => `مرحبًا،\n\n${night(d) ? "الأمسية التي حفظتها" : "البث الذي حفظته"} ${d.slot === "15m" ? "يبدأ بعد 15 دقيقة" : "موعده غدًا"}: ${d.title}${d.seller ? " مع " + d.seller : ""}، ${W(d, "ar")}.\n\nUniqaia`,
+      c: (d) => ({ label: night(d) ? "اذهب إلى الأمسية" : "ادخل إلى البث", url: d.url }),
+    },
+  },
+  // una diretta o una serata salvata è stata spostata (change = moved) o annullata (cancelled): nessun pulsante se annullata
+  reminder_change: {
+    en: {
+      s: (d) => d.change === "moved" ? `New time: ${d.title}` : `Cancelled: ${d.title}`,
+      b: (d) => d.change === "moved"
+        ? `Hello,\n\n${night(d) ? "the evening you saved" : "the live show you saved"}, ${d.title}${d.seller ? " with " + d.seller : ""}, has been moved.\n\nNew time: ${W(d, "en")}\nPrevious time: ${WO(d, "en")}\n\nYour reminders now follow the new time.\n\nKind regards,\nUniqaia`
+        : `Hello,\n\n${night(d) ? "the evening you saved" : "the live show you saved"}, ${d.title}${d.seller ? " with " + d.seller : ""}, planned for ${WO(d, "en")}, has been cancelled. We have removed it from My Saved Lives.\n\nKind regards,\nUniqaia`,
+      c: (d) => d.change === "moved" ? { label: night(d) ? "SEE THE EVENING" : "SEE THE LIVE", url: d.url } : null,
+    },
+    it: {
+      s: (d) => d.change === "moved" ? `Nuovo orario: ${d.title}` : `Annullata: ${d.title}`,
+      b: (d) => d.change === "moved"
+        ? `Ciao,\n\n${night(d) ? "la serata che hai salvato" : "la diretta che hai salvato"}, ${d.title}${d.seller ? " con " + d.seller : ""}, è stata spostata.\n\nNuovo orario: ${W(d, "it")}\nOrario precedente: ${WO(d, "it")}\n\nI promemoria seguono il nuovo orario.\n\nUniqaia`
+        : `Ciao,\n\n${night(d) ? "la serata che hai salvato" : "la diretta che hai salvato"}, ${d.title}${d.seller ? " con " + d.seller : ""}, prevista per ${WO(d, "it")}, è stata annullata. L'abbiamo tolta da Le mie dirette.\n\nUniqaia`,
+      c: (d) => d.change === "moved" ? { label: night(d) ? "VAI ALLA SERATA" : "VAI ALLA DIRETTA", url: d.url } : null,
+    },
+    fr: {
+      s: (d) => d.change === "moved" ? `Nouvel horaire : ${d.title}` : `Annulé${night(d) ? "e" : ""} : ${d.title}`,
+      b: (d) => d.change === "moved"
+        ? `Bonjour,\n\n${night(d) ? "la soirée que vous avez enregistrée" : "le live que vous avez enregistré"}, ${d.title}${d.seller ? " avec " + d.seller : ""}, a été déplacé${night(d) ? "e" : ""}.\n\nNouvel horaire : ${W(d, "fr")}\nAncien horaire : ${WO(d, "fr")}\n\nVos rappels suivent le nouvel horaire.\n\nUniqaia`
+        : `Bonjour,\n\n${night(d) ? "la soirée que vous avez enregistrée" : "le live que vous avez enregistré"}, ${d.title}${d.seller ? " avec " + d.seller : ""}, prévu${night(d) ? "e" : ""} le ${WO(d, "fr")}, a été annulé${night(d) ? "e" : ""}. Nous l'avons retiré${night(d) ? "e" : ""} de Mes lives.\n\nUniqaia`,
+      c: (d) => d.change === "moved" ? { label: night(d) ? "VOIR LA SOIRÉE" : "VOIR LE LIVE", url: d.url } : null,
+    },
+    ru: {
+      s: (d) => d.change === "moved" ? `Новое время: ${d.title}` : `Отменено: ${d.title}`,
+      b: (d) => d.change === "moved"
+        ? `Здравствуйте!\n\n${night(d) ? "Сохранённый вами вечер" : "Сохранённый вами эфир"} — ${d.title}${d.seller ? ", " + d.seller : ""} — перенесён.\n\nНовое время: ${W(d, "ru")}\nПрежнее время: ${WO(d, "ru")}\n\nНапоминания придут по новому времени.\n\nUniqaia`
+        : `Здравствуйте!\n\n${night(d) ? "Сохранённый вами вечер" : "Сохранённый вами эфир"} — ${d.title}${d.seller ? ", " + d.seller : ""}, запланированный на ${WO(d, "ru")}, — отменён. Мы убрали его из раздела «Мои эфиры».\n\nUniqaia`,
+      c: (d) => d.change === "moved" ? { label: night(d) ? "ОТКРЫТЬ ВЕЧЕР" : "ОТКРЫТЬ ЭФИР", url: d.url } : null,
+    },
+    ar: {
+      s: (d) => d.change === "moved" ? `موعد جديد: ${d.title}` : `أُلغي: ${d.title}`,
+      b: (d) => d.change === "moved"
+        ? `مرحبًا،\n\n${night(d) ? "تم تغيير موعد الأمسية التي حفظتها" : "تم تغيير موعد البث الذي حفظته"}: ${d.title}${d.seller ? " مع " + d.seller : ""}.\n\nالموعد الجديد: ${W(d, "ar")}\nالموعد السابق: ${WO(d, "ar")}\n\nستصلك التذكيرات حسب الموعد الجديد.\n\nUniqaia`
+        : `مرحبًا،\n\n${night(d) ? "تم إلغاء الأمسية التي حفظتها" : "تم إلغاء البث الذي حفظته"}: ${d.title}${d.seller ? " مع " + d.seller : ""}، وكان موعده ${WO(d, "ar")}. أزلناه من «بثوثي».\n\nUniqaia`,
+      c: (d) => d.change === "moved" ? { label: night(d) ? "اذهب إلى الأمسية" : "اذهب إلى البث", url: d.url } : null,
+    },
+  },
   // allarmi tecnici di Nikita (P0/P1) per Elena: li accoda ops._email_alert solo con MAIL_MODE = live
   ops_alert: {
     it: {
@@ -90,11 +189,11 @@ const TPL: Record<string, Partial<Record<L, T>>> = {
 const esc = (s: string) => s.replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]!));
 const button = (c: { label: string; url: string }) =>
   `<p style="margin:28px 0"><a href="${esc(c.url)}" style="display:inline-block;background:#1C1406;color:#EDD596;text-decoration:none;padding:14px 26px;border-radius:999px;font-family:Arial,sans-serif;font-size:14px;letter-spacing:.12em">${esc(c.label)}</a></p>`;
-const html = (text: string, lang: string, cta: { label: string; url: string } | null) => {
+const html = (text: string, lang: string, cta: { label: string; url: string } | null, footer?: string) => {
   const [head, ...rest] = esc(text).split("\n\nKind regards,");
   const body = (s: string) => s.replace(/(https:\/\/[^\s<]+)/g, '<a href="$1" style="color:#86683B">$1</a>').replace(/\n/g, "<br>");
   const main = cta && rest.length ? body(head) + button(cta) + body("Kind regards," + rest.join("\n\nKind regards,")) : body(esc(text)) + (cta ? button(cta) : "");
-  return `<!doctype html><html lang="${lang}" dir="${lang === "ar" ? "rtl" : "ltr"}"><body style="margin:0;background:#FBF8F2;font-family:Georgia,serif;color:#2B2520"><div style="max-width:560px;margin:0 auto;padding:32px 24px;font-size:16px;line-height:1.6">${main}<p style="margin-top:32px;font-size:12px;color:#8a8078">${footHtml(lang)}</p></div></body></html>`;
+  return `<!doctype html><html lang="${lang}" dir="${lang === "ar" ? "rtl" : "ltr"}"><body style="margin:0;background:#FBF8F2;font-family:Georgia,serif;color:#2B2520"><div style="max-width:560px;margin:0 auto;padding:32px 24px;font-size:16px;line-height:1.6">${main}<p style="margin-top:32px;font-size:12px;color:#8a8078">${footer ?? footHtml(lang)}</p></div></body></html>`;
 };
 
 async function cfg(keys: string[]) {
@@ -127,13 +226,15 @@ Deno.serve(async (req) => {
     if (d.slug && d.key) d.panel = `${base}/${d.slug}/panel/?k=${d.key}`;
     if (d.pay_token) d.pay = `${base}/pay/?t=${d.pay_token}`;
     const subject = t.s(d), cta = t.c ? t.c(d) : null;
-    const text = t.b(d) + (cta ? `\n\n${cta.label}:\n${cta.url}` : "") + "\n\n--\n" + foot(r.lang);
+    // promemoria senza i due link per spegnerli: non partono (LEG-015, E.7)
+    if (isRem(r.template) && (!d.off || !d.off_all)) { await sb.from("outbox").update({ status: "failed", error: "mancano i link per spegnere i promemoria" }).eq("id", r.id); failed++; continue; }
+    const text = t.b(d) + (cta ? `\n\n${cta.label}:\n${cta.url}` : "") + "\n\n--\n" + footFor(r.template, r.lang, d);
     if (!live) { await sb.from("outbox").update({ status: "held", subject }).eq("id", r.id); held++; continue; }
     try {
       const res = await fetch("https://api.resend.com/emails", {
         method: "POST",
         headers: { authorization: `Bearer ${key}`, "content-type": "application/json", "idempotency-key": `uq-mail-${r.id}` },
-        body: JSON.stringify({ from: c.MAIL_FROM || "Uniqaia <seller@uniqaia.com>", to: [r.to_email], reply_to: "seller@uniqaia.com", subject, text, html: html(t.b(d), r.lang, cta) }),
+        body: JSON.stringify({ from: c.MAIL_FROM || "Uniqaia <seller@uniqaia.com>", to: [r.to_email], reply_to: "seller@uniqaia.com", subject, text, html: html(t.b(d), r.lang, cta, footHtmlFor(r.template, r.lang, d)) }),
       });
       if (!res.ok) throw new Error(`${res.status} ${(await res.text()).slice(0, 300)}`);
       await sb.from("outbox").update({ status: "sent", subject, sent_at: new Date().toISOString(), attempts: r.attempts + 1 }).eq("id", r.id); sent++;

@@ -11,6 +11,7 @@
 // Versione 8 (15/11/2026, richiesta di Elena): pulsante italiano «VAI ALLA LIVE»; nei promemoria niente nome, indirizzo e partita IVA della titolare.
 // Versione 9 (15/11/2026, richiesta di Elena): niente nome, indirizzo e partita IVA nemmeno nel piè di pagina delle altre email.
 // Versione 10 (15/11/2026, richiesta di Elena): firma «Uniqaia Team» al posto di «Elena Goglio · Uniqaia», frasi dei seller al plurale.
+// Versione 11 (16/11/2026, OK di Elena): russo e arabo dei promemoria corretti da Traduzioni (TR-012), con gli spazi non separabili nel russo.
 import { createClient } from "npm:@supabase/supabase-js@2";
 
 const sb = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!, { auth: { persistSession: false } });
@@ -38,7 +39,7 @@ const REMFOOT: Record<L, { pre: string; one: string; all: string; priv: string; 
   it: { pre: "Ricevi questa email perché hai salvato questa diretta su Uniqaia e hai chiesto un promemoria.", one: "Spegni i promemoria di questa diretta", all: "Spegni tutti i promemoria", priv: "Informativa privacy", url: "https://uniqaia.com/privacy/" },
   en: { pre: "You're receiving this email because you saved this live show on Uniqaia and asked for a reminder.", one: "Turn off reminders for this show", all: "Turn off all reminders", priv: "Privacy notice", url: "https://uniqaia.com/privacy/?lang=en" },
   fr: { pre: "Vous recevez cet e-mail parce que vous avez enregistré ce live sur Uniqaia et demandé un rappel.", one: "Désactiver les rappels de ce live", all: "Désactiver tous les rappels", priv: "Politique de confidentialité", url: "https://uniqaia.com/privacy/?lang=en" },
-  ru: { pre: "Вы получили это письмо, потому что сохранили этот эфир на Uniqaia и попросили напоминание.", one: "Выключить напоминания об этом эфире", all: "Выключить все напоминания", priv: "Политика конфиденциальности", url: "https://uniqaia.com/privacy/?lang=en" },
+  ru: { pre: "Вы получили это письмо, потому что сохранили этот эфир на Uniqaia и\u00a0попросили напомнить о\u00a0нём.", one: "Выключить напоминания об этом эфире", all: "Выключить все напоминания", priv: "Политика конфиденциальности", url: "https://uniqaia.com/privacy/?lang=en" },
   ar: { pre: "تتلقى هذه الرسالة لأنك حفظت هذا البث على Uniqaia وطلبت تذكيرًا.", one: "إيقاف تذكيرات هذا البث", all: "إيقاف كل التذكيرات", priv: "إشعار الخصوصية", url: "https://uniqaia.com/privacy/?lang=en" },
 };
 const isRem = (tpl: string) => tpl === "reminder" || tpl === "reminder_change";
@@ -130,13 +131,13 @@ const TPL: Record<string, Partial<Record<L, T>>> = {
       c: (d) => ({ label: night(d) ? "VOIR LA SOIRÉE" : "REJOINDRE LE LIVE", url: d.url }),
     },
     ru: {
-      s: (d) => d.slot === "15m" ? `Через 15 минут: ${d.title}` : `Завтра на Uniqaia: ${d.title}`,
-      b: (d) => `Здравствуйте!\n\n${night(d) ? "Сохранённый вами вечер" : "Сохранённый вами эфир"} ${d.slot === "15m" ? "начнётся через 15 минут" : "состоится завтра"}: ${d.title}${d.seller ? ", " + d.seller : ""}, ${W(d, "ru")}.\n\nUniqaia`,
-      c: (d) => ({ label: night(d) ? "ОТКРЫТЬ ВЕЧЕР" : "ПЕРЕЙТИ В ЭФИР", url: d.url }),
+      s: (d) => d.slot === "15m" ? `Через 15\u00a0минут: ${d.title}` : `Завтра на Uniqaia: ${d.title}`,
+      b: (d) => `Здравствуйте!\n\n${night(d) ? "Сохранённый вами вечер" : "Сохранённый вами эфир"} ${d.slot === "15m" ? "начнётся через 15\u00a0минут" : "состоится завтра"}: ${d.title}${d.seller ? " с\u00a0" + d.seller : ""}, ${W(d, "ru")}.\n\nUniqaia`,
+      c: (d) => ({ label: night(d) ? "ОТКРЫТЬ ВЕЧЕР" : "ПЕРЕЙТИ В\u00a0ЭФИР", url: d.url }),
     },
     ar: {
       s: (d) => d.slot === "15m" ? `بعد 15 دقيقة: ${d.title}` : `غدًا على Uniqaia: ${d.title}`,
-      b: (d) => `مرحبًا،\n\n${night(d) ? "الأمسية التي حفظتها" : "البث الذي حفظته"} ${d.slot === "15m" ? "يبدأ بعد 15 دقيقة" : "موعده غدًا"}: ${d.title}${d.seller ? " مع " + d.seller : ""}، ${W(d, "ar")}.\n\nUniqaia`,
+      b: (d) => `مرحبًا،\n\n${night(d) ? "الأمسية التي حفظتها" : "البث الذي حفظته"} ${d.slot === "15m" ? (night(d) ? "تبدأ بعد 15 دقيقة" : "يبدأ بعد 15 دقيقة") : (night(d) ? "موعدها غدًا" : "موعده غدًا")}: ${d.title}${d.seller ? " مع " + d.seller : ""}، ${W(d, "ar")}.\n\nUniqaia`,
       c: (d) => ({ label: night(d) ? "اذهب إلى الأمسية" : "ادخل إلى البث", url: d.url }),
     },
   },
@@ -166,15 +167,15 @@ const TPL: Record<string, Partial<Record<L, T>>> = {
     ru: {
       s: (d) => d.change === "moved" ? `Новое время: ${d.title}` : `Отменено: ${d.title}`,
       b: (d) => d.change === "moved"
-        ? `Здравствуйте!\n\n${night(d) ? "Сохранённый вами вечер" : "Сохранённый вами эфир"} — ${d.title}${d.seller ? ", " + d.seller : ""} — перенесён.\n\nНовое время: ${W(d, "ru")}\nПрежнее время: ${WO(d, "ru")}\n\nНапоминания придут по новому времени.\n\nUniqaia`
-        : `Здравствуйте!\n\n${night(d) ? "Сохранённый вами вечер" : "Сохранённый вами эфир"} — ${d.title}${d.seller ? ", " + d.seller : ""}, запланированный на ${WO(d, "ru")}, — отменён. Мы убрали его из раздела «Мои эфиры».\n\nUniqaia`,
+        ? `Здравствуйте!\n\n${night(d) ? "Сохранённый вами вечер" : "Сохранённый вами эфир"}\u00a0— ${d.title}${d.seller ? " с\u00a0" + d.seller : ""}\u00a0— перенесён.\n\nНовое время: ${W(d, "ru")}\nПрежнее время: ${WO(d, "ru")}\n\nНапоминания придут по новому времени.\n\nUniqaia`
+        : `Здравствуйте!\n\n${night(d) ? "Сохранённый вами вечер" : "Сохранённый вами эфир"}\u00a0— ${d.title}${d.seller ? " с\u00a0" + d.seller : ""}\u00a0— отменён.\n\nЗапланированное время: ${WO(d, "ru")}\n\nМы убрали его из раздела «Мои эфиры».\n\nUniqaia`,
       c: (d) => d.change === "moved" ? { label: night(d) ? "ОТКРЫТЬ ВЕЧЕР" : "ОТКРЫТЬ ЭФИР", url: d.url } : null,
     },
     ar: {
-      s: (d) => d.change === "moved" ? `موعد جديد: ${d.title}` : `أُلغي: ${d.title}`,
+      s: (d) => d.change === "moved" ? `موعد جديد: ${d.title}` : `تم الإلغاء: ${d.title}`,
       b: (d) => d.change === "moved"
         ? `مرحبًا،\n\n${night(d) ? "تم تغيير موعد الأمسية التي حفظتها" : "تم تغيير موعد البث الذي حفظته"}: ${d.title}${d.seller ? " مع " + d.seller : ""}.\n\nالموعد الجديد: ${W(d, "ar")}\nالموعد السابق: ${WO(d, "ar")}\n\nستصلك التذكيرات حسب الموعد الجديد.\n\nUniqaia`
-        : `مرحبًا،\n\n${night(d) ? "تم إلغاء الأمسية التي حفظتها" : "تم إلغاء البث الذي حفظته"}: ${d.title}${d.seller ? " مع " + d.seller : ""}، وكان موعده ${WO(d, "ar")}. أزلناه من «بثوثي».\n\nUniqaia`,
+        : `مرحبًا،\n\n${night(d) ? "تم إلغاء الأمسية التي حفظتها" : "تم إلغاء البث الذي حفظته"}: ${d.title}${d.seller ? " مع " + d.seller : ""}، ${night(d) ? "وكان موعدها" : "وكان موعده"} ${WO(d, "ar")}. ${night(d) ? "أزلناها" : "أزلناه"} من «بثوثي».\n\nUniqaia`,
       c: (d) => d.change === "moved" ? { label: night(d) ? "اذهب إلى الأمسية" : "اذهب إلى البث", url: d.url } : null,
     },
   },

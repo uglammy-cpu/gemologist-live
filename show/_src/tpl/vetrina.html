@@ -277,6 +277,8 @@ input,select,textarea{border-color:var(--edge);background:var(--cream)}
 .wv3 .wct .pill i{width:7px;height:7px;border-radius:50%;background:var(--red)}
 .wv3 .wct b{display:block;font-family:var(--display);font-weight:800;font-size:clamp(25px,2.5vw,36px);line-height:1.08;letter-spacing:-.02em}
 .wv3 .wct em{display:block;font-family:var(--serif);font-style:italic;font-weight:400;font-size:clamp(19px,1.8vw,26px);color:#F6C7CC;margin-top:4px}
+.wv3 .wct em.big{font-family:var(--serif);font-style:normal;font-weight:700;font-size:clamp(38px,3.8vw,56px);line-height:1;letter-spacing:-.025em;color:var(--red);margin-top:6px}  /* «In Live» in rosso e grassetto, stesso carattere di «Live» del titolo, solo in italiano (Elena, 16/11) */
+.wv3 h1 .r.big{font-size:1.7em;line-height:.95;font-weight:700}  /* «Live» grande, solo in italiano (Elena, 16/11) */
 .wv3 .wct .cn{display:block;font-size:11px;letter-spacing:.16em;text-transform:uppercase;opacity:.85;margin-top:12px}
 .wv3 .wct .cnt{font-size:11px;letter-spacing:.18em;font-weight:600;white-space:nowrap}
 .wv3 .wcats{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px 24px;padding:20px 0 14px;border-top:1px solid var(--line);margin-top:auto}
@@ -820,12 +822,12 @@ input,select,textarea{border-color:var(--edge);background:var(--cream)}
     w.className = "welcome v3";
     w.innerHTML = '<div class="wv3"><header class="wtop"><div class="wlogo"><span class="logo">' + $("logoTpl").innerHTML + '</span><small>' + tagHtml() + '</small></div>'
       + '<div class="wright"><span class="wnew">' + esc(W.top) + '</span><div class="wlang">' + ["it", "en", "fr", "ar", "ru"].map(function(l){ return '<button type="button" data-l="' + l + '"' + (l === lang ? ' class="on"' : '') + '>' + l.toUpperCase() + '</button>'; }).join("") + '</div></div></header>'
-      + '<section class="whero"><div class="wtxt"><p class="weyebrow">' + esc(W.eyebrow) + '</p><h1><span>' + esc(W.h1a) + '</span><span class="r">' + esc(W.h1b) + '</span></h1><p class="wlead">' + esc(W.lead) + '</p>'
+      + '<section class="whero"><div class="wtxt"><p class="weyebrow">' + esc(W.eyebrow) + '</p><h1><span>' + esc(W.h1a) + '</span><span class="r' + (lang === "it" ? ' big' : '') + '">' + esc(W.h1b) + '</span></h1><p class="wlead">' + esc(W.lead) + '</p>'
       + '<div class="wbtns"><button type="button" class="wbtn red" id="wGo">' + esc(W.explore) + WICO.arr + '</button><a class="wbtn out" href="' + CFG.base + '/live/join?lang=' + lang + '">' + esc(t.ctaBtn) + WICO.arr + '</a></div><div id="wOffer"></div>'
       + '<div class="wfeat"><div>' + WICO.star + '<span>' + esc(W.f1) + '</span></div><div>' + WICO.chat + '<span>' + esc(W.f2) + '</span></div><div>' + WICO.cart + '<span>' + esc(W.f3) + '</span></div></div></div>'
       + '<div class="wcardx">' + WCATS.map(function(s, k){ return '<img alt="" src="' + vimg(CFG.base + "/show/img/cat/" + s + ".jpg") + '"' + (k === 0 ? ' class="on"' : '') + '>'; }).join("")
       + '<div class="wct"><div class="row"><span class="ed">UNIQAIA<br>' + esc(W.edit) + '</span><span class="pill"><i></i>' + esc(W.live) + '</span></div>'
-      + '<div class="row bot"><div><b>' + esc(W.c1) + '</b><em>' + esc(W.c2) + '</em><span class="cn" id="wCn">' + esc(tileName(WCATS[0])) + '</span></div><span class="cnt" id="wCnt">01 / ' + two(n) + '</span></div></div></div></section>'
+      + '<div class="row bot"><div><b>' + esc(W.c1) + '</b><em' + (lang === "it" ? ' class="big"' : '') + '>' + esc(W.c2) + '</em><span class="cn" id="wCn">' + esc(tileName(WCATS[0])) + '</span></div><span class="cnt" id="wCnt">01 / ' + two(n) + '</span></div></div></div></section>'
       + '<footer class="wcats"><span>' + esc(W.cats) + '</span><nav>' + WCATS.map(function(s){ return '<a href="' + catPageUrl(s) + '">' + esc(tileName(s)) + '</a>'; }).join("") + '</nav></footer>'
       + '<p class="wfoot">' + esc(W.foot) + '</p></div>';
     w.hidden = false; document.body.style.overflow = "hidden"; renderOffer();
